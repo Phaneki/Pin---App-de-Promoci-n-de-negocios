@@ -29,3 +29,37 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Color principal */
+:root {
+    --main-orange: #c4552d;
+}
+
+/* Links */
+.nav-link {
+    color: #555 !important;
+    margin: 0 10px;
+}
+
+.nav-link:hover {
+    color: var(--main-orange) !important;
+}
+
+/* Activo (Inicio subrayado) */
+.active-custom {
+    color: var(--main-orange) !important;
+    border-bottom: 2px solid var(--main-orange);
+}
+
+/* Botón */
+.btn-orange {
+    background-color: var(--main-orange);
+    color: white;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.btn-orange:hover {
+    background-color: #a94424;
+    color: white;
+}
