@@ -1,0 +1,36 @@
+/* Estilos específicos para la página de exploración de PIN */
+
+.filtro-sidebar {
+  border-radius: 12px;
+}
+
+.card-negocio {
+  border-radius: 15px;
+  transition: transform 0.3s ease;
+}
+
+.card-negocio:hover {
+  transform: translateY(-5px);
+}
+
+.custom-check:checked {
+  background-color: var(--main-orange);
+  border-color: var(--main-orange);
+}
+
+.btn-orange-pin {
+  background-color: var(--main-orange);
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+
+.btn-orange-pin:hover {
+  background-color: #a94424;
+  color: white;
+}
+
+/* Ajuste de iconos */
+.bi-star-fill {
+  font-size: 0.9rem;
+}
