@@ -24,7 +24,7 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+  margin-bottom: 0;
 }
 
 .form-floating > .form-control-plaintext::placeholder,
@@ -193,4 +193,90 @@ body {
 
 .business-location {
     color: #777;
+}
+/* ===== CTA SECTION ===== */
+
+.cta-section {
+    background: #a94424;
+    padding: 80px 0;
+}
+
+.cta-title {
+    font-size: 36px;
+    font-weight: 800;
+}
+
+.cta-text {
+    max-width: 500px;
+    margin-top: 15px;
+}
+
+/* Tarjeta */
+.cta-card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    max-width: 300px;
+    margin: auto;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    transform: rotate(-3deg);
+}
+
+.progress {
+    height: 6px;
+    background: #eee;
+}
+
+.progress-bar {
+    background: #a94424;
+}
+/* ===== FOOTER PRO ===== */
+
+.footer-custom {
+    background: #f5f5f5;
+    padding: 25px 0;
+    border-top: none;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* Links */
+.footer-links {
+    display: flex;
+    justify-content: flex-end;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    text-decoration: none;
+    color: #555;
+    font-weight: 500;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #a94424;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .footer-custom {
+        padding: 20px 0;
+        text-align: center;
+    }
+
+    .footer-links {
+        justify-content: center;
+        margin-top: 15px;
+        gap: 15px;
+    }
+
+    .footer-links a {
+        font-size: 13px;
+    }
+}
+.footer-custom {
+    background: #f5f5f5;
 }

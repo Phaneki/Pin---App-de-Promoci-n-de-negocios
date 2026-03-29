@@ -57,13 +57,32 @@
             </div>
         </nav>
     </header>
-    <main role="main" class="pb-3">
+    <main role="main">
         @RenderBody()
     </main>
 
-    <footer class="border-top footer text-muted">
-        <div class="container-fluid">
-            &copy; 2026 - Pin___App_de_Promoci_n_de_negocios - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="footer-custom">
+        <div class="container-fluid px-5">
+
+            <div class="row align-items-center text-center text-md-start">
+
+                <!-- IZQUIERDA -->
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <p class="mb-0 fw-semibold">© 2026 Pin</p>
+                    <small class="text-muted">Todos los derechos reservados.</small>
+                </div>
+
+                <!-- DERECHA -->
+                <div class="col-md-6 text-md-end">
+                    <div class="footer-links">
+                        <a href="#">Nosotros</a>
+                        <a href="#">Privacidad</a>
+                        <a href="#">Contacto</a>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
