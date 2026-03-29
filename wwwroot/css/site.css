@@ -152,3 +152,45 @@ body {
   padding: 10px 25px;
   font-weight: 600;
 }
+/* ===== FEATURED ===== */
+
+.featured-section {
+    background: #ffffff;
+}
+
+/* ===== BUSINESS CARDS ===== */
+
+.business-card {
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid #f1f1f1;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+}
+
+.business-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+}
+
+.business-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.business-title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.business-category {
+    color: #a94424;
+    font-weight: 600;
+}
+
+.business-location {
+    color: #777;
+}
