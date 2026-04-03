@@ -1,0 +1,123 @@
+@model IEnumerable<Pin___App_de_Promoci_n_de_negocios.Models.Negocio>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/explorar.css" asp-append-version="true" />
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <aside class="col-md-3 pe-4">
+            <div class="card border-0 shadow-sm p-3 filtro-sidebar">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Filtros</h5>
+                    <a href="#" class="text-decoration-none small" style="color: var(--main-orange);">Limpiar Filtros</a>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-bold">BÚSQUEDA DIRECTA</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control bg-light border-start-0" placeholder="Ej. Cevicheria, Taller...">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-bold">CATEGORÍAS</label>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input custom-check" type="checkbox" checked id="cat1">
+                        <label class="form-check-label" for="cat1">Restaurantes</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="cat2">
+                        <label class="form-check-label" for="cat2">Tiendas</label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-bold">UBICACIÓN (LIMA)</label>
+                    <select class="form-select bg-light">
+                        <option selected>Miraflores</option>
+                        <option>San Isidro</option>
+                        <option>Surco</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-bold">RANGO DE PRECIO</label>
+                    <div class="btn-group w-100" role="group">
+                        <button type="button" class="btn btn-outline-secondary active">S/</button>
+                        <button type="button" class="btn btn-outline-secondary">S/ S/</button>
+                        <button type="button" class="btn btn-outline-secondary">S/ S/ S/</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <p class="text-muted mb-0">Mostrando <span class="fw-bold text-dark">@Model.Count() negocios</span> en Miraflores</p>
+                <div class="d-flex align-items-center">
+                    <span class="me-2 text-muted">Ordenar por:</span>
+                    <select class="form-select form-select-sm border-0 fw-bold" style="width: auto; color: var(--main-orange);">
+                        <option>Relevancia</option>
+                        <option>Calificación</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                @foreach (var negocio in Model)
+                {
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm overflow-hidden card-negocio">
+                            <div class="position-relative" style="height: 200px;">
+                                @if (!string.IsNullOrWhiteSpace(negocio.ImagenUrl))
+                                {
+                                    <img src="@Url.Content(negocio.ImagenUrl)" class="card-img-top" alt="@negocio.Nombre" style="height: 200px; object-fit: cover; width: 100%;" />
+                                }
+                                else
+                                {
+                                    <div class="d-flex align-items-center justify-content-center bg-secondary text-white" style="height: 200px; width: 100%;">
+                                        <h4 class="fw-bold text-center m-0">@negocio.Nombre</h4>
+                                    </div>
+                                }
+
+                                @if (negocio.Destacado)
+                                {
+                                    <span class="badge bg-white text-dark position-absolute top-0 start-0 m-3 shadow-sm px-3 py-2">DESTACADO</span>
+                                }
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <span class="small fw-bold text-uppercase" style="color: var(--main-orange);">@negocio.Categoria</span>
+                                        <h5 class="card-title fw-bold mt-1">@negocio.Nombre</h5>
+                                    </div>
+                                    <span class="badge bg-light text-dark border"><i class="bi bi-star-fill text-warning me-1"></i> @negocio.Calificacion</span>
+                                </div>
+                                <p class="card-text text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i> @negocio.Direccion</p>
+                                <p class="card-text text-success small mb-3"><i class="bi bi-clock me-1"></i> Abierto</p>
+                                
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <a asp-action="Details" asp-route-id="@negocio.Id" class="btn btn-orange-pin w-100 py-2 fw-bold">Ver perfil</a>
+                                    </div>
+                                    <div class="col-6">
+                                        <button class="btn btn-light w-100 py-2 fw-bold border text-muted"><i class="bi bi-map me-1"></i> Ruta</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <nav class="mt-5">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item active"><a class="page-link border-0 shadow-sm mx-1 rounded text-white" style="background-color: var(--main-orange);" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link border-0 shadow-sm mx-1 rounded text-dark" href="#">2</a></li>
+                </ul>
+            </nav>
+        </main>
+    </div>
+</div>

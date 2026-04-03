@@ -8,38 +8,81 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Pin___App_de_Promoci_n_de_negocios.styles.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Pin___App_de_Promoci_n_de_negocios</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+        <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm">
+            <div class="container-fluid px-4">
+
+                <!-- LOGO -->
+                <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/logo.png" alt="logo" style="height:40px;" class="me-2">
+                </a>
+
+                <!-- BOTÓN RESPONSIVE -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <!-- CONTENIDO -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+
+                    <!-- CENTRO -->
+                    <ul class="navbar-nav mx-auto fw-semibold">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link active-custom" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Explorar">Explorar</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Categorías</a>
                         </li>
                     </ul>
+
+                    <!-- DERECHA -->
+                    <ul class="navbar-nav align-items-center">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark fw-semibold" href="#">Ingresar</a>
+                        </li>
+                        <li class="nav-item ms-2">
+                            <a class="btn btn-orange px-3" href="#">
+                                Registrar negocio
+                            </a>
+                        </li>
+                    </ul>
+
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    <main role="main">
+        @RenderBody()
+    </main>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Pin___App_de_Promoci_n_de_negocios - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="footer-custom">
+        <div class="container-fluid px-5">
+
+            <div class="row align-items-center text-center text-md-start">
+
+                <!-- IZQUIERDA -->
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <p class="mb-0 fw-semibold">© 2026 Pin</p>
+                    <small class="text-muted">Todos los derechos reservados.</small>
+                </div>
+
+                <!-- DERECHA -->
+                <div class="col-md-6 text-md-end">
+                    <div class="footer-links">
+                        <a href="#">Nosotros</a>
+                        <a href="#">Privacidad</a>
+                        <a href="#">Contacto</a>
+                    </div>
+                </div>
+
+            </div>
+
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
