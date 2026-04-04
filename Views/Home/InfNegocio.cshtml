@@ -1,0 +1,189 @@
+@model Pin___App_de_Promoci_n_de_negocios.Models.Negocio
+
+@{
+    ViewData["Title"] = Model.Nombre;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/infnegocio.css" asp-append-version="true" />
+}
+
+<!-- Header -->
+<header class="bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light container">
+        <a class="navbar-brand fw-bold text-dark" href="#">PIN</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Index", "Home")">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="@Url.Action("Explorar", "Home")">Explorar</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Categorías</a>
+                </li>
+            </ul>
+            <a href="#" class="btn btn-terracota">Registrar negocio</a>
+        </div>
+    </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="hero-section position-relative d-flex align-items-center" style="background: linear-gradient(135deg, var(--terracota) 0%, #333 100%), url('@(string.IsNullOrWhiteSpace(Model.ImagenUrl) ? "https://via.placeholder.com/1920x1080/333/fff?text=Showroom" : Url.Content(Model.ImagenUrl))'); background-size: cover; background-position: center;">
+    <div class="hero-overlay"></div>
+    <div class="container text-white position-relative">
+        <h1 class="display-4 fw-bold">@Model.Nombre</h1>
+        <p class="lead">@Model.Direccion</p>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-light text-dark me-2">
+                <i class="bi bi-star-fill text-warning"></i> @Model.Calificacion
+            </span>
+            <span class="text-@(Model.EstaAbierto ? "success" : "danger")">
+                @(Model.EstaAbierto ? "Abierto ahora" : "Cerrado")
+            </span>
+        </div>
+    </div>
+</section>
+
+<div class="container my-5">
+    <div class="row">
+        <!-- Sidebar de Contacto (Izquierda) -->
+        <aside class="col-lg-4 mb-4">
+            <div class="card contact-sidebar shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Información de Contacto</h5>
+                    <button class="btn btn-terracota w-100 mb-2">Cómo llegar</button>
+                    <button class="btn btn-secondary w-100 mb-3">Contactar</button>
+                    <div class="mb-2">
+                        <i class="bi bi-geo-alt me-2"></i>@Model.Direccion
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-telephone me-2"></i>@Model.Contacto
+                    </div>
+                    <div class="mb-3">
+                        <i class="bi bi-clock me-2"></i>@Model.Horarios
+                    </div>
+                    <div class="map-placeholder bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
+                        <span class="text-muted">Mapa aquí</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal (Derecha) -->
+        <main class="col-lg-8">
+            <!-- Sobre nosotros -->
+            <section class="mb-5">
+                <h2 class="mb-3">Sobre nosotros</h2>
+                <p class="text-muted">@Model.Descripcion</p>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="service-box">
+                            <h6>Servicio 1</h6>
+                            <p>Descripción breve.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="service-box">
+                            <h6>Servicio 2</h6>
+                            <p>Descripción breve.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="service-box">
+                            <h6>Servicio 3</h6>
+                            <p>Descripción breve.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Productos Destacados -->
+            <section class="mb-5">
+                <h2 class="mb-3">Productos Destacados</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card product-card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Producto Principal</h5>
+                                <p class="card-text">Descripción del producto.</p>
+                                <span class="price text-terracota fw-bold">S/ 1,499</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card product-card shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title">Producto 2</h6>
+                                <p class="card-text small">Descripción.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card product-card shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title">Producto 3</h6>
+                                <p class="card-text small">Descripción.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Testimonios -->
+            <section>
+                <h2 class="mb-3">Experiencias de Clientes</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card testimonial-card shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="avatar bg-terracota text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        MG
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">María García</h6>
+                                        <div class="text-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="card-text">"Excelente servicio y productos de calidad."</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card testimonial-card shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="avatar bg-terracota text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        CL
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Carlos López</h6>
+                                        <div class="text-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="card-text">"Recomiendo totalmente."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
