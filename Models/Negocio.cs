@@ -10,4 +10,8 @@ public class Negocio
     public bool EstaAbierto { get; set; }
     public bool Destacado { get; set; }
     public string ImagenUrl { get; set; } = "~/images/picanteria.jpg";
+    public string Descripcion { get; set; } = string.Empty;
+    public string Horarios { get; set; } = string.Empty;
+    public string Contacto { get; set; } = string.Empty;
+    public string SitioWeb { get; set; } = string.Empty;
 }
