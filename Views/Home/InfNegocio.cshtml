@@ -9,29 +9,6 @@
     <link rel="stylesheet" href="~/css/infnegocio.css" asp-append-version="true" />
 }
 
-<!-- Header -->
-<header class="bg-white shadow-sm">
-    <nav class="navbar navbar-expand-lg navbar-light container">
-        <a class="navbar-brand fw-bold text-dark" href="#">PIN</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("Index", "Home")">Inicio</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="@Url.Action("Explorar", "Home")">Explorar</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Categorías</a>
-                </li>
-            </ul>
-            <a href="#" class="btn btn-terracota">Registrar negocio</a>
-        </div>
-    </nav>
-</header>
 
 <!-- Hero Section -->
 <section class="hero-section position-relative d-flex align-items-center" style="background: linear-gradient(135deg, var(--terracota) 0%, #333 100%), url('@(string.IsNullOrWhiteSpace(Model.ImagenUrl) ? "https://via.placeholder.com/1920x1080/333/fff?text=Showroom" : Url.Content(Model.ImagenUrl))'); background-size: cover; background-position: center;">
