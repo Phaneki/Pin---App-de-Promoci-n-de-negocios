@@ -6,162 +6,184 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/infnegocio.css" asp-append-version="true" />
 }
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <h1 class="h3 mb-0 me-3">@Model.Nombre</h1>
-                        @if (Model.Destacado)
-                        {
-                            <span class="badge bg-warning text-dark">DESTACADO</span>
-                        }
-                    </div>
-                    <p class="text-muted mb-2"><i class="bi bi-tag me-1"></i>@Model.Categoria</p>
-                    <p class="text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>@Model.Direccion</p>
-                    <div class="d-flex align-items-center mb-3">
-                        <span class="badge bg-light text-dark me-2"><i class="bi bi-star-fill text-warning me-1"></i>@Model.Calificacion</span>
-                        <span class="text-@(Model.EstaAbierto ? "success" : "danger")">
-                            <i class="bi bi-clock me-1"></i>@(Model.EstaAbierto ? "Abierto" : "Cerrado")
-                        </span>
-                    </div>
-                    <p class="card-text">@Model.Descripcion</p>
-                </div>
-            </div>
-
-            <div class="card border-0 shadow-sm mt-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Información de Contacto</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Horarios:</strong> @Model.Horarios</p>
-                    <p><strong>Teléfono:</strong> @Model.Contacto</p>
-                    <p><strong>Sitio Web:</strong> <a href="http://@Model.SitioWeb" target="_blank">@Model.SitioWeb</a></p>
-                </div>
-            </div>
-
-            <!-- Información ficticia adicional correlacionada -->
-            <div class="card border-0 shadow-sm mt-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Comentarios y Reseñas</h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.Id == 1)
-                    {
-                        <div class="mb-3">
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="fw-bold me-2">María García</span>
-                                <span class="text-warning">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </span>
-                            </div>
-                            <p class="mb-0">"El ceviche aquí es increíble, definitivamente el mejor de Miraflores. Los anticuchos también son deliciosos."</p>
-                        </div>
-                        <div class="mb-3">
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="fw-bold me-2">Carlos López</span>
-                                <span class="text-warning">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </span>
-                            </div>
-                            <p class="mb-0">"Buen servicio y ambiente familiar. Recomiendo el lomo saltado."</p>
-                        </div>
-                    }
-                    else if (Model.Id == 2)
-                    {
-                        <div class="mb-3">
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="fw-bold me-2">Ana Torres</span>
-                                <span class="text-warning">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </span>
-                            </div>
-                            <p class="mb-0">"Precios razonables y buena variedad de productos. Ideal para compras rápidas."</p>
-                        </div>
-                    }
-                    else if (Model.Id == 3)
-                    {
-                        <div class="mb-3">
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="fw-bold me-2">Pedro Ramírez</span>
-                                <span class="text-warning">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </span>
-                            </div>
-                            <p class="mb-0">"Excelente supermercado con productos frescos. La entrega es rápida y eficiente."</p>
-                        </div>
-                    }
-                    else if (Model.Id == 4)
-                    {
-                        <div class="mb-3">
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="fw-bold me-2">Lucía Mendoza</span>
-                                <span class="text-warning">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </span>
-                            </div>
-                            <p class="mb-0">"El mejor café de la zona. Los pasteles son artesanales y deliciosos. Ambiente perfecto para trabajar."</p>
-                        </div>
-                        <div class="mb-3">
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="fw-bold me-2">Roberto Silva</span>
-                                <span class="text-warning">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </span>
-                            </div>
-                            <p class="mb-0">"Café orgánico de alta calidad. El servicio es amable y el lugar es muy acogedor."</p>
-                        </div>
-                    }
-                </div>
-            </div>
+<!-- Header -->
+<header class="bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light container">
+        <a class="navbar-brand fw-bold text-dark" href="#">PIN</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Index", "Home")">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="@Url.Action("Explorar", "Home")">Explorar</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Categorías</a>
+                </li>
+            </ul>
+            <a href="#" class="btn btn-terracota">Registrar negocio</a>
         </div>
+    </nav>
+</header>
 
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    @if (!string.IsNullOrWhiteSpace(Model.ImagenUrl))
-                    {
-                        <img src="@Url.Content(Model.ImagenUrl)" class="img-fluid rounded mb-3" alt="@Model.Nombre" />
-                    }
-                    else
-                    {
-                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded mb-3" style="height: 200px;">
-                            <h4 class="fw-bold">@Model.Nombre</h4>
-                        </div>
-                    }
-                    <a href="#" class="btn btn-primary w-100 mb-2">Visitar Sitio Web</a>
-                    <a href="tel:@Model.Contacto" class="btn btn-outline-primary w-100">Llamar</a>
-                </div>
-            </div>
+<!-- Hero Section -->
+<section class="hero-section position-relative d-flex align-items-center" style="background: linear-gradient(135deg, var(--terracota) 0%, #333 100%), url('@(string.IsNullOrWhiteSpace(Model.ImagenUrl) ? "https://via.placeholder.com/1920x1080/333/fff?text=Showroom" : Url.Content(Model.ImagenUrl))'); background-size: cover; background-position: center;">
+    <div class="hero-overlay"></div>
+    <div class="container text-white position-relative">
+        <h1 class="display-4 fw-bold">@Model.Nombre</h1>
+        <p class="lead">@Model.Direccion</p>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-light text-dark me-2">
+                <i class="bi bi-star-fill text-warning"></i> @Model.Calificacion
+            </span>
+            <span class="text-@(Model.EstaAbierto ? "success" : "danger")">
+                @(Model.EstaAbierto ? "Abierto ahora" : "Cerrado")
+            </span>
         </div>
     </div>
+</section>
 
-    <div class="mt-4">
-        <a href="@Url.Action("Explorar", "Home")" class="btn btn-secondary">← Volver a Explorar</a>
+<div class="container my-5">
+    <div class="row">
+        <!-- Sidebar de Contacto (Izquierda) -->
+        <aside class="col-lg-4 mb-4">
+            <div class="card contact-sidebar shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Información de Contacto</h5>
+                    <button class="btn btn-terracota w-100 mb-2">Cómo llegar</button>
+                    <button class="btn btn-secondary w-100 mb-3">Contactar</button>
+                    <div class="mb-2">
+                        <i class="bi bi-geo-alt me-2"></i>@Model.Direccion
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-telephone me-2"></i>@Model.Contacto
+                    </div>
+                    <div class="mb-3">
+                        <i class="bi bi-clock me-2"></i>@Model.Horarios
+                    </div>
+                    <div class="map-placeholder bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
+                        <span class="text-muted">Mapa aquí</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal (Derecha) -->
+        <main class="col-lg-8">
+            <!-- Sobre nosotros -->
+            <section class="mb-5">
+                <h2 class="mb-3">Sobre nosotros</h2>
+                <p class="text-muted">@Model.Descripcion</p>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="service-box">
+                            <h6>Servicio 1</h6>
+                            <p>Descripción breve.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="service-box">
+                            <h6>Servicio 2</h6>
+                            <p>Descripción breve.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="service-box">
+                            <h6>Servicio 3</h6>
+                            <p>Descripción breve.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Productos Destacados -->
+            <section class="mb-5">
+                <h2 class="mb-3">Productos Destacados</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card product-card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">Producto Principal</h5>
+                                <p class="card-text">Descripción del producto.</p>
+                                <span class="price text-terracota fw-bold">S/ 1,499</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card product-card shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title">Producto 2</h6>
+                                <p class="card-text small">Descripción.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card product-card shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title">Producto 3</h6>
+                                <p class="card-text small">Descripción.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Testimonios -->
+            <section>
+                <h2 class="mb-3">Experiencias de Clientes</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card testimonial-card shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="avatar bg-terracota text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        MG
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">María García</h6>
+                                        <div class="text-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="card-text">"Excelente servicio y productos de calidad."</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card testimonial-card shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="avatar bg-terracota text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        CL
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Carlos López</h6>
+                                        <div class="text-warning">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="card-text">"Recomiendo totalmente."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
 </div>

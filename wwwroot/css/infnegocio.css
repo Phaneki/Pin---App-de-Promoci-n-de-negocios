@@ -1,0 +1,113 @@
+/* Estilos para la página InfNegocio */
+
+/* Variables de color estandarizadas */
+:root {
+  --terracota: #c4552d; /* Color principal existente */
+  --gris-claro: #f4f4f4;
+  --gris-carbon: #333;
+  --blanco: #ffffff;
+}
+
+/* Header */
+.navbar-brand {
+  color: var(--gris-carbon) !important;
+}
+
+.btn-terracota {
+  background-color: var(--terracota);
+  color: var(--blanco);
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.btn-terracota:hover {
+  background-color: #a94424;
+  color: var(--blanco);
+}
+
+/* Hero Section */
+.hero-section {
+  height: 60vh;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.hero-section .container {
+  z-index: 2;
+}
+
+/* Sidebar de Contacto */
+.contact-sidebar {
+  position: sticky;
+  top: 20px;
+  border-radius: 12px;
+}
+
+.map-placeholder {
+  border-radius: 8px;
+}
+
+/* Service Boxes */
+.service-box {
+  border-left: 4px solid var(--terracota);
+  padding-left: 15px;
+  margin-bottom: 20px;
+}
+
+.service-box:nth-child(2) {
+  border-left-color: #007bff; /* Azul */
+}
+
+.service-box:nth-child(3) {
+  border-left-color: #fd7e14; /* Naranja */
+}
+
+/* Product Cards */
+.product-card {
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+}
+
+.price {
+  color: var(--terracota);
+  font-size: 1.2rem;
+}
+
+/* Testimonial Cards */
+.testimonial-card {
+  border-radius: 12px;
+}
+
+.avatar {
+  background-color: var(--terracota);
+}
+
+/* Text utilities */
+.text-terracota {
+  color: var(--terracota);
+}
+
+/* General shadows and radius */
+.card {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.btn {
+  border-radius: 8px;
+}
