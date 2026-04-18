@@ -1,9 +1,9 @@
-namespace Pin___App_de_Promoci_n_de_negocios.Models;
-
+namespace PinAppdePromo.Models;
 public class Negocio
 {
     public int Id { get; set; }
     public string Nombre { get; set; } = string.Empty;
+
     public string Categoria { get; set; } = string.Empty;
     public string Direccion { get; set; } = string.Empty;
     public double Calificacion { get; set; }
