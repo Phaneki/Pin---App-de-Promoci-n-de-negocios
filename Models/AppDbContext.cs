@@ -7,7 +7,6 @@ namespace PinAppdePromo.Models
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
-
         public DbSet<Negocio> Negocios { get; set; }
     }
 }

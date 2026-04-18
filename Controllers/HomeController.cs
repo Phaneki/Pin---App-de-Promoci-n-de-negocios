@@ -18,5 +18,11 @@ namespace PinAppdePromo.Controllers
             var negocios = _context.Negocios.ToList();
             return View(negocios);
         }
+
+        public IActionResult Explorar()
+        {
+            var negocios = _context.Negocios.ToList();
+            return View(negocios);
+        }
     }
 }
