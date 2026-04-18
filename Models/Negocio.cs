@@ -1,5 +1,4 @@
 namespace Pin___App_de_Promoci_n_de_negocios.Models;
-
 public class Negocio
 {
     public int Id { get; set; }
