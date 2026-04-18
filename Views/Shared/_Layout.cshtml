@@ -44,10 +44,12 @@
                     <!-- DERECHA -->
                     <ul class="navbar-nav align-items-center">
                         <li class="nav-item">
-                            <a class="nav-link text-dark fw-semibold" href="#">Ingresar</a>
+                            <a asp-controller="Login" asp-action="Index" class="btn btn-outline-light">
+                                Iniciar sesión
+                            </a>
                         </li>
                         <li class="nav-item ms-2">
-                            <a class="btn btn-orange px-3" href="#">
+                            <a asp-controller="Home" asp-action="Registrar_negocio" class="btn btn-orange">
                                 Registrar negocio
                             </a>
                         </li>

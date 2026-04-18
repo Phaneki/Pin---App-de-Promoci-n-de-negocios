@@ -36,5 +36,9 @@ namespace PinAppdePromo.Controllers
 
             return View(negocio);
         }
+        public IActionResult Registrar_negocio()
+        {
+            return View();
+        }
     }
 }
