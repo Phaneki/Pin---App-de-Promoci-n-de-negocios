@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PinAppdePromo.Models;
+
 namespace PinAppdePromo.Models
 {
     public class AppDbContext : DbContext
@@ -8,5 +9,6 @@ namespace PinAppdePromo.Models
         {
         }
         public DbSet<Negocio> Negocios { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
     }
 }
