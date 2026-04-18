@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Pin__App_de_Promoci_n_de_negocios.Models;
+using PinAppdePromo.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

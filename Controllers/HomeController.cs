@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Pin___App_de_Promoci_n_de_negocios.Models;
+using PinAppdePromo.Models;
 
-namespace Pin___App_de_Promoci_n_de_negocios.Controllers;
+namespace PinAppdePromo.Controllers;
 
 public class HomeController : Controller
 {

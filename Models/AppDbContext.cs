@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-
-namespace Pin__App_de_Promoci_n_de_negocios.Models
+using PinAppdePromo.Models;
+namespace PinAppdePromo.Models
 {
     public class AppDbContext : DbContext
     {
