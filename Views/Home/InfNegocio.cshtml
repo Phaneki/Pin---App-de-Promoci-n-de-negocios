@@ -4,12 +4,6 @@
     ViewData["Title"] = Model.Nombre;
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/infnegocio.css" asp-append-version="true" />
-}
-
-
 <!-- Hero Section -->
 <section class="hero-section position-relative d-flex align-items-center" style="background: linear-gradient(135deg, var(--terracota) 0%, #333 100%), url('@(string.IsNullOrWhiteSpace(Model.ImagenUrl) ? "https://via.placeholder.com/1920x1080/333/fff?text=Showroom" : Url.Content(Model.ImagenUrl))'); background-size: cover; background-position: center;">
     <div class="hero-overlay"></div>
@@ -112,55 +106,453 @@
                 </div>
             </section>
 
+            <!-- Crear Reseña -->
+            <section class="mb-5">
+                <div class="card review-action-card shadow-sm p-4">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
+                        <div>
+                            <h3 class="mb-2">Cuéntanos tu experiencia</h3>
+                            <p class="mb-0 text-muted">Escribe una reseña sin salir de esta página y ayuda a otros clientes.</p>
+                        </div>
+                        <button id="openReviewForm" class="btn btn-terracota px-4 py-2 fw-bold">
+                            <i class="fa-solid fa-star me-2"></i> Crear reseña
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Testimonios -->
             <section>
-                <h2 class="mb-3">Experiencias de Clientes</h2>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card testimonial-card shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="avatar bg-terracota text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                        MG
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">María García</h6>
-                                        <div class="text-warning">
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p class="card-text">"Excelente servicio y productos de calidad."</p>
-                            </div>
-                        </div>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+                    <div>
+                        <h2 class="mb-1">Experiencias de Clientes</h2>
+                        <p class="text-muted mb-0">Las reseñas más recientes aparecen primero.</p>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card testimonial-card shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="avatar bg-terracota text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                        CL
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Carlos López</h6>
-                                        <div class="text-warning">
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p class="card-text">"Recomiendo totalmente."</p>
-                            </div>
-                        </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <label class="mb-0 text-muted">Ordenar por:</label>
+                        <select id="sortReviews" class="form-select form-select-sm" style="width: auto; min-width: 180px;">
+                            <option value="recent">Más recientes</option>
+                            <option value="best">Mejor calificación</option>
+                            <option value="worst">Peor calificación</option>
+                        </select>
                     </div>
+                </div>
+
+                <div id="reviewList" class="row g-4"></div>
+
+                <div class="mt-4 text-center">
+                    <button id="openAllReviews" class="btn btn-link text-terracota fw-semibold">Ver más reseñas</button>
                 </div>
             </section>
         </main>
     </div>
 </div>
+
+<div id="newReviewModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div>
+                <h4 class="mb-1">Publicar nueva reseña</h4>
+                <p class="text-muted mb-0">Califica tu experiencia y deja tu comentario en un popup rápido.</p>
+            </div>
+            <button id="closeReviewModal" class="modal-close" aria-label="Cerrar modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="newReviewForm" class="row g-3">
+                <div class="col-12">
+                    <label class="form-label">Tu nombre</label>
+                    <input type="text" id="reviewName" class="form-control" placeholder="Ej. Ana Martínez" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Calificación</label>
+                    <div class="d-flex gap-2" id="reviewStars">
+                        @for (var i = 1; i <= 5; i++)
+                        {
+                            <button type="button" class="btn btn-outline-secondary star-btn" data-value="@i" aria-label="@i estrellas">
+                                <i class="fa-solid fa-star"></i>
+                            </button>
+                        }
+                    </div>
+                    <input type="hidden" id="reviewRating" value="5" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Tu reseña</label>
+                    <textarea id="reviewComment" class="form-control" rows="4" placeholder="Comparte lo que más te gustó o lo que se puede mejorar..."></textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Fotos (opcional)</label>
+                    <div id="dropZone" class="upload-dropzone">
+                        <input type="file" id="reviewPhoto" accept="image/*" multiple class="form-control d-none" />
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p class="mb-1 fw-semibold text-slate-900">Selecciona o arrastra tus fotos aquí</p>
+                        <p class="small text-slate-500">JPG, PNG. Hasta 5 archivos. Se mostrarán en miniaturas.</p>
+                    </div>
+                    <div id="reviewPhotoPreview" class="review-photo-gallery"></div>
+                </div>
+                <div class="col-12 d-flex justify-content-end gap-2">
+                    <button type="button" id="cancelReview" class="btn btn-outline-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-terracota fw-bold">Publicar reseña</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="allReviewsModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div>
+                <h4 class="mb-1">Todas las reseñas</h4>
+                <p class="text-muted mb-0">Revisa todas las experiencias y ordena según prefieras.</p>
+            </div>
+            <button id="closeAllReviewsModal" class="modal-close" aria-label="Cerrar modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+                <div>
+                    <p class="mb-0 text-muted">Ordenar reseñas dentro del popup</p>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <label class="mb-0 text-muted">Ordenar por:</label>
+                    <select id="sortReviewsModal" class="form-select form-select-sm" style="width: auto; min-width: 160px;">
+                        <option value="recent">Más recientes</option>
+                        <option value="best">Mejor calificación</option>
+                        <option value="worst">Peor calificación</option>
+                    </select>
+                </div>
+            </div>
+            <div id="allReviewList" class="row g-4"></div>
+        </div>
+    </div>
+</div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const negocioId = @Model.Id;
+        const reviewStorageKey = `reviews_negocio_${negocioId}`;
+        const defaultReviews = [
+            {
+                id: 1,
+                nombre: 'María García',
+                calificacion: 5,
+                comentario: 'Excelente servicio y productos de calidad. Volveré muy pronto.',
+                fecha: '2026-04-14T10:20:00',
+                verificado: true
+            },
+            {
+                id: 2,
+                nombre: 'Carlos López',
+                calificacion: 4,
+                comentario: 'Buena atención, la comida estaba muy rica y el ambiente agradable.',
+                fecha: '2026-04-12T09:15:00',
+                verificado: true
+            },
+            {
+                id: 3,
+                nombre: 'Lucía Pérez',
+                calificacion: 5,
+                comentario: 'Me encantó la experiencia, el servicio fue rápido y amable.',
+                fecha: '2026-04-10T20:40:00',
+                verificado: false
+            },
+            {
+                id: 4,
+                nombre: 'Jorge Rivera',
+                calificacion: 4,
+                comentario: 'Muy buena opción para compartir con amigos.',
+                fecha: '2026-04-08T18:30:00',
+                verificado: false
+            }
+        ];
+
+        const newReviewModal = document.getElementById('newReviewModal');
+        const allReviewsModal = document.getElementById('allReviewsModal');
+        const openReviewForm = document.getElementById('openReviewForm');
+        const openAllReviews = document.getElementById('openAllReviews');
+        const closeReviewModal = document.getElementById('closeReviewModal');
+        const closeAllReviewsModal = document.getElementById('closeAllReviewsModal');
+        const cancelReview = document.getElementById('cancelReview');
+        const newReviewForm = document.getElementById('newReviewForm');
+        const reviewList = document.getElementById('reviewList');
+        const allReviewList = document.getElementById('allReviewList');
+        const sortReviews = document.getElementById('sortReviews');
+        const sortReviewsModal = document.getElementById('sortReviewsModal');
+        const starButtons = document.querySelectorAll('#reviewStars .star-btn');
+        const reviewRating = document.getElementById('reviewRating');
+        const reviewPhoto = document.getElementById('reviewPhoto');
+        const reviewPhotoPreview = document.getElementById('reviewPhotoPreview');
+
+        let allReviews = [];
+        let selectedFiles = [];
+
+        function loadReviews() {
+            const stored = localStorage.getItem(reviewStorageKey);
+            allReviews = stored ? JSON.parse(stored) : defaultReviews;
+            sortAndRender();
+        }
+
+        function saveReviews() {
+            localStorage.setItem(reviewStorageKey, JSON.stringify(allReviews));
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function renderStars(count) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += `<i class="fa-solid fa-star ${i <= count ? 'text-warning' : 'text-muted'}"></i> `;
+            }
+            return stars;
+        }
+
+        function renderReviews() {
+            reviewList.innerHTML = '';
+            const reviewsToShow = allReviews.slice(0, 2);
+            reviewsToShow.forEach(review => {
+                const card = document.createElement('div');
+                card.className = 'col-12';
+                card.innerHTML = `
+                    <div class="card review-card shadow-sm p-4">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3 flex-column flex-md-row">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar bg-terracota text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                    ${review.nombre.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">${review.nombre}</h6>
+                                    <div class="small text-muted">${renderStars(review.calificacion)} ${formatDate(review.fecha)}</div>
+                                </div>
+                            </div>
+                            <div class="text-end text-success small fw-semibold">${review.verificado ? 'Reseña verificada' : 'Sin verificar'}</div>
+                        </div>
+                        <p class="mb-0 text-muted">${review.comentario}</p>
+                    </div>
+                `;
+                reviewList.appendChild(card);
+            });
+
+            openAllReviews.classList.toggle('d-none', allReviews.length <= 2);
+        }
+
+        function renderAllReviews() {
+            allReviewList.innerHTML = '';
+            allReviews.forEach(review => {
+                const card = document.createElement('div');
+                card.className = 'col-12';
+                card.innerHTML = `
+                    <div class="card review-card shadow-sm p-4">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3 flex-column flex-md-row">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar bg-terracota text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                    ${review.nombre.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">${review.nombre}</h6>
+                                    <div class="small text-muted">${renderStars(review.calificacion)} ${formatDate(review.fecha)}</div>
+                                </div>
+                            </div>
+                            <div class="text-end text-success small fw-semibold">${review.verificado ? 'Reseña verificada' : 'Sin verificar'}</div>
+                        </div>
+                        <p class="mb-0 text-muted">${review.comentario}</p>
+                        ${review.fotos && review.fotos.length ? `<div class="review-photo-gallery mt-3">${review.fotos.map(url => `<div class="review-photo-thumb"><img src="${url}" alt="Foto reseña" /></div>`).join('')}</div>` : ''}
+                    </div>
+                `;
+                allReviewList.appendChild(card);
+            });
+        }
+
+        function sortAndRender() {
+            const criteria = sortReviews.value;
+            if (criteria === 'best') {
+                allReviews.sort((a, b) => b.calificacion - a.calificacion || new Date(b.fecha) - new Date(a.fecha));
+            } else if (criteria === 'worst') {
+                allReviews.sort((a, b) => a.calificacion - b.calificacion || new Date(b.fecha) - new Date(a.fecha));
+            } else {
+                allReviews.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            }
+            renderReviews();
+            renderAllReviews();
+        }
+
+        function setActiveStars(value) {
+            starButtons.forEach(button => {
+                const starValue = Number(button.dataset.value);
+                button.classList.toggle('active', starValue <= value);
+            });
+            reviewRating.value = value;
+        }
+
+        function createFileList(files) {
+            const dataTransfer = new DataTransfer();
+            files.forEach(file => dataTransfer.items.add(file));
+            return dataTransfer.files;
+        }
+
+        function appendFiles(existingFiles, newFiles) {
+            const dataTransfer = new DataTransfer();
+            Array.from(existingFiles).forEach(file => dataTransfer.items.add(file));
+            Array.from(newFiles).forEach(file => dataTransfer.items.add(file));
+            return dataTransfer.files;
+        }
+
+        function openModal(modal) {
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modal) {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        function clearPhotoPreview() {
+            selectedFiles = [];
+            reviewPhotoPreview.innerHTML = '';
+            reviewPhoto.value = '';
+            reviewPhoto.files = createFileList(selectedFiles);
+        }
+
+        const dropZone = document.getElementById('dropZone');
+
+        openReviewForm.addEventListener('click', () => openModal(newReviewModal));
+        closeReviewModal.addEventListener('click', () => {
+            closeModal(newReviewModal);
+            clearPhotoPreview();
+        });
+        cancelReview.addEventListener('click', () => {
+            closeModal(newReviewModal);
+            clearPhotoPreview();
+        });
+        openAllReviews.addEventListener('click', () => {
+            openModal(allReviewsModal);
+            sortReviewsModal.value = sortReviews.value;
+        });
+        closeAllReviewsModal.addEventListener('click', () => closeModal(allReviewsModal));
+
+        newReviewModal.addEventListener('click', event => {
+            if (event.target === newReviewModal) {
+                closeModal(newReviewModal);
+                clearPhotoPreview();
+            }
+        });
+        allReviewsModal.addEventListener('click', event => {
+            if (event.target === allReviewsModal) {
+                closeModal(allReviewsModal);
+            }
+        });
+
+        dropZone.addEventListener('click', () => {
+            reviewPhoto.value = '';
+            reviewPhoto.click();
+        });
+        dropZone.addEventListener('dragover', event => {
+            event.preventDefault();
+            dropZone.classList.add('active');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+        dropZone.addEventListener('drop', event => {
+            event.preventDefault();
+            dropZone.classList.remove('active');
+            const files = Array.from(event.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+            if (files.length) {
+                selectedFiles = selectedFiles.concat(files);
+                reviewPhoto.files = createFileList(selectedFiles);
+                renderPhotoPreview(selectedFiles);
+            }
+        });
+
+        starButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                setActiveStars(Number(button.dataset.value));
+            });
+        });
+
+        reviewPhoto.addEventListener('change', function () {
+            if (this.files.length) {
+                selectedFiles = selectedFiles.concat(Array.from(this.files));
+                reviewPhoto.files = createFileList(selectedFiles);
+                renderPhotoPreview(selectedFiles);
+                reviewPhoto.value = '';
+            }
+        });
+
+        function renderPhotoPreview(files) {
+            reviewPhotoPreview.innerHTML = '';
+            if (!files || files.length === 0) {
+                return;
+            }
+
+            Array.from(files).forEach((file, index) => {
+                const url = URL.createObjectURL(file);
+                const thumb = document.createElement('div');
+                thumb.className = 'review-photo-thumb';
+                thumb.innerHTML = `
+                    <img src="${url}" alt="Foto ${index + 1}" />
+                    <button type="button" aria-label="Eliminar foto" data-index="${index}">&times;</button>
+                `;
+
+                thumb.querySelector('button')?.addEventListener('click', () => {
+                    selectedFiles.splice(index, 1);
+                    reviewPhoto.files = createFileList(selectedFiles);
+                    renderPhotoPreview(selectedFiles);
+                });
+
+                reviewPhotoPreview.appendChild(thumb);
+            });
+        }
+
+        newReviewForm.addEventListener('submit', event => {
+            event.preventDefault();
+            const nombre = document.getElementById('reviewName').value.trim() || 'Cliente Anónimo';
+            const comentario = document.getElementById('reviewComment').value.trim();
+            const rating = Number(reviewRating.value);
+            if (!comentario) {
+                alert('Por favor escribe tu reseña antes de publicar.');
+                return;
+            }
+
+            const photoFiles = Array.from(selectedFiles);
+            const photoUrls = photoFiles.map(file => URL.createObjectURL(file));
+
+            const newReview = {
+                id: Date.now(),
+                nombre,
+                calificacion: rating,
+                comentario,
+                fecha: new Date().toISOString(),
+                verificado: true,
+                fotos: photoUrls
+            };
+
+            allReviews.unshift(newReview);
+            saveReviews();
+            sortAndRender();
+            closeModal(newReviewModal);
+            newReviewForm.reset();
+            setActiveStars(5);
+            clearPhotoPreview();
+        });
+
+        sortReviews.addEventListener('change', () => {
+            sortReviewsModal.value = sortReviews.value;
+            sortAndRender();
+        });
+
+        sortReviewsModal.addEventListener('change', () => {
+            sortReviews.value = sortReviewsModal.value;
+            sortAndRender();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReviews();
+            setActiveStars(5);
+        });
+    </script>
+}
