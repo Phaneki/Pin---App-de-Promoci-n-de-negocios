@@ -24,5 +24,17 @@ namespace PinAppdePromo.Controllers
             var negocios = _context.Negocios.ToList();
             return View(negocios);
         }
+
+        public IActionResult InfNegocio(int id)
+        {
+            var negocio = _context.Negocios.FirstOrDefault(n => n.Id == id);
+
+            if (negocio == null)
+            {
+                return NotFound();
+            }
+
+            return View(negocio);
+        }
     }
 }
