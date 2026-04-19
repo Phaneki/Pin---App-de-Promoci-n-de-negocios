@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PinAppdePromo.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -14,6 +16,13 @@ builder.Services.AddAuthentication(options =>
 {
     options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+    options.Scope.Add("profile"); // 🔥 IMPORTANTE
+
+    options.ClaimActions.MapJsonKey("picture", "picture", "url");
+    options.ClaimActions.MapJsonKey("name", "name");
+
+    options.SaveTokens = true;
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
