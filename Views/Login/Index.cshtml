@@ -1,7 +1,256 @@
-<form method="post">
-    <input type="text" name="correo" placeholder="Correo" />
-    <input type="password" name="password" placeholder="Contraseña" />
-    <button type="submit">Ingresar</button>
+@{
+    Layout = null;
+}
 
-    <p style="color:red">@ViewBag.Error</p>
-</form>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Login - PIN</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&family=Manrope:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #ff6b2c;
+            --primary-soft: #fff2eb;
+            --text-dark: #2c2c2c;
+            --text-muted: #777;
+            --border: #eee;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+        }
+
+        /* LADO IZQUIERDO */
+        .left-panel {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 60px;
+            background: linear-gradient(135deg, #ff6b2c, #ff8a50, #ff6b2c);
+            background-size: 300% 300%;
+            animation: gradientMove 8s ease infinite;
+
+            @@keyframes gradientMove {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+        }
+
+        .left-content {
+            max-width: 400px;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+
+        .headline {
+            font-family: 'Playfair Display', serif;
+            font-size: 38px;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+
+        .description {
+            opacity: 0.9;
+        }
+
+        /* LADO DERECHO (formulario) */
+        .right-panel {
+            flex: 1;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            width: 360px;
+            opacity: 0;
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        .login-box > *:nth-child(1) { animation-delay: 0.1s; }
+        .login-box > *:nth-child(2) { animation-delay: 0.2s; }
+        .login-box > *:nth-child(3) { animation-delay: 0.3s; }
+        .login-box > *:nth-child(4) { animation-delay: 0.4s; }
+        .login-box > *:nth-child(5) { animation-delay: 0.5s; }
+
+        @@keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.98);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .title {
+            font-size: 28px;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            outline: none;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255,107,44,0.15);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 13px;
+            border-radius: 8px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::after {
+            content: "";
+            position: absolute;
+            width: 300%;
+            height: 300%;
+            top: -100%;
+            left: -100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-login:hover::after {
+            top: 0;
+            left: 0;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(255,107,44,0.3);
+        }
+
+        .error {
+            color: red;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .extra {
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .extra a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .extra a:hover {
+            text-decoration: underline;
+        }
+
+        /* RESPONSIVE */
+        @@media (max-width: 900px) {
+            .left-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LADO VISUAL -->
+    <div class="left-panel">
+        <div class="left-content">
+            <div class="brand">
+                PIN
+            </div>
+            <div class="headline">
+                Descubre lo mejor de tu distrito
+            </div>
+            <p class="description">
+                Conecta con negocios locales y haz crecer tu comunidad.
+            </p>
+        </div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="right-panel">
+
+        <div class="login-box">
+
+            <h2 class="title">Iniciar sesión</h2>
+            <p class="subtitle">Ingresa tus credenciales</p>
+
+            <form method="post">
+
+                <div class="input-group">
+                    <input type="text" name="correo" placeholder="Correo electrónico" required />
+                </div>
+
+                <div class="input-group">
+                    <input type="password" name="password" placeholder="Contraseña" required />
+                </div>
+
+                <button type="submit" class="btn-login">
+                    Ingresar
+                </button>
+
+                <p class="error">@ViewBag.Error</p>
+
+            </form>
+
+            <div class="extra">
+                ¿No tienes cuenta? <a href="#">Regístrate</a>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
