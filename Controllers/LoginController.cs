@@ -83,5 +83,9 @@ namespace PinAppdePromo.Controllers
             HttpContext.Session.Clear(); // 🔥 borra TODO
             return RedirectToAction("Index", "Home");
         }
+        public IActionResult Registrar()
+        {
+            return View();
+        }
     }
 }

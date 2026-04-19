@@ -1,0 +1,37 @@
+@{
+    ViewData["Title"] = "Registro";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="height: 90vh; background: #fff7f0;">
+
+    <div class="card shadow-lg p-4" style="width: 380px; border-radius: 20px;">
+
+        <h3 class="text-center mb-4 fw-bold">Crear cuenta</h3>
+
+        <form method="post">
+
+            <input type="email" name="correo" class="form-control mb-3" placeholder="Correo electrónico" required />
+
+            <input type="password" name="password" class="form-control mb-3" placeholder="Contraseña" required />
+
+            <input type="password" name="confirmarPassword" class="form-control mb-3" placeholder="Confirmar contraseña" required />
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">@ViewBag.Error</div>
+            }
+
+            <button class="btn w-100 mb-3" style="background-color:#ff6b00; color:white;">
+                Registrarse
+            </button>
+
+        </form>
+
+        <div class="text-center">
+            <small>¿Ya tienes cuenta?</small><br />
+            <a asp-controller="Login" asp-action="Index">Iniciar sesión</a>
+        </div>
+
+    </div>
+
+</div>
