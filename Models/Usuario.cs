@@ -8,6 +8,6 @@ namespace PinAppdePromo.Models
         public string Correo { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public string Rol { get; set; } = "CLIENTE"; //  IMPORTANTE
-        public string TipoAuth { get; set; } // "LOCAL" o "GOOGLE"
+        public string TipoAuth { get; set; } = "LOCAL"; // "LOCAL" o "GOOGLE"
     }
 }
