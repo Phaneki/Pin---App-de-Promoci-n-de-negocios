@@ -13,8 +13,30 @@
     <link rel="stylesheet" href="~/PinAppdePromo.styles.css" asp-append-version="true" />
     @RenderSection("Styles", required: false)
 </head>
+
 <body>
+    <div class="modal fade" id="welcomeModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4 rounded-4">
+
+                <h4 class="mb-3">👋 Bienvenido</h4>
+
+                <p id="welcomeText" class="mb-4"></p>
+
+                <a href="/Home/Perfil" class="btn btn-orange mb-2">Ir al perfil</a>
+
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Cerrar
+                </button>
+
+            </div>
+        </div>
+    </div>
     <header>
+        @{
+        var usuario = Context.Session.GetString("Usuario");
+        var rol = Context.Session.GetString("Rol");
+    }
         <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm">
             <div class="container-fluid px-4">
 
@@ -46,16 +68,69 @@
 
                     <!-- DERECHA -->
                     <ul class="navbar-nav align-items-center">
-                        <li class="nav-item">
-                            <a asp-controller="Login" asp-action="Index" class="btn btn-outline-dark">
-                                Iniciar sesión
-                            </a>
-                        </li>
-                        <li class="nav-item ms-2">
-                            <a asp-controller="Home" asp-action="Registrar_negocio" class="btn btn-orange">
-                                Registrar negocio
-                            </a>
-                        </li>
+
+                        @if (usuario == null)
+                        {
+                            <li class="nav-item">
+                                <a asp-controller="Login" asp-action="Index" class="btn btn-outline-dark">
+                                    Iniciar sesión
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            @if (usuario != null && (rol == "CLIENTE_NEGOCIO" || rol == "ADMIN"))
+                            {
+                                <li class="nav-item ms-2">
+                                    <a asp-controller="Home" asp-action="RegistrarNegocio" class="btn btn-orange">
+                                        Registrar negocio
+                                    </a>
+                                </li>
+                            }
+
+                            <li class="nav-item dropdown">
+
+                                <a class="nav-link p-0" href="#" role="button" data-bs-toggle="dropdown">
+
+                                    @if (Context.Session.GetString("Foto") != null)
+                                    {
+                                        <img src="@Context.Session.GetString("Foto")" class="avatar-img" />
+                                    }
+                                    else
+                                    {
+                                        <div class="avatar-circle">
+                                            @usuario.Substring(0,1).ToUpper()
+                                        </div>
+                                    }
+
+                                </a>
+
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Home" asp-action="Perfil">
+                                            👤 Perfil
+                                        </a>
+                                    </li>
+
+                                    <li><hr class="dropdown-divider"></li>
+
+                                    <li>
+                                        <a class="dropdown-item text-danger"
+                                        asp-controller="Login"
+                                        asp-action="Logout"
+                                        onclick="sessionStorage.removeItem('bienvenidaMostrada')">
+                                            🚪 Cerrar sesión
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </li>
+
+                        }
+
+                        
+
                     </ul>
 
                 </div>
@@ -94,5 +169,23 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            var usuario = '@Context.Session.GetString("Usuario")';
+
+            // bandera para evitar que salga siempre
+            if (usuario && sessionStorage.getItem("bienvenidaMostrada") !== "true") {
+
+                document.getElementById("welcomeText").innerText =
+                    "Hola, " + usuario;
+
+                var modal = new bootstrap.Modal(document.getElementById('welcomeModal'));
+                modal.show();
+
+                sessionStorage.setItem("bienvenidaMostrada", "true");
+            }
+        });
+    </script>
 </body>
 </html>

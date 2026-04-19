@@ -38,6 +38,14 @@ namespace PinAppdePromo.Controllers
         }
         public IActionResult Registrar_negocio()
         {
+            if (HttpContext.Session.GetString("Usuario") == null)
+            {
+                return RedirectToAction("Index", "Login");
+            }
+            if (HttpContext.Session.GetString("Rol") != "CLIENTE_NEGOCIO")
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
     }
