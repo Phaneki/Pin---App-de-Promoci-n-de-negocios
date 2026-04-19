@@ -91,10 +91,9 @@
                             <li class="nav-item dropdown">
 
                                 <a class="nav-link p-0" href="#" role="button" data-bs-toggle="dropdown">
-
-                                    @if (Context.Session.GetString("Foto") != null)
+                                    @if (!string.IsNullOrEmpty(Context.Session.GetString("Foto")))
                                     {
-                                        <img src="@Context.Session.GetString("Foto")" class="avatar-img" />
+                                        <img src="@Context.Session.GetString("Foto")" class="avatar-img" referrerpolicy="no-referrer"  />
                                     }
                                     else
                                     {
@@ -102,6 +101,7 @@
                                             @usuario.Substring(0,1).ToUpper()
                                         </div>
                                     }
+                                    
 
                                 </a>
 

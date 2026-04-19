@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 
+
 namespace PinAppdePromo.Controllers
 {
     public class LoginController : Controller
@@ -31,6 +32,8 @@ namespace PinAppdePromo.Controllers
             {
                 HttpContext.Session.SetString("Usuario", usuario.Correo);
                 HttpContext.Session.SetString("Rol", usuario.Rol);
+                HttpContext.Session.SetString("Nombre", usuario.Nombre ?? "");
+                HttpContext.Session.SetString("Foto", usuario.FotoUrl ?? "");
                 return RedirectToAction("Index", "Home");
             }
 
@@ -74,6 +77,8 @@ namespace PinAppdePromo.Controllers
             // 🔥 LOGIN AUTOMÁTICO
             HttpContext.Session.SetString("Usuario", usuario.Correo);
             HttpContext.Session.SetString("Rol", usuario.Rol);
+            HttpContext.Session.SetString("Nombre", usuario.Nombre ?? "");
+            HttpContext.Session.SetString("Foto", usuario.FotoUrl ?? "");
 
             return RedirectToAction("Index", "Home");
         }
@@ -91,7 +96,9 @@ namespace PinAppdePromo.Controllers
             if (result?.Principal != null)
             {
                 var email = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-
+                var nombre = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+                var foto = result.Principal.FindFirst("picture")?.Value;
+                
                 if (string.IsNullOrEmpty(email))
                 {
                     return RedirectToAction("Index");
@@ -105,6 +112,8 @@ namespace PinAppdePromo.Controllers
                     usuario = new Usuario
                     {
                         Correo = email!,
+                        Nombre = nombre,
+                        FotoUrl = foto,
                         Password = "",
                         Rol = "CLIENTE"
                     };
@@ -112,10 +121,22 @@ namespace PinAppdePromo.Controllers
                     _context.Usuarios.Add(usuario);
                     _context.SaveChanges();
                 }
+                else
+                {
+                    // 🔥 ACTUALIZA SI YA EXISTE
+                    if (!string.IsNullOrEmpty(nombre))
+                        usuario.Nombre = nombre;
+
+                    if (!string.IsNullOrEmpty(foto))
+                        usuario.FotoUrl = foto;
+                }
+                _context.SaveChanges();
 
                 // 👉 guardar sesión
                 HttpContext.Session.SetString("Usuario", usuario.Correo!);
                 HttpContext.Session.SetString("Rol", usuario.Rol);
+                HttpContext.Session.SetString("Nombre", usuario.Nombre ?? "");
+                HttpContext.Session.SetString("Foto", usuario.FotoUrl ?? "");
 
                 return RedirectToAction("Index", "Home");
             }
