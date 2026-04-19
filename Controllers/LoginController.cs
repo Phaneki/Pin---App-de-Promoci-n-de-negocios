@@ -30,6 +30,19 @@ namespace PinAppdePromo.Controllers
 
             if (usuario != null)
             {
+                if (usuario.TipoAuth == "GOOGLE")
+                {
+                    ViewBag.Error = "Este usuario usa Google para iniciar sesión";
+                    return View();
+                }
+
+                // 🔐 Validar contraseña
+                if (usuario.Password != password)
+                {
+                    ViewBag.Error = "Contraseña incorrecta";
+                    return View();
+                }
+                
                 HttpContext.Session.SetString("Usuario", usuario.Correo);
                 HttpContext.Session.SetString("Rol", usuario.Rol);
                 HttpContext.Session.SetString("Nombre", usuario.Nombre ?? "");
@@ -108,28 +121,33 @@ namespace PinAppdePromo.Controllers
 
                 if (usuario == null)
                 {
-                    // 👉 crear automáticamente
+                    // 🆕 Nuevo usuario (Google)
                     usuario = new Usuario
                     {
                         Correo = email!,
                         Nombre = nombre,
                         FotoUrl = foto,
                         Password = "",
-                        Rol = "CLIENTE"
+                        Rol = "CLIENTE",
+                        TipoAuth = "GOOGLE"
                     };
 
                     _context.Usuarios.Add(usuario);
-                    _context.SaveChanges();
                 }
                 else
                 {
-                    // 🔥 ACTUALIZA SI YA EXISTE
+                    // 🔗 Usuario existente → VINCULAR
+
                     if (!string.IsNullOrEmpty(nombre))
                         usuario.Nombre = nombre;
 
                     if (!string.IsNullOrEmpty(foto))
                         usuario.FotoUrl = foto;
+
+                    // opcional (pero recomendado)
+                    usuario.TipoAuth = "GOOGLE";
                 }
+
                 _context.SaveChanges();
 
                 // 👉 guardar sesión
