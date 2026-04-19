@@ -36,7 +36,7 @@ namespace PinAppdePromo.Controllers
 
             return View(negocio);
         }
-        public IActionResult Registrar_negocio()
+        public IActionResult RegistrarNegocio()
         {
             if (HttpContext.Session.GetString("Usuario") == null)
             {
