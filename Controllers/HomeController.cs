@@ -36,6 +36,10 @@ namespace PinAppdePromo.Controllers
 
             return View(negocio);
         }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1610184c800ef2ff59a980f03ddb62283fdf118e
         public IActionResult RegistrarNegocio()
         {
             if (HttpContext.Session.GetString("Usuario") == null)
@@ -47,6 +51,15 @@ namespace PinAppdePromo.Controllers
                 return RedirectToAction("Index", "Home");
             }
             return View();
+        }
+
+        public IActionResult Moderacion()
+        {
+            if (HttpContext.Session.GetString("Usuario") != "admin@pin.com")
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            return View("Moderacion");
         }
     }
 }

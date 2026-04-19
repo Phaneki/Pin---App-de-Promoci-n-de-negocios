@@ -6,6 +6,7 @@
     <title>@ViewData["Title"] - PinAppdePromo</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/infnegocio.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-3b7u0NkQfO9Jx7D0n+u4f9z3pY+8gO67nPZ+uO3l3wGzVtM+QKf5Lz0RtWJhgJy0P3e0Kq1tTMtaaY4rQoDdVg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -84,6 +85,15 @@
                                 <li class="nav-item ms-2">
                                     <a asp-controller="Home" asp-action="RegistrarNegocio" class="btn btn-orange">
                                         Registrar negocio
+                                    </a>
+                                </li>
+                            }
+
+                            @if (usuario == "admin@pin.com")
+                            {
+                                <li class="nav-item ms-2">
+                                    <a asp-controller="Home" asp-action="Moderacion" class="btn" style="background-color: #a04028; color: white;">
+                                        Manager
                                     </a>
                                 </li>
                             }

@@ -7,32 +7,45 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 // 🔐 AUTENTICACIÓN (Google + Cookies)
-builder.Services.AddAuthentication(options =>
+var authBuilder = builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = "Cookies";
 })
-.AddCookie()
-.AddGoogle(options =>
+.AddCookie();
+
+// Solo agregar Google si existen credenciales configuradas
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
 {
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    authBuilder.AddGoogle(options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
 
-    options.Scope.Add("profile"); // 🔥 IMPORTANTE
+        options.Scope.Add("profile"); // 🔥 IMPORTANTE
 
-    options.ClaimActions.MapJsonKey("picture", "picture", "url");
-    options.ClaimActions.MapJsonKey("name", "name");
+        options.ClaimActions.MapJsonKey("picture", "picture", "url");
+        options.ClaimActions.MapJsonKey("name", "name");
 
-    options.SaveTokens = true;
-});
+        options.SaveTokens = true;
+    });
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddSession();
 
+<<<<<<< HEAD
 // Esto busca una variable llamada 'RedisConnection' en la configuración
 var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection");
 
+=======
+// Configurar Redis (antes de builder.Build())
+var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection");
+>>>>>>> 1610184c800ef2ff59a980f03ddb62283fdf118e
 if (!string.IsNullOrEmpty(redisConnectionString))
 {
     builder.Services.AddStackExchangeRedisCache(options =>
@@ -43,6 +56,13 @@ if (!string.IsNullOrEmpty(redisConnectionString))
 }
 
 var app = builder.Build();
+
+// Ejecutar migraciones automáticamente
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
