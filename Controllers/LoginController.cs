@@ -37,6 +37,46 @@ namespace PinAppdePromo.Controllers
             ViewBag.Error = "Credenciales incorrectas";
             return View();
         }
+
+        [HttpPost]
+        public IActionResult Registrar(string correo, string password, string confirmarPassword)
+        {
+            if (string.IsNullOrEmpty(correo) || string.IsNullOrEmpty(password))
+            {
+                ViewBag.Error = "Completa todos los campos";
+                return View();
+            }
+
+            if (password != confirmarPassword)
+            {
+                ViewBag.Error = "Las contraseñas no coinciden";
+                return View();
+            }
+
+            var existe = _context.Usuarios.FirstOrDefault(u => u.Correo == correo);
+
+            if (existe != null)
+            {
+                ViewBag.Error = "El correo ya está registrado";
+                return View();
+            }
+
+            var usuario = new Usuario
+            {
+                Correo = correo,
+                Password = password,
+                Rol = "CLIENTE"
+            };
+
+            _context.Usuarios.Add(usuario);
+            _context.SaveChanges();
+
+            // 🔥 LOGIN AUTOMÁTICO
+            HttpContext.Session.SetString("Usuario", usuario.Correo);
+            HttpContext.Session.SetString("Rol", usuario.Rol);
+
+            return RedirectToAction("Index", "Home");
+        }
         public IActionResult GoogleLogin()
         {
             var redirectUrl = Url.Action("GoogleResponse");
@@ -52,6 +92,10 @@ namespace PinAppdePromo.Controllers
             {
                 var email = result.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 
+                if (string.IsNullOrEmpty(email))
+                {
+                    return RedirectToAction("Index");
+                }
                 // 🔍 Verificar si existe en BD
                 var usuario = _context.Usuarios.FirstOrDefault(u => u.Correo == email);
 
