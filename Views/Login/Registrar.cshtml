@@ -1,0 +1,159 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "Registro";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Registro - PIN</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&family=Manrope:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #ff6b2c;
+            --text-dark: #2c2c2c;
+            --text-muted: #777;
+            --border: #eee;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+        }
+
+        /* LADO IZQUIERDO */
+        .left-panel {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 60px;
+            background: linear-gradient(135deg, #ff6b2c, #ff8a50);
+        }
+
+        .headline {
+            font-family: 'Playfair Display', serif;
+            font-size: 38px;
+            line-height: 1.2;
+        }
+
+        /* LADO DERECHO */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+
+        .box {
+            width: 360px;
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        @@keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 13px;
+            border-radius: 8px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .error {
+            color: red;
+            font-size: 13px;
+        }
+
+        .extra {
+            margin-top: 15px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .extra a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="left-panel">
+        <div class="headline">
+            Únete a PIN <br> y descubre negocios locales
+        </div>
+    </div>
+
+    <div class="right-panel">
+
+        <div class="box">
+
+            <h2>Crear cuenta</h2>
+            <p style="color:#777; margin-bottom:20px;">Regístrate para comenzar</p>
+
+            <form method="post">
+
+                <input type="email" name="correo" placeholder="Correo electrónico" required />
+
+                <input type="password" name="password" placeholder="Contraseña" required />
+
+                <input type="password" name="confirmarPassword" placeholder="Confirmar contraseña" required />
+
+                @if (ViewBag.Error != null)
+                {
+                    <p class="error">@ViewBag.Error</p>
+                }
+
+                <button class="btn">Registrarse</button>
+
+                <div class="divider">
+                    <span>o regístrate con</span>
+                </div>
+
+                <div class="social-login">
+
+                    <a asp-controller="Login" asp-action="GoogleLogin" class="btn-social google">
+                        <span>G</span> Registrarse con Google
+                    </a>
+
+                </div>
+
+            </form>
+
+            <div class="extra">
+                ¿Ya tienes cuenta? <a asp-controller="Login" asp-action="Index">Iniciar sesión</a>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
