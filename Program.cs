@@ -30,6 +30,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddSession();
 
+// Esto busca una variable llamada 'RedisConnection' en la configuración
+var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection");
+
+if (!string.IsNullOrEmpty(redisConnectionString))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = "PinApp_";
+    });
+}
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
