@@ -73,6 +73,37 @@ body {
   color: white;
 }
 
+/* círculo tipo Google */
+.avatar-circle {
+    width: 38px;
+    height: 38px;
+    background-color: #ff6b00; /* tu naranja */
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 15px;
+    transition: 0.2s ease;
+}
+
+/* imagen real */
+.avatar-img {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    transition: 0.2s ease;
+}
+
+/* hover elegante */
+.avatar-circle:hover,
+.avatar-img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    cursor: pointer;
+}
 /* ===== HERO SECTION ===== */
 
 .hero-section {
