@@ -57,13 +57,10 @@
                     <!-- CENTRO -->
                     <ul class="navbar-nav mx-auto fw-semibold">
                         <li class="nav-item">
-                            <a class="nav-link active-custom" asp-controller="Home" asp-action="Index">Inicio</a>
+                            <a class="nav-link" id="navInicio" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Explorar">Explorar</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Categorías</a>
+                            <a class="nav-link" id="navExplorar" asp-controller="Home" asp-action="Explorar">Explorar</a>
                         </li>
                     </ul>
 
@@ -80,7 +77,7 @@
                         }
                         else
                         {
-                            @if (usuario != null && (rol == "CLIENTE_NEGOCIO" || rol == "ADMIN"))
+                            @if (usuario != null)
                             {
                                 <li class="nav-item ms-2">
                                     <a asp-controller="Home" asp-action="RegistrarNegocio" class="btn btn-orange">
@@ -194,6 +191,22 @@
                 modal.show();
 
                 sessionStorage.setItem("bienvenidaMostrada", "true");
+            }
+
+            // Detectar página actual y aplicar clase active-custom
+            var currentPath = window.location.pathname.toLowerCase();
+            var navInicio = document.getElementById('navInicio');
+            var navExplorar = document.getElementById('navExplorar');
+
+            // Remover clase activa de ambos
+            if (navInicio) navInicio.classList.remove('active-custom');
+            if (navExplorar) navExplorar.classList.remove('active-custom');
+
+            // Aplicar clase activa según la ruta actual
+            if (currentPath.includes('/home/explorar') || currentPath.includes('/explorar')) {
+                if (navExplorar) navExplorar.classList.add('active-custom');
+            } else {
+                if (navInicio) navInicio.classList.add('active-custom');
             }
         });
     </script>
