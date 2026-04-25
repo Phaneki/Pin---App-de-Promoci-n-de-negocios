@@ -38,14 +38,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddSession();
 
-<<<<<<< HEAD
-// Esto busca una variable llamada 'RedisConnection' en la configuración
-var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection");
-
-=======
 // Configurar Redis (antes de builder.Build())
 var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection");
->>>>>>> 1610184c800ef2ff59a980f03ddb62283fdf118e
 if (!string.IsNullOrEmpty(redisConnectionString))
 {
     builder.Services.AddStackExchangeRedisCache(options =>

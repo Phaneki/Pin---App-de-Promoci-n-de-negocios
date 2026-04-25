@@ -36,10 +36,6 @@ namespace PinAppdePromo.Controllers
 
             return View(negocio);
         }
-<<<<<<< HEAD
-=======
-
->>>>>>> 1610184c800ef2ff59a980f03ddb62283fdf118e
         public IActionResult RegistrarNegocio()
         {
             if (HttpContext.Session.GetString("Usuario") == null)
