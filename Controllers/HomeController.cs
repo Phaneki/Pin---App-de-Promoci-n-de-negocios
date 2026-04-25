@@ -42,10 +42,6 @@ namespace PinAppdePromo.Controllers
             {
                 return RedirectToAction("Index", "Login");
             }
-            if (HttpContext.Session.GetString("Rol") != "CLIENTE_NEGOCIO")
-            {
-                return RedirectToAction("Index", "Home");
-            }
             return View();
         }
 
@@ -56,6 +52,36 @@ namespace PinAppdePromo.Controllers
                 return RedirectToAction("Index", "Home");
             }
             return View("Moderacion");
+        }
+
+        public IActionResult Perfil()
+        {
+            var usuario = HttpContext.Session.GetString("Usuario");
+            if (usuario == null)
+            {
+                return RedirectToAction("Index", "Login");
+            }
+            return View("~/Views/Home/Perfil/Index.cshtml");
+        }
+
+        public IActionResult MisResenas()
+        {
+            var usuario = HttpContext.Session.GetString("Usuario");
+            if (usuario == null)
+            {
+                return RedirectToAction("Index", "Login");
+            }
+            return View("~/Views/Home/Perfil/MisResenas.cshtml");
+        }
+
+        public IActionResult AjustesCuenta()
+        {
+            var usuario = HttpContext.Session.GetString("Usuario");
+            if (usuario == null)
+            {
+                return RedirectToAction("Index", "Login");
+            }
+            return View("~/Views/Home/Perfil/AjustesCuenta.cshtml");
         }
     }
 }

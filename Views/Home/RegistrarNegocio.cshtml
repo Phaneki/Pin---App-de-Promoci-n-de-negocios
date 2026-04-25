@@ -43,6 +43,41 @@
         font-weight: 600;
         font-size: 1.05rem;
     }
+
+    #map {
+        width: 100%;
+        height: 280px;
+        border-radius: 12px;
+    }
+
+    .time-input-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .time-input-group input {
+        width: 100px;
+    }
+
+    .time-input-group span {
+        font-weight: 600;
+        color: #666;
+    }
+</style>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<!-- Leaflet Geocoder CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+<style>
+    .leaflet-container {
+        border-radius: 12px;
+    }
+    .leaflet-control-geocoder {
+        margin-top: 50px;
+    }
 </style>
 
 <div class="container py-5">
@@ -86,14 +121,13 @@
                     <p class="section-label">Ubicación</p>
                     <div class="mt-3">
                         <label class="form-label fw-semibold">Dirección exacta</label>
-                        <input type="text" class="form-control" placeholder="Calle, número, distrito...">
+                        <input type="text" class="form-control" id="addressInput" placeholder="Calle, número, distrito...">
                     </div>
-                    <div class="mt-4 border rounded-4 overflow-hidden" style="height: 280px; background: #f1f5f9;">
-                        <div class="h-100 d-flex align-items-center justify-content-center flex-column">
-                            <span style="font-size: 4rem;">📍</span>
-                            <p class="mt-2 fw-medium">Haz clic para fijar la ubicación</p>
-                        </div>
+                    <div class="mt-4 border rounded-4 overflow-hidden">
+                        <div id="map"></div>
                     </div>
+                    <input type="hidden" id="latitude" />
+                    <input type="hidden" id="longitude" />
                 </div>
             </div>
 
@@ -116,22 +150,47 @@
                 <div class="card-body p-5">
                     <p class="section-label">Horarios de Atención</p>
                     <div class="row g-3 mt-2">
+                        <!-- Lunes a Viernes -->
                         <div class="col-md-6">
-                            <div class="border rounded-3 p-3 text-center">
-                                <strong>LUNES - VIERNES</strong><br>
-                                <span class="text-muted">09:00 AM - 06:00 PM</span>
+                            <label class="form-label fw-semibold">LUNES - VIERNES</label>
+                            <div class="time-input-group">
+                                <input type="time" class="form-control" id="lv_inicio" value="09:00">
+                                <span>hasta</span>
+                                <input type="time" class="form-control" id="lv_fin" value="18:00">
                             </div>
                         </div>
+
+                        <!-- Sábados -->
                         <div class="col-md-6">
-                            <div class="border rounded-3 p-3 text-center">
-                                <strong>SÁBADOS</strong><br>
-                                <span class="text-muted">10:00 AM - 02:00 PM</span>
+                            <label class="form-label fw-semibold">SÁBADOS</label>
+                            <div class="time-input-group">
+                                <input type="time" class="form-control" id="s_inicio" value="10:00">
+                                <span>hasta</span>
+                                <input type="time" class="form-control" id="s_fin" value="14:00">
                             </div>
                         </div>
+
+                        <!-- Domingos -->
                         <div class="col-12">
-                            <div class="border rounded-3 p-3 d-flex justify-content-between align-items-center">
-                                <span><strong>DOMINGOS</strong></span>
-                                <span class="text-muted">Cerrado</span>
+                            <label class="form-label fw-semibold">DOMINGOS</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="domingo" id="domingo_cerrado" checked>
+                                    <label class="form-check-label" for="domingo_cerrado">
+                                        Cerrado
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="domingo" id="domingo_abierto">
+                                    <label class="form-check-label" for="domingo_abierto">
+                                        Abierto
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="time-input-group mt-3" id="domingo_horarios" style="display:none;">
+                                <input type="time" class="form-control" id="d_inicio" value="10:00">
+                                <span>hasta</span>
+                                <input type="time" class="form-control" id="d_fin" value="18:00">
                             </div>
                         </div>
                     </div>
@@ -140,7 +199,7 @@
 
             <!-- Botón Enviar -->
             <div class="d-grid">
-                <button type="submit" class="btn btn-enviar btn-lg">
+                <button type="submit" class="btn btn-enviar btn-lg" onclick="enviarRegistro()">
                     ➜ Enviar para aprobación
                 </button>
             </div>
@@ -152,3 +211,132 @@
         </div>
     </div>
 </div>
+
+<!-- Leaflet JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- Leaflet Geocoder JS -->
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+<script>
+    let map;
+    let marker;
+    const defaultLocation = [40.4168, -3.7038]; // Madrid, España [lat, lng]
+
+    // Inicializar el mapa
+    function initMap() {
+        map = L.map('map').setView(defaultLocation, 13);
+
+        // Usar tiles de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Crear marcador arrastrabledefault marker
+        marker = L.marker(defaultLocation, {
+            draggable: true,
+            title: 'Ubica tu negocio aquí'
+        }).addTo(map);
+
+        // Guardar coordenadas cuando se arrastra el marcador
+        marker.on('dragend', function() {
+            const pos = marker.getLatLng();
+            document.getElementById('latitude').value = pos.lat;
+            document.getElementById('longitude').value = pos.lng;
+            updateAddressFromCoordinates(pos.lat, pos.lng);
+        });
+
+        // Permitir hacer clic en el mapa para colocar el marcador
+        map.on('click', function(event) {
+            marker.setLatLng(event.latlng);
+            document.getElementById('latitude').value = event.latlng.lat;
+            document.getElementById('longitude').value = event.latlng.lng;
+            updateAddressFromCoordinates(event.latlng.lat, event.latlng.lng);
+        });
+
+        // Agregar control de búsqueda
+        L.Control.geocoder({
+            defaultMarkGeocode: false
+        }).on('markgeocode', function(e) {
+            const bbox = e.geocode.bbox;
+            const latLng = e.geocode.center;
+            marker.setLatLng(latLng);
+            document.getElementById('latitude').value = latLng.lat;
+            document.getElementById('longitude').value = latLng.lng;
+            document.getElementById('addressInput').value = e.geocode.name;
+            map.setView(latLng, 13);
+        }).addTo(map);
+
+        // Buscar dirección cuando se escribe en el input
+        document.getElementById('addressInput').addEventListener('change', searchAddress);
+    }
+
+    // Actualizar dirección desde coordenadas (usando servicio de Nominatim)
+    function updateAddressFromCoordinates(lat, lng) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.address) {
+                    document.getElementById('addressInput').value = data.display_name;
+                }
+            })
+            .catch(error => console.log('Error al obtener la dirección:', error));
+    }
+
+    // Buscar ubicación por dirección
+    function searchAddress() {
+        const address = document.getElementById('addressInput').value;
+        
+        if (!address) return;
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const result = data[0];
+                    const latLng = [parseFloat(result.lat), parseFloat(result.lon)];
+                    marker.setLatLng(latLng);
+                    document.getElementById('latitude').value = result.lat;
+                    document.getElementById('longitude').value = result.lon;
+                    map.setView(latLng, 13);
+                } else {
+                    alert('No se encontró la dirección. Intenta con otra.');
+                }
+            })
+            .catch(error => {
+                console.log('Error:', error);
+                alert('Error al buscar la dirección.');
+            });
+    }
+
+    // Enviar registro y redirigir
+    function enviarRegistro() {
+        // Validar que se haya seleccionado una ubicación
+        if (!document.getElementById('latitude').value) {
+            alert('Por favor, selecciona una ubicación en el mapa.');
+            return;
+        }
+
+        // Aquí se enviarían los datos del formulario al servidor
+        console.log('Negocio registrado:', {
+            latitude: document.getElementById('latitude').value,
+            longitude: document.getElementById('longitude').value,
+            address: document.getElementById('addressInput').value
+        });
+
+        // Redirigir a la página principal
+        window.location.href = '/Home/Index';
+    }
+
+    // Toggle de horarios de domingo
+    document.getElementById('domingo_abierto')?.addEventListener('change', function() {
+        document.getElementById('domingo_horarios').style.display = 'flex';
+    });
+
+    document.getElementById('domingo_cerrado')?.addEventListener('change', function() {
+        document.getElementById('domingo_horarios').style.display = 'none';
+    });
+
+    // Inicializar mapa cuando carga la página
+    document.addEventListener('DOMContentLoaded', initMap);
+</script>
