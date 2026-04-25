@@ -1,0 +1,690 @@
+@{
+    ViewData["Title"] = "Ajustes de Cuenta";
+}
+
+<style>
+    .profile-banner {
+        background-color: #f5f5f5;
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        position: relative;
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 30px;
+    }
+
+    .profile-avatar {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .profile-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .verification-badge {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background-color: #0066cc;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        border: 3px solid white;
+    }
+
+    .profile-info h2 {
+        font-size: 28px;
+        font-weight: 800;
+        margin: 0 0 15px 0;
+        color: #1a1a1a;
+    }
+
+    .profile-meta {
+        display: flex;
+        gap: 25px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .meta-item i {
+        color: #ff6b00;
+        font-size: 16px;
+    }
+
+    .nav-pills {
+        background-color: #f5f5f5;
+        border-radius: 12px;
+        padding: 10px;
+        gap: 10px;
+        margin-bottom: 30px;
+    }
+
+    .nav-pills .nav-link {
+        border-radius: 8px;
+        color: #666 !important;
+        font-weight: 600;
+        padding: 10px 20px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #ff6b00 !important;
+        color: white !important;
+    }
+
+    .section-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: #1a1a1a;
+        margin-bottom: 25px;
+    }
+
+    .settings-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+    }
+
+    .settings-section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .settings-section-title i {
+        color: #ff6b00;
+        font-size: 18px;
+    }
+
+    .form-group-custom {
+        margin-bottom: 20px;
+    }
+
+    .form-group-custom label {
+        display: block;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .form-group-custom input,
+    .form-group-custom select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.3s ease;
+    }
+
+    .form-group-custom input:focus,
+    .form-group-custom select:focus {
+        outline: none;
+        border-color: #ff6b00;
+        box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+    }
+
+    .form-group-custom small {
+        display: block;
+        color: #999;
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    .photo-upload {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+
+    .photo-preview {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .photo-preview img {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .photo-preview-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        background-color: #ff6b00;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 32px;
+        font-weight: 800;
+    }
+
+    .upload-btn-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .upload-btn-wrapper button {
+        background-color: #ff6b00;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .upload-btn-wrapper button:hover {
+        background-color: #d9520a;
+    }
+
+    .upload-btn-wrapper button.secondary {
+        background-color: #f0f0f0;
+        color: #666;
+    }
+
+    .upload-btn-wrapper button.secondary:hover {
+        background-color: #e0e0e0;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .toggle-switch {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .toggle-label {
+        flex-grow: 1;
+    }
+
+    .toggle-label .title {
+        font-weight: 600;
+        color: #1a1a1a;
+        font-size: 14px;
+    }
+
+    .toggle-label .description {
+        font-size: 12px;
+        color: #999;
+        margin-top: 4px;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 28px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.3s;
+        border-radius: 28px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: #ff6b00;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(22px);
+    }
+
+    .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 2px solid #f0f0f0;
+    }
+
+    .btn-save {
+        background-color: #ff6b00;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .btn-save:hover {
+        background-color: #d9520a;
+    }
+
+    .btn-cancel {
+        background-color: #f0f0f0;
+        color: #666;
+        padding: 12px 30px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .btn-cancel:hover {
+        background-color: #e0e0e0;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+</style>
+
+<div class="container-fluid px-4 py-5">
+    <!-- PERFIL BANNER -->
+    <div class="profile-banner">
+        <div class="profile-header">
+            <!-- AVATAR -->
+            <div class="profile-avatar">
+                @{
+                    var foto = Context.Session.GetString("Foto");
+                    var usuario = Context.Session.GetString("Usuario") ?? "Usuario";
+                    var inicial = usuario.Substring(0, 1).ToUpper();
+                }
+
+                @if (!string.IsNullOrEmpty(foto))
+                {
+                    <img src="@foto" alt="@usuario" class="profile-img" referrerpolicy="no-referrer" />
+                }
+                else
+                {
+                    <div style="width: 120px; height: 120px; border-radius: 12px; background-color: #ff6b00; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: 800; border: 3px solid white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+                        @inicial
+                    </div>
+                }
+
+                <div class="verification-badge">
+                    <i class="fas fa-check"></i>
+                </div>
+            </div>
+
+            <!-- INFORMACIÓN DEL USUARIO -->
+            <div class="profile-info flex-grow-1">
+                <h2>@usuario</h2>
+
+                <div class="profile-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Miembro desde 2026</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Madrid, España</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-star"></i>
+                        <span>12 reseñas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN INTERNA -->
+    <div class="d-flex gap-2 nav-pills">
+        <a href="/Home/Perfil" class="nav-link" type="button">
+            <i class="fas fa-heart me-2"></i>Mis Favoritos
+        </a>
+        <a href="/Home/MisResenas" class="nav-link" type="button">
+            <i class="fas fa-star me-2"></i>Mis Reseñas
+        </a>
+        <a href="/Home/AjustesCuenta" class="nav-link active" type="button">
+            <i class="fas fa-cog me-2"></i>Ajustes de Cuenta
+        </a>
+    </div>
+
+    <!-- CONTENIDO: AJUSTES DE CUENTA -->
+    <div class="section-title">
+        <span>Ajustes de Cuenta</span>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- CARD 1: INFORMACIÓN PERSONAL -->
+            <div class="settings-card">
+                <div class="settings-section-title">
+                    <i class="fas fa-user"></i>
+                    Información Personal
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="fullName">Nombre Visible</label>
+                    <input type="text" id="fullName" placeholder="Juan Pérez" value="Juan Pérez">
+                    <small>Este es el nombre que verán otros usuarios</small>
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="email">Correo Electrónico</label>
+                    <input type="email" id="email" placeholder="juan@ejemplo.com" value="juan@ejemplo.com" disabled>
+                    <small>Tu email no puede ser modificado por razones de seguridad</small>
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="ubicacion">Ubicación</label>
+                    <input type="text" id="ubicacion" placeholder="Madrid, España" value="Madrid, España">
+                    <small>Tu ciudad o región</small>
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="bio">Biografía</label>
+                    <textarea style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px;" id="bio" placeholder="Cuéntanos sobre ti...">Amante de la buena comida y la tecnología. Siempre en busca de nuevas experiencias.</textarea>
+                    <small>Máximo 500 caracteres</small>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-save">Guardar Cambios</button>
+                    <button class="btn-cancel">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- CARD 2: FOTO DE PERFIL -->
+            <div class="settings-card">
+                <div class="settings-section-title">
+                    <i class="fas fa-image"></i>
+                    Foto de Perfil
+                </div>
+
+                <div class="photo-upload">
+                    <div class="photo-preview">
+                        @if (!string.IsNullOrEmpty(foto))
+                        {
+                            <img src="@foto" alt="@usuario" referrerpolicy="no-referrer" />
+                        }
+                        else
+                        {
+                            <div class="photo-preview-avatar">@inicial</div>
+                        }
+                    </div>
+
+                    <div class="upload-btn-wrapper">
+                        <button onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-upload me-2"></i>Cambiar Foto
+                        </button>
+                        <button class="secondary" onclick="alert('Foto eliminada')">
+                            <i class="fas fa-trash me-2"></i>Eliminar Foto
+                        </button>
+                        <input type="file" id="fileInput" class="file-input" accept="image/*">
+                    </div>
+                </div>
+
+                <p style="margin-top: 15px; color: #999; font-size: 12px;">
+                    <i class="fas fa-info-circle me-2"></i>Formatos soportados: JPG, PNG. Tamaño máximo: 5MB
+                </p>
+            </div>
+
+            <!-- CARD 3: SEGURIDAD -->
+            <div class="settings-card">
+                <div class="settings-section-title">
+                    <i class="fas fa-lock"></i>
+                    Seguridad
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="currentPassword">Contraseña Actual</label>
+                    <input type="password" id="currentPassword" placeholder="••••••••">
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="newPassword">Nueva Contraseña</label>
+                    <input type="password" id="newPassword" placeholder="••••••••">
+                    <small>Mínimo 8 caracteres, incluye mayúsculas, minúsculas y números</small>
+                </div>
+
+                <div class="form-group-custom">
+                    <label for="confirmPassword">Confirmar Contraseña</label>
+                    <input type="password" id="confirmPassword" placeholder="••••••••">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-save">Cambiar Contraseña</button>
+                    <button class="btn-cancel">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- CARD 4: NOTIFICACIONES -->
+            <div class="settings-card">
+                <div class="settings-section-title">
+                    <i class="fas fa-bell"></i>
+                    Notificaciones
+                </div>
+
+                <div class="toggle-switch">
+                    <div class="toggle-label">
+                        <div class="title">Notificaciones por Email</div>
+                        <div class="description">Recibe actualizaciones sobre tus reseñas y favoritos</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-switch">
+                    <div class="toggle-label">
+                        <div class="title">Respuestas a tus Reseñas</div>
+                        <div class="description">Notificaciones cuando alguien responde a tus reseñas</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-switch">
+                    <div class="toggle-label">
+                        <div class="title">Nuevos Negocios en Favoritos</div>
+                        <div class="description">Alertas sobre actualizaciones de tus negocios favoritos</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-save">Guardar Preferencias</button>
+                </div>
+            </div>
+
+            <!-- CARD 5: PRIVACIDAD -->
+            <div class="settings-card">
+                <div class="settings-section-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Privacidad
+                </div>
+
+                <div class="toggle-switch">
+                    <div class="toggle-label">
+                        <div class="title">Perfil Público</div>
+                        <div class="description">Permite que otros usuarios vean tu perfil</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-switch">
+                    <div class="toggle-label">
+                        <div class="title">Mostrar mis Reseñas Públicamente</div>
+                        <div class="description">Tus reseñas serán visibles en los perfiles de negocios</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-save">Guardar Preferencias</button>
+                </div>
+            </div>
+
+            <!-- CARD 6: ELIMINAR CUENTA -->
+            <div class="settings-card" style="border-left: 4px solid #dc3545;">
+                <div class="settings-section-title" style="color: #dc3545; border-bottom-color: #ffe0e0;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Zona de Peligro
+                </div>
+
+                <p style="color: #666; margin-bottom: 20px; font-size: 14px;">
+                    Las acciones en esta sección son irreversibles. Por favor, procede con cuidado.
+                </p>
+
+                <div class="button-group">
+                    <button class="btn-danger" onclick="alert('Se enviará un email de confirmación')">
+                        <i class="fas fa-trash me-2"></i>Descargar mis Datos
+                    </button>
+                    <button class="btn-danger" onclick="alert('Solicitud de eliminación enviada')">
+                        <i class="fas fa-times me-2"></i>Eliminar Cuenta
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="col-lg-4 ps-lg-4">
+            <div class="settings-card">
+                <h5 style="font-weight: 800; margin-bottom: 15px;">
+                    <i class="fas fa-question-circle me-2" style="color: #ff6b00;"></i>Ayuda
+                </h5>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="margin-bottom: 12px;">
+                        <a href="#" style="color: #ff6b00; text-decoration: none; font-size: 14px; font-weight: 600;">
+                            <i class="fas fa-arrow-right me-2"></i>Centro de Ayuda
+                        </a>
+                    </li>
+                    <li style="margin-bottom: 12px;">
+                        <a href="#" style="color: #ff6b00; text-decoration: none; font-size: 14px; font-weight: 600;">
+                            <i class="fas fa-arrow-right me-2"></i>Contactar Soporte
+                        </a>
+                    </li>
+                    <li style="margin-bottom: 12px;">
+                        <a href="#" style="color: #ff6b00; text-decoration: none; font-size: 14px; font-weight: 600;">
+                            <i class="fas fa-arrow-right me-2"></i>Ver Política de Privacidad
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" style="color: #ff6b00; text-decoration: none; font-size: 14px; font-weight: 600;">
+                            <i class="fas fa-arrow-right me-2"></i>Términos de Servicio
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="settings-card">
+                <h5 style="font-weight: 800; margin-bottom: 15px; color: #1a1a1a;">
+                    <i class="fas fa-info-circle me-2" style="color: #ff6b00;"></i>Información de Cuenta
+                </h5>
+                <div style="font-size: 13px; color: #666;">
+                    <p style="margin-bottom: 10px;">
+                        <strong>Email:</strong><br>
+                        juan@ejemplo.com
+                    </p>
+                    <p style="margin-bottom: 10px;">
+                        <strong>Miembro desde:</strong><br>
+                        15 de Enero de 2026
+                    </p>
+                    <p>
+                        <strong>Último acceso:</strong><br>
+                        Hace 2 horas
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

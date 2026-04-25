@@ -1,0 +1,392 @@
+@{
+    ViewData["Title"] = "Mis Reseñas";
+}
+
+<style>
+    .profile-banner {
+        background-color: #f5f5f5;
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 30px;
+        position: relative;
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 30px;
+    }
+
+    .profile-avatar {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .profile-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .verification-badge {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background-color: #0066cc;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        border: 3px solid white;
+    }
+
+    .profile-info h2 {
+        font-size: 28px;
+        font-weight: 800;
+        margin: 0 0 15px 0;
+        color: #1a1a1a;
+    }
+
+    .profile-meta {
+        display: flex;
+        gap: 25px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #666;
+    }
+
+    .meta-item i {
+        color: #ff6b00;
+        font-size: 16px;
+    }
+
+    .nav-pills {
+        background-color: #f5f5f5;
+        border-radius: 12px;
+        padding: 10px;
+        gap: 10px;
+        margin-bottom: 30px;
+    }
+
+    .nav-pills .nav-link {
+        border-radius: 8px;
+        color: #666 !important;
+        font-weight: 600;
+        padding: 10px 20px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #ff6b00 !important;
+        color: white !important;
+    }
+
+    .section-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: #1a1a1a;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .review-item {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid #ff6b00;
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+
+    .review-business-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+
+    .review-date {
+        font-size: 13px;
+        color: #999;
+    }
+
+    .review-rating {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 16px;
+    }
+
+    .review-rating .stars {
+        color: #ffc107;
+    }
+
+    .review-text {
+        font-size: 15px;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    .review-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .review-action-btn {
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        color: #666;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .review-action-btn:hover {
+        background-color: #ff6b00;
+        color: white;
+        border-color: #ff6b00;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #999;
+        background-color: #f9f9f9;
+        border-radius: 12px;
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+
+    .empty-state p {
+        font-size: 16px;
+        margin: 0;
+    }
+
+    .empty-state a {
+        color: #ff6b00;
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: 15px;
+        display: inline-block;
+    }
+</style>
+
+<div class="container-fluid px-4 py-5">
+    <!-- PERFIL BANNER -->
+    <div class="profile-banner">
+        <div class="profile-header">
+            <!-- AVATAR -->
+            <div class="profile-avatar">
+                @{
+                    var foto = Context.Session.GetString("Foto");
+                    var usuario = Context.Session.GetString("Usuario") ?? "Usuario";
+                    var inicial = usuario.Substring(0, 1).ToUpper();
+                }
+
+                @if (!string.IsNullOrEmpty(foto))
+                {
+                    <img src="@foto" alt="@usuario" class="profile-img" referrerpolicy="no-referrer" />
+                }
+                else
+                {
+                    <div style="width: 120px; height: 120px; border-radius: 12px; background-color: #ff6b00; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: 800; border: 3px solid white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+                        @inicial
+                    </div>
+                }
+
+                <div class="verification-badge">
+                    <i class="fas fa-check"></i>
+                </div>
+            </div>
+
+            <!-- INFORMACIÓN DEL USUARIO -->
+            <div class="profile-info flex-grow-1">
+                <h2>@usuario</h2>
+
+                <div class="profile-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Miembro desde 2026</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Madrid, España</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-star"></i>
+                        <span>12 reseñas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN INTERNA -->
+    <div class="d-flex gap-2 nav-pills">
+        <a href="/Home/Perfil" class="nav-link" type="button">
+            <i class="fas fa-heart me-2"></i>Mis Favoritos
+        </a>
+        <a href="/Home/MisResenas" class="nav-link active" type="button">
+            <i class="fas fa-star me-2"></i>Mis Reseñas
+        </a>
+        <a href="/Home/AjustesCuenta" class="nav-link" type="button">
+            <i class="fas fa-cog me-2"></i>Ajustes de Cuenta
+        </a>
+    </div>
+
+    <!-- CONTENIDO: MIS RESEÑAS -->
+    <div class="section-title">
+        <span>Mis Reseñas (12)</span>
+    </div>
+
+    <!-- RESEÑAS -->
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- RESEÑA 1 -->
+            <div class="review-item">
+                <div class="review-header">
+                    <div>
+                        <div class="review-business-name">El Buen Gusto</div>
+                        <div class="review-date">Hace 2 semanas</div>
+                    </div>
+                </div>
+
+                <div class="review-rating">
+                    <span class="stars">★★★★★</span>
+                    <span style="color: #666; font-weight: 600;">Excelente</span>
+                </div>
+
+                <p class="review-text">
+                    Experiencia increíble en este restaurante. La comida estaba deliciosa, los ingredientes frescos y el personal muy atento. Definitivamente volvería. ¡Altamente recomendado!
+                </p>
+
+                <div class="review-actions">
+                    <button class="review-action-btn">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </button>
+                    <button class="review-action-btn">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                </div>
+            </div>
+
+            <!-- RESEÑA 2 -->
+            <div class="review-item">
+                <div class="review-header">
+                    <div>
+                        <div class="review-business-name">TechWorld Madrid</div>
+                        <div class="review-date">Hace 1 mes</div>
+                    </div>
+                </div>
+
+                <div class="review-rating">
+                    <span class="stars">★★★★☆</span>
+                    <span style="color: #666; font-weight: 600;">Muy Bueno</span>
+                </div>
+
+                <p class="review-text">
+                    Buena selección de productos y precios competitivos. El servicio técnico fue muy útil para resolver mis dudas. Única pequeña mejora sería más variedad en marcas de menor precio.
+                </p>
+
+                <div class="review-actions">
+                    <button class="review-action-btn">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </button>
+                    <button class="review-action-btn">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                </div>
+            </div>
+
+            <!-- RESEÑA 3 -->
+            <div class="review-item">
+                <div class="review-header">
+                    <div>
+                        <div class="review-business-name">FitLife Gym</div>
+                        <div class="review-date">Hace 1 mes</div>
+                    </div>
+                </div>
+
+                <div class="review-rating">
+                    <span class="stars">★★★★★</span>
+                    <span style="color: #666; font-weight: 600;">Excelente</span>
+                </div>
+
+                <p class="review-text">
+                    Las instalaciones están impecables y el equipo muy completo. Los entrenadores son profesionales y realmente te ayudan a lograr tus objetivos. Muy satisfecho con mi membresía.
+                </p>
+
+                <div class="review-actions">
+                    <button class="review-action-btn">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </button>
+                    <button class="review-action-btn">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="col-lg-4 ps-lg-4">
+            <div style="background-color: #f5f5f5; border-radius: 12px; padding: 25px;">
+                <h5 style="font-weight: 800; margin-bottom: 15px;">Tu Valoración</h5>
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; color: #ff6b00; font-weight: 800; margin-bottom: 10px;">4.8</div>
+                    <div style="color: #ffc107; font-size: 20px; margin-bottom: 10px;">★★★★★</div>
+                    <p style="color: #666; font-size: 14px; margin: 0;">Basado en 12 reseñas</p>
+                </div>
+            </div>
+
+            <div style="background-color: #f5f5f5; border-radius: 12px; padding: 25px; margin-top: 20px;">
+                <h5 style="font-weight: 800; margin-bottom: 15px;">Estadísticas</h5>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd;">
+                        <span style="color: #666;">Reseñas útiles</span>
+                        <span style="font-weight: 700; color: #1a1a1a;">284</span>
+                    </li>
+                    <li style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd;">
+                        <span style="color: #666;">Fotos compartidas</span>
+                        <span style="font-weight: 700; color: #1a1a1a;">28</span>
+                    </li>
+                    <li style="display: flex; justify-content: space-between; padding: 10px 0;">
+                        <span style="color: #666;">Categorías reseñadas</span>
+                        <span style="font-weight: 700; color: #1a1a1a;">7</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
