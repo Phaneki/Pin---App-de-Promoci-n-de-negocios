@@ -48,5 +48,14 @@ namespace PinAppdePromo.Controllers
             }
             return View();
         }
+
+        public IActionResult Moderacion()
+        {
+            if (HttpContext.Session.GetString("Usuario") != "admin@pin.com")
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            return View("Moderacion");
+        }
     }
 }
