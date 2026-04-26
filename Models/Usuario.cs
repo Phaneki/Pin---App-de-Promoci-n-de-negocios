@@ -9,5 +9,7 @@ namespace PinAppdePromo.Models
         public string Password { get; set; } = string.Empty;
         public string Rol { get; set; } = "CLIENTE"; //  IMPORTANTE
         public string TipoAuth { get; set; } = "LOCAL"; // "LOCAL" o "GOOGLE"
+        public string? Ubicacion { get; set; }
+        public string? Bio { get; set; }
     }
 }
