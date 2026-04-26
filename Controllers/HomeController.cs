@@ -88,10 +88,26 @@ namespace PinAppdePromo.Controllers
 
             // Obtener el OwnerId basado en el usuario logueado en la sesión
             var email = HttpContext.Session.GetString("Usuario");
-            var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
             
-            // Si el usuario existe se asocia, sino le ponemos 1 temporalmente como fallback
-            negocio.OwnerId = user?.Id ?? 1; 
+            // Buscar el usuario en la base de datos de Pin (inglés)
+            var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+            
+            // Si no existe en PinDbContext, lo creamos al vuelo para que no falle la Llave Foránea
+            if (pinUser == null && !string.IsNullOrEmpty(email))
+            {
+                var localUser = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
+                pinUser = new User
+                {
+                    Email = email,
+                    FullName = localUser?.Nombre ?? "Usuario",
+                    PasswordHash = localUser?.Password ?? "",
+                    RoleId = 1 // Rol CLIENTE por defecto
+                };
+                _pinContext.Users.Add(pinUser);
+                await _pinContext.SaveChangesAsync();
+            }
+
+            negocio.OwnerId = pinUser?.UserId ?? 1; 
 
             _pinContext.Businesses.Add(negocio);
             await _pinContext.SaveChangesAsync();
@@ -278,13 +294,28 @@ namespace PinAppdePromo.Controllers
                 return RedirectToAction("Index", "Login");
             }
 
-            var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
-            if (user == null) return RedirectToAction("Index", "Login");
+            // Buscar en la tabla Users de PinDbContext para respetar la relación
+            var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (pinUser == null)
+            {
+                var localUser = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
+                if (localUser == null) return RedirectToAction("Index", "Login");
+                
+                pinUser = new User
+                {
+                    Email = email,
+                    FullName = localUser.Nombre ?? "Usuario",
+                    PasswordHash = localUser.Password ?? "",
+                    RoleId = 1 // Rol CLIENTE por defecto
+                };
+                _pinContext.Users.Add(pinUser);
+                await _pinContext.SaveChangesAsync();
+            }
 
             var review = new Review
             {
                 BusinessId = BusinessId,
-                UserId = user.Id,
+                UserId = pinUser.UserId,
                 Rating = Rating,
                 Comment = Comment,
                 CreatedAt = DateTime.UtcNow
@@ -323,6 +354,24 @@ namespace PinAppdePromo.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            // 1.5. Agregar Rol y Users en PinDbContext (Para que PostgreSQL no bloquee la inyección)
+            if (!await _pinContext.Roles.AnyAsync())
+            {
+                _pinContext.Roles.Add(new Role { Name = "CLIENTE" });
+                await _pinContext.SaveChangesAsync();
+            }
+            
+            var rol = await _pinContext.Roles.FirstOrDefaultAsync();
+
+            if (!await _pinContext.Users.AnyAsync(u => u.Email == "lucia@gmail.com"))
+            {
+                _pinContext.Users.AddRange(
+                    new User { Email = "lucia@gmail.com", FullName = "Lucía Méndez", PasswordHash = "123", RoleId = rol!.RoleId },
+                    new User { Email = "carlos@gmail.com", FullName = "Carlos Rivera", PasswordHash = "123", RoleId = rol!.RoleId }
+                );
+                await _pinContext.SaveChangesAsync();
+            }
+
             // 2. Agregar Categorías si no existen
             if (!await _pinContext.Categories.AnyAsync())
             {
@@ -336,8 +385,8 @@ namespace PinAppdePromo.Controllers
             }
 
             // Obtenemos los IDs generados automáticamente para armar las relaciones
-            var userLucia = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == "lucia@gmail.com");
-            var userCarlos = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == "carlos@gmail.com");
+            var pinUserLucia = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == "lucia@gmail.com");
+            var pinUserCarlos = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == "carlos@gmail.com");
             var catRestaurantes = await _pinContext.Categories.FirstOrDefaultAsync(c => c.Name == "Restaurantes");
             var catTecnologia = await _pinContext.Categories.FirstOrDefaultAsync(c => c.Name == "Tecnología");
             var catServicios = await _pinContext.Categories.FirstOrDefaultAsync(c => c.Name == "Servicios Automotrices");
@@ -345,9 +394,9 @@ namespace PinAppdePromo.Controllers
             // 3. Agregar Negocios y Relaciones
             if (!await _pinContext.Businesses.AnyAsync(b => b.TradeName == "Cevichería Punto Azul"))
             {
-                var b1 = new Business { OwnerId = userLucia!.Id, CategoryId = catRestaurantes!.CategoryId, TradeName = "Cevichería Punto Azul", Description = "Los mejores pescados y mariscos frescos del día. Especialidad en ceviche carretillero y jalea mixta.", Address = "Calle San Martín 595, Miraflores", Latitude = (decimal)-12.1245, Longitude = (decimal)-77.0250, ContactPhone = "987654321", Status = "Promoted", CreatedAt = DateTime.UtcNow };
-                var b2 = new Business { OwnerId = userCarlos!.Id, CategoryId = catTecnologia!.CategoryId, TradeName = "TechCenter Lima", Description = "Venta de laptops, accesorios gamer y servicio técnico especializado para computadoras.", Address = "Av. Arenales 1234, San Isidro", Latitude = (decimal)-12.0833, Longitude = (decimal)-77.0355, ContactPhone = "999888777", Status = "Approved", CreatedAt = DateTime.UtcNow };
-                var b3 = new Business { OwnerId = userLucia.Id, CategoryId = catServicios!.CategoryId, TradeName = "Taller FastFix", Description = "Mantenimiento preventivo, afinamiento, planchado y pintura automotriz.", Address = "Av. Santiago de Surco 456, Surco", Latitude = (decimal)-12.1388, Longitude = (decimal)-76.9989, ContactPhone = "912345678", Status = "Approved", CreatedAt = DateTime.UtcNow };
+                var b1 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catRestaurantes!.CategoryId, TradeName = "Cevichería Punto Azul", Description = "Los mejores pescados y mariscos frescos del día. Especialidad en ceviche carretillero y jalea mixta.", Address = "Calle San Martín 595, Miraflores", Latitude = (decimal)-12.1245, Longitude = (decimal)-77.0250, ContactPhone = "987654321", Status = "Promoted", CreatedAt = DateTime.UtcNow };
+                var b2 = new Business { OwnerId = pinUserCarlos!.UserId, CategoryId = catTecnologia!.CategoryId, TradeName = "TechCenter Lima", Description = "Venta de laptops, accesorios gamer y servicio técnico especializado para computadoras.", Address = "Av. Arenales 1234, San Isidro", Latitude = (decimal)-12.0833, Longitude = (decimal)-77.0355, ContactPhone = "999888777", Status = "Approved", CreatedAt = DateTime.UtcNow };
+                var b3 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catServicios!.CategoryId, TradeName = "Taller FastFix", Description = "Mantenimiento preventivo, afinamiento, planchado y pintura automotriz.", Address = "Av. Santiago de Surco 456, Surco", Latitude = (decimal)-12.1388, Longitude = (decimal)-76.9989, ContactPhone = "912345678", Status = "Approved", CreatedAt = DateTime.UtcNow };
 
                 _pinContext.Businesses.AddRange(b1, b2, b3);
                 await _pinContext.SaveChangesAsync();
@@ -359,9 +408,9 @@ namespace PinAppdePromo.Controllers
                 );
 
                 _pinContext.Reviews.AddRange(
-                    new Review { BusinessId = b1.BusinessId, UserId = userCarlos.Id, Rating = 5, Comment = "¡El mejor ceviche que he probado en Miraflores! Atención rápida y porciones generosas.", CreatedAt = DateTime.UtcNow.AddDays(-2) },
-                    new Review { BusinessId = b1.BusinessId, UserId = userLucia.Id, Rating = 4, Comment = "Muy rico todo, aunque el local estaba un poco lleno por ser fin de semana.", CreatedAt = DateTime.UtcNow.AddDays(-1) },
-                    new Review { BusinessId = b2.BusinessId, UserId = userLucia.Id, Rating = 5, Comment = "Compré una laptop para la universidad y me asesoraron súper bien. Precios justos.", CreatedAt = DateTime.UtcNow }
+                    new Review { BusinessId = b1.BusinessId, UserId = pinUserCarlos.UserId, Rating = 5, Comment = "¡El mejor ceviche que he probado en Miraflores! Atención rápida y porciones generosas.", CreatedAt = DateTime.UtcNow.AddDays(-2) },
+                    new Review { BusinessId = b1.BusinessId, UserId = pinUserLucia.UserId, Rating = 4, Comment = "Muy rico todo, aunque el local estaba un poco lleno por ser fin de semana.", CreatedAt = DateTime.UtcNow.AddDays(-1) },
+                    new Review { BusinessId = b2.BusinessId, UserId = pinUserLucia.UserId, Rating = 5, Comment = "Compré una laptop para la universidad y me asesoraron súper bien. Precios justos.", CreatedAt = DateTime.UtcNow }
                 );
 
                 await _pinContext.SaveChangesAsync();
