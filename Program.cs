@@ -36,6 +36,9 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddDbContext<PinDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddSession();
 
 // Configurar Redis (antes de builder.Build())
@@ -56,6 +59,9 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
+    
+    var pinContext = scope.ServiceProvider.GetRequiredService<PinDbContext>();
+    pinContext.Database.Migrate();
 }
 
 // Configure the HTTP request pipeline.
