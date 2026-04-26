@@ -1,368 +1,18 @@
+@model dynamic
 @{
     ViewData["Title"] = "Ajustes de Cuenta";
+    
+    var fechaRegistro = "2026";
+    try { fechaRegistro = Model?.CreatedAt.ToString("yyyy") ?? "2026"; } catch { }
+    var fullName = "";
+    try { fullName = Model?.FullName ?? Context.Session.GetString("Nombre"); } catch { fullName = Context.Session.GetString("Nombre"); }
+    if (string.IsNullOrEmpty(fullName)) { fullName = Context.Session.GetString("Usuario"); }
+    var email = Context.Session.GetString("Usuario");
 }
 
-<style>
-    .profile-banner {
-        background-color: #f5f5f5;
-        border-radius: 20px;
-        padding: 40px;
-        margin-bottom: 30px;
-        position: relative;
-    }
-
-    .profile-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 30px;
-    }
-
-    .profile-avatar {
-        position: relative;
-        flex-shrink: 0;
-    }
-
-    .profile-img {
-        width: 120px;
-        height: 120px;
-        border-radius: 12px;
-        object-fit: cover;
-        border: 3px solid white;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .verification-badge {
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        background-color: #0066cc;
-        border-radius: 50%;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 18px;
-        border: 3px solid white;
-    }
-
-    .profile-info h2 {
-        font-size: 28px;
-        font-weight: 800;
-        margin: 0 0 15px 0;
-        color: #1a1a1a;
-    }
-
-    .profile-meta {
-        display: flex;
-        gap: 25px;
-        flex-wrap: wrap;
-        margin-bottom: 10px;
-    }
-
-    .meta-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        color: #666;
-    }
-
-    .meta-item i {
-        color: #ff6b00;
-        font-size: 16px;
-    }
-
-    .nav-pills {
-        background-color: #f5f5f5;
-        border-radius: 12px;
-        padding: 10px;
-        gap: 10px;
-        margin-bottom: 30px;
-    }
-
-    .nav-pills .nav-link {
-        border-radius: 8px;
-        color: #666 !important;
-        font-weight: 600;
-        padding: 10px 20px;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        text-decoration: none;
-    }
-
-    .nav-pills .nav-link.active {
-        background-color: #ff6b00 !important;
-        color: white !important;
-    }
-
-    .section-title {
-        font-size: 22px;
-        font-weight: 800;
-        color: #1a1a1a;
-        margin-bottom: 25px;
-    }
-
-    .settings-card {
-        background: white;
-        border-radius: 12px;
-        padding: 25px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        margin-bottom: 25px;
-    }
-
-    .settings-section-title {
-        font-size: 16px;
-        font-weight: 700;
-        color: #1a1a1a;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #f0f0f0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .settings-section-title i {
-        color: #ff6b00;
-        font-size: 18px;
-    }
-
-    .form-group-custom {
-        margin-bottom: 20px;
-    }
-
-    .form-group-custom label {
-        display: block;
-        font-weight: 600;
-        color: #1a1a1a;
-        margin-bottom: 8px;
-        font-size: 14px;
-    }
-
-    .form-group-custom input,
-    .form-group-custom select {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-size: 14px;
-        font-family: inherit;
-        transition: all 0.3s ease;
-    }
-
-    .form-group-custom input:focus,
-    .form-group-custom select:focus {
-        outline: none;
-        border-color: #ff6b00;
-        box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
-    }
-
-    .form-group-custom small {
-        display: block;
-        color: #999;
-        margin-top: 5px;
-        font-size: 12px;
-    }
-
-    .photo-upload {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        padding: 20px;
-        border: 2px dashed #ddd;
-        border-radius: 8px;
-        background-color: #f9f9f9;
-    }
-
-    .photo-preview {
-        position: relative;
-        flex-shrink: 0;
-    }
-
-    .photo-preview img {
-        width: 80px;
-        height: 80px;
-        border-radius: 8px;
-        object-fit: cover;
-    }
-
-    .photo-preview-avatar {
-        width: 80px;
-        height: 80px;
-        border-radius: 8px;
-        background-color: #ff6b00;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 32px;
-        font-weight: 800;
-    }
-
-    .upload-btn-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .upload-btn-wrapper button {
-        background-color: #ff6b00;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 14px;
-    }
-
-    .upload-btn-wrapper button:hover {
-        background-color: #d9520a;
-    }
-
-    .upload-btn-wrapper button.secondary {
-        background-color: #f0f0f0;
-        color: #666;
-    }
-
-    .upload-btn-wrapper button.secondary:hover {
-        background-color: #e0e0e0;
-    }
-
-    .file-input {
-        display: none;
-    }
-
-    .toggle-switch {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding: 15px;
-        background-color: #f9f9f9;
-        border-radius: 8px;
-        margin-bottom: 15px;
-    }
-
-    .toggle-label {
-        flex-grow: 1;
-    }
-
-    .toggle-label .title {
-        font-weight: 600;
-        color: #1a1a1a;
-        font-size: 14px;
-    }
-
-    .toggle-label .description {
-        font-size: 12px;
-        color: #999;
-        margin-top: 4px;
-    }
-
-    .switch {
-        position: relative;
-        display: inline-block;
-        width: 50px;
-        height: 28px;
-    }
-
-    .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        transition: 0.3s;
-        border-radius: 28px;
-    }
-
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 22px;
-        width: 22px;
-        left: 3px;
-        bottom: 3px;
-        background-color: white;
-        transition: 0.3s;
-        border-radius: 50%;
-    }
-
-    input:checked + .slider {
-        background-color: #ff6b00;
-    }
-
-    input:checked + .slider:before {
-        transform: translateX(22px);
-    }
-
-    .button-group {
-        display: flex;
-        gap: 15px;
-        margin-top: 25px;
-        padding-top: 25px;
-        border-top: 2px solid #f0f0f0;
-    }
-
-    .btn-save {
-        background-color: #ff6b00;
-        color: white;
-        padding: 12px 30px;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 14px;
-    }
-
-    .btn-save:hover {
-        background-color: #d9520a;
-    }
-
-    .btn-cancel {
-        background-color: #f0f0f0;
-        color: #666;
-        padding: 12px 30px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 14px;
-    }
-
-    .btn-cancel:hover {
-        background-color: #e0e0e0;
-    }
-
-    .btn-danger {
-        background-color: #dc3545;
-        color: white;
-        padding: 12px 30px;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 14px;
-    }
-
-    .btn-danger:hover {
-        background-color: #c82333;
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/perfil.css" asp-append-version="true" />
+}
 
 <div class="container-fluid px-4 py-5">
     <!-- PERFIL BANNER -->
@@ -372,7 +22,8 @@
             <div class="profile-avatar">
                 @{
                     var foto = Context.Session.GetString("Foto");
-                    var usuario = Context.Session.GetString("Usuario") ?? "Usuario";
+                    var usuario = Context.Session.GetString("Nombre");
+                    if (string.IsNullOrEmpty(usuario)) { usuario = Context.Session.GetString("Usuario") ?? "Usuario"; }
                     var inicial = usuario.Substring(0, 1).ToUpper();
                 }
 
@@ -399,15 +50,15 @@
                 <div class="profile-meta">
                     <div class="meta-item">
                         <i class="fas fa-calendar"></i>
-                        <span>Miembro desde 2026</span>
+                        <span>Miembro desde @fechaRegistro</span>
                     </div>
                     <div class="meta-item">
                         <i class="fas fa-map-marker-alt"></i>
-                        <span>Madrid, España</span>
+                        <span>Ubicación no especificada</span>
                     </div>
                     <div class="meta-item">
                         <i class="fas fa-star"></i>
-                        <span>12 reseñas</span>
+                        <span>Activo</span>
                     </div>
                 </div>
             </div>
@@ -435,41 +86,42 @@
     <div class="row">
         <div class="col-lg-8">
             <!-- CARD 1: INFORMACIÓN PERSONAL -->
-            <div class="settings-card">
-                <div class="settings-section-title">
-                    <i class="fas fa-user"></i>
-                    Información Personal
-                </div>
+            <form asp-action="ActualizarPerfil" asp-controller="Home" method="post">
+                <div class="settings-card">
+                    <div class="settings-section-title">
+                        <i class="fas fa-user"></i>
+                        Información Personal
+                    </div>
 
-                <div class="form-group-custom">
-                    <label for="fullName">Nombre Visible</label>
-                    <input type="text" id="fullName" placeholder="Juan Pérez" value="Juan Pérez">
-                    <small>Este es el nombre que verán otros usuarios</small>
-                </div>
+                    <div class="form-group-custom">
+                        <label for="fullName">Nombre Visible</label>
+                        <input type="text" id="fullName" name="FullName" placeholder="Ingresa tu nombre..." value="@fullName" required>
+                        <small>Este es el nombre que verán otros usuarios</small>
+                    </div>
 
-                <div class="form-group-custom">
-                    <label for="email">Correo Electrónico</label>
-                    <input type="email" id="email" placeholder="juan@ejemplo.com" value="juan@ejemplo.com" disabled>
-                    <small>Tu email no puede ser modificado por razones de seguridad</small>
-                </div>
+                    <div class="form-group-custom">
+                        <label for="email">Correo Electrónico</label>
+                        <input type="email" id="email" value="@email" disabled>
+                        <small>Tu email no puede ser modificado por razones de seguridad</small>
+                    </div>
 
-                <div class="form-group-custom">
-                    <label for="ubicacion">Ubicación</label>
-                    <input type="text" id="ubicacion" placeholder="Madrid, España" value="Madrid, España">
-                    <small>Tu ciudad o región</small>
-                </div>
+                    <div class="form-group-custom">
+                        <label for="ubicacion">Ubicación</label>
+                        <input type="text" id="ubicacion" placeholder="Ej. Lima, Perú">
+                        <small>Tu ciudad o región</small>
+                    </div>
 
-                <div class="form-group-custom">
-                    <label for="bio">Biografía</label>
-                    <textarea style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px;" id="bio" placeholder="Cuéntanos sobre ti...">Amante de la buena comida y la tecnología. Siempre en busca de nuevas experiencias.</textarea>
-                    <small>Máximo 500 caracteres</small>
-                </div>
+                    <div class="form-group-custom">
+                        <label for="bio">Biografía</label>
+                        <textarea name="Bio" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px;" id="bio" placeholder="Cuéntanos sobre ti..."></textarea>
+                        <small>Máximo 500 caracteres</small>
+                    </div>
 
-                <div class="button-group">
-                    <button class="btn-save">Guardar Cambios</button>
-                    <button class="btn-cancel">Cancelar</button>
+                    <div class="button-group">
+                        <button type="submit" class="btn-save">Guardar Cambios</button>
+                    </div>
                 </div>
-            </div>
+            </form>
 
             <!-- CARD 2: FOTO DE PERFIL -->
             <div class="settings-card">
@@ -507,33 +159,35 @@
             </div>
 
             <!-- CARD 3: SEGURIDAD -->
-            <div class="settings-card">
-                <div class="settings-section-title">
-                    <i class="fas fa-lock"></i>
-                    Seguridad
-                </div>
+            <form asp-action="CambiarPassword" asp-controller="Home" method="post">
+                <div class="settings-card">
+                    <div class="settings-section-title">
+                        <i class="fas fa-lock"></i>
+                        Seguridad
+                    </div>
 
-                <div class="form-group-custom">
-                    <label for="currentPassword">Contraseña Actual</label>
-                    <input type="password" id="currentPassword" placeholder="••••••••">
-                </div>
+                    <div class="form-group-custom">
+                        <label for="currentPassword">Contraseña Actual</label>
+                        <input type="password" id="currentPassword" name="CurrentPassword" placeholder="••••••••" required>
+                    </div>
 
-                <div class="form-group-custom">
-                    <label for="newPassword">Nueva Contraseña</label>
-                    <input type="password" id="newPassword" placeholder="••••••••">
-                    <small>Mínimo 8 caracteres, incluye mayúsculas, minúsculas y números</small>
-                </div>
+                    <div class="form-group-custom">
+                        <label for="newPassword">Nueva Contraseña</label>
+                        <input type="password" id="newPassword" name="NewPassword" placeholder="••••••••" required>
+                        <small>Mínimo 8 caracteres, incluye mayúsculas, minúsculas y números</small>
+                    </div>
 
-                <div class="form-group-custom">
-                    <label for="confirmPassword">Confirmar Contraseña</label>
-                    <input type="password" id="confirmPassword" placeholder="••••••••">
-                </div>
+                    <div class="form-group-custom">
+                        <label for="confirmPassword">Confirmar Contraseña</label>
+                        <input type="password" id="confirmPassword" name="ConfirmPassword" placeholder="••••••••" required>
+                    </div>
 
-                <div class="button-group">
-                    <button class="btn-save">Cambiar Contraseña</button>
-                    <button class="btn-cancel">Cancelar</button>
+                    <div class="button-group">
+                        <button type="submit" class="btn-save">Cambiar Contraseña</button>
+                        <button type="reset" class="btn-cancel">Cancelar</button>
+                    </div>
                 </div>
-            </div>
+            </form>
 
             <!-- CARD 4: NOTIFICACIONES -->
             <div class="settings-card">
@@ -626,12 +280,14 @@
                 </p>
 
                 <div class="button-group">
-                    <button class="btn-danger" onclick="alert('Se enviará un email de confirmación')">
+                    <button class="btn-danger" onclick="alert('Funcionalidad de descarga en construcción')">
                         <i class="fas fa-trash me-2"></i>Descargar mis Datos
                     </button>
-                    <button class="btn-danger" onclick="alert('Solicitud de eliminación enviada')">
-                        <i class="fas fa-times me-2"></i>Eliminar Cuenta
-                    </button>
+                    <form asp-action="EliminarCuenta" asp-controller="Home" method="post" onsubmit="return confirm('¿Estás completamente seguro de que deseas eliminar tu cuenta? Esta acción borrará todas tus reseñas y negocios. No se puede deshacer.');">
+                        <button type="submit" class="btn-danger">
+                            <i class="fas fa-times me-2"></i>Eliminar Cuenta
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -673,15 +329,15 @@
                 <div style="font-size: 13px; color: #666;">
                     <p style="margin-bottom: 10px;">
                         <strong>Email:</strong><br>
-                        juan@ejemplo.com
+                        @email
                     </p>
                     <p style="margin-bottom: 10px;">
                         <strong>Miembro desde:</strong><br>
-                        15 de Enero de 2026
+                        @fechaRegistro
                     </p>
                     <p>
                         <strong>Último acceso:</strong><br>
-                        Hace 2 horas
+                        Recientemente
                     </p>
                 </div>
             </div>
