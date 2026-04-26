@@ -1,84 +1,16 @@
 @{
     ViewData["Title"] = "Registrar Negocio - Pin";
 }
+@model PinAppdePromo.Models.Business
 
-<style>
-    body {
-        background-color: #f8f9fa;
-    }
-    .main-title {
-        font-size: 2.6rem;
-        font-weight: 700;
-        color: #111827;
-    }
-    .card {
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-    }
-    .form-control, .form-select {
-        background-color: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 12px 16px;
-    }
-    .form-control:focus, .form-select:focus {
-        border-color: #f97316;
-        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-    }
-    .btn-enviar {
-        background-color: #e63939;
-        color: white;
-        border: none;
-        border-radius: 12px;
-        padding: 14px 0;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-    .btn-enviar:hover {
-        background-color: #d62828;
-    }
-    .section-label {
-        color: #e63939;
-        font-weight: 600;
-        font-size: 1.05rem;
-    }
-
-    #map {
-        width: 100%;
-        height: 280px;
-        border-radius: 12px;
-    }
-
-    .time-input-group {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .time-input-group input {
-        width: 100px;
-    }
-
-    .time-input-group span {
-        font-weight: 600;
-        color: #666;
-    }
-</style>
-
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-<!-- Leaflet Geocoder CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-
-<style>
-    .leaflet-container {
-        border-radius: 12px;
-    }
-    .leaflet-control-geocoder {
-        margin-top: 50px;
-    }
-</style>
+@section Styles {
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <!-- Leaflet Geocoder CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <!-- Nuestro CSS personalizado -->
+    <link rel="stylesheet" href="~/css/registrar-negocio.css" asp-append-version="true" />
+}
 
 <div class="container py-5">
 
@@ -92,24 +24,32 @@
                 </p>
             </div>
 
+            <form asp-action="CrearNegocio" asp-controller="Home" method="post" enctype="multipart/form-data" id="formRegistroNegocio">
             <!-- Información básica -->
             <div class="card mb-4">
                 <div class="card-body p-5">
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Nombre del Negocio</label>
-                        <input type="text" class="form-control" placeholder="Ej. El Bodegón del Sur">
+                        <input type="text" class="form-control" name="TradeName" placeholder="Ej. El Bodegón del Sur" required>
                     </div>
                     <div class="mb-4">
                         <label class="form-label fw-semibold">Descripción corta</label>
-                        <textarea class="form-control" rows="3" placeholder="Cuéntanos qué hace especial a tu negocio..."></textarea>
+                        <textarea class="form-control" name="Description" rows="3" placeholder="Cuéntanos qué hace especial a tu negocio..." required></textarea>
                     </div>
                     <div>
                         <label class="form-label fw-semibold">Categoría</label>
-                        <select class="form-select">
-                            <option>Restaurantes</option>
-                            <option>Cafeterías</option>
-                            <option>Tiendas</option>
-                            <option>Servicios</option>
+                        <select class="form-select" name="CategoryId">
+                            @if (ViewBag.Categorias != null)
+                            {
+                                foreach (var cat in ViewBag.Categorias)
+                                {
+                                    <option value="@cat.CategoryId">@cat.Name</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="1">General</option>
+                            }
                         </select>
                     </div>
                 </div>
@@ -121,13 +61,13 @@
                     <p class="section-label">Ubicación</p>
                     <div class="mt-3">
                         <label class="form-label fw-semibold">Dirección exacta</label>
-                        <input type="text" class="form-control" id="addressInput" placeholder="Calle, número, distrito...">
+                        <input type="text" class="form-control" id="addressInput" name="Address" placeholder="Calle, número, distrito..." required>
                     </div>
                     <div class="mt-4 border rounded-4 overflow-hidden">
                         <div id="map"></div>
                     </div>
-                    <input type="hidden" id="latitude" />
-                    <input type="hidden" id="longitude" />
+                    <input type="hidden" id="latitude" name="Latitude" />
+                    <input type="hidden" id="longitude" name="Longitude" />
                 </div>
             </div>
 
@@ -141,6 +81,7 @@
                         </div>
                         <p class="fw-medium">Arrastra tus fotos aquí</p>
                         <small class="text-muted">O haz clic para seleccionar archivos (JPG, PNG hasta 10MB)</small>
+                        <input type="file" name="Imagenes" multiple class="form-control mt-3" accept="image/*" />
                     </div>
                 </div>
             </div>
@@ -199,10 +140,11 @@
 
             <!-- Botón Enviar -->
             <div class="d-grid">
-                <button type="submit" class="btn btn-enviar btn-lg" onclick="enviarRegistro()">
+                <button type="submit" class="btn btn-enviar btn-lg">
                     ➜ Enviar para aprobación
                 </button>
             </div>
+            </form>
 
             <p class="text-center text-muted small mt-4">
                 AL ENVIAR, ACEPTAS NUESTROS TÉRMINOS Y CONDICIONES DE SERVICIO.
@@ -220,7 +162,7 @@
 <script>
     let map;
     let marker;
-    const defaultLocation = [40.4168, -3.7038]; // Madrid, España [lat, lng]
+    const defaultLocation = [-12.0464, -77.0428]; // Lima, Perú [lat, lng]
 
     // Inicializar el mapa
     function initMap() {
@@ -309,24 +251,13 @@
             });
     }
 
-    // Enviar registro y redirigir
-    function enviarRegistro() {
-        // Validar que se haya seleccionado una ubicación
-        if (!document.getElementById('latitude').value) {
-            alert('Por favor, selecciona una ubicación en el mapa.');
-            return;
+    // Validar antes de enviar el formulario real
+    document.getElementById('formRegistroNegocio').addEventListener('submit', function(e) {
+        if (!document.getElementById('latitude').value || !document.getElementById('longitude').value) {
+            e.preventDefault(); // Evita que el form se envíe vacío
+            alert('Por favor, selecciona una ubicación exacta en el mapa.');
         }
-
-        // Aquí se enviarían los datos del formulario al servidor
-        console.log('Negocio registrado:', {
-            latitude: document.getElementById('latitude').value,
-            longitude: document.getElementById('longitude').value,
-            address: document.getElementById('addressInput').value
-        });
-
-        // Redirigir a la página principal
-        window.location.href = '/Home/Index';
-    }
+    });
 
     // Toggle de horarios de domingo
     document.getElementById('domingo_abierto')?.addEventListener('change', function() {

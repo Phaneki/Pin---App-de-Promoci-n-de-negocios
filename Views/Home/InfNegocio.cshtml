@@ -1,21 +1,35 @@
-@model PinAppdePromo.Models.Negocio
+@model PinAppdePromo.Models.Business
 
 @{
-    ViewData["Title"] = Model.Nombre;
+    ViewData["Title"] = Model.TradeName;
+    var coverImage = Model.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/1920x1080/333/fff?text=Showroom";
+
+    // Uso de dynamic para prevenir errores si aún no agregas 'Services' o 'Products' a tu modelo Business
+    dynamic dynModel = Model;
+    IEnumerable<dynamic> services = null;
+    IEnumerable<dynamic> products = null;
+    try { services = dynModel.Services; } catch { }
+    try { products = dynModel.Products; } catch { }
+
+    var lat = Model.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    var lng = Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }
 
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+
 <!-- Hero Section -->
-<section class="hero-section position-relative d-flex align-items-center" style="background: linear-gradient(135deg, var(--terracota) 0%, #333 100%), url('@(string.IsNullOrWhiteSpace(Model.ImagenUrl) ? "https://via.placeholder.com/1920x1080/333/fff?text=Showroom" : Url.Content(Model.ImagenUrl))'); background-size: cover; background-position: center;">
+<section class="hero-section position-relative d-flex align-items-center" style="background: linear-gradient(135deg, var(--terracota) 0%, #333 100%), url('@Url.Content(coverImage)'); background-size: cover; background-position: center;">
     <div class="hero-overlay"></div>
     <div class="container text-white position-relative">
-        <h1 class="display-4 fw-bold">@Model.Nombre</h1>
-        <p class="lead">@Model.Direccion</p>
+        <h1 class="display-4 fw-bold">@Model.TradeName</h1>
+        <p class="lead">@Model.Address</p>
         <div class="d-flex align-items-center">
             <span class="badge bg-light text-dark me-2">
-                <i class="bi bi-star-fill text-warning"></i> @Model.Calificacion
+                <i class="bi bi-star-fill text-warning"></i> @(Model.Reviews?.Any() == true ? Math.Round(Model.Reviews.Average(r => r.Rating), 1) : 5.0)
             </span>
-            <span class="text-@(Model.EstaAbierto ? "success" : "danger")">
-                @(Model.EstaAbierto ? "Abierto ahora" : "Cerrado")
+            <span class="text-success">
+                Abierto ahora
             </span>
         </div>
     </div>
@@ -28,20 +42,22 @@
             <div class="card contact-sidebar shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title mb-3">Información de Contacto</h5>
-                    <button class="btn btn-terracota w-100 mb-2">Cómo llegar</button>
-                    <button class="btn btn-secondary w-100 mb-3">Contactar</button>
+                    <a href="https://www.google.com/maps/search/?api=1&query=@lat,@lng" target="_blank" class="btn btn-terracota w-100 mb-2">
+                        <i class="bi bi-geo-alt me-2"></i>Cómo llegar
+                    </a>
+                    <a href="tel:@(string.IsNullOrEmpty(Model.ContactPhone) ? "" : Model.ContactPhone)" class="btn btn-secondary w-100 mb-3 @(string.IsNullOrEmpty(Model.ContactPhone) ? "disabled" : "")">
+                        <i class="bi bi-telephone me-2"></i>Contactar
+                    </a>
                     <div class="mb-2">
-                        <i class="bi bi-geo-alt me-2"></i>@Model.Direccion
+                        <i class="bi bi-geo-alt me-2"></i>@Model.Address
                     </div>
                     <div class="mb-2">
-                        <i class="bi bi-telephone me-2"></i>@Model.Contacto
+                        <i class="bi bi-telephone me-2"></i>@(string.IsNullOrEmpty(Model.ContactPhone) ? "Sin teléfono" : Model.ContactPhone)
                     </div>
                     <div class="mb-3">
-                        <i class="bi bi-clock me-2"></i>@Model.Horarios
+                        <i class="bi bi-clock me-2"></i>Consultar horarios
                     </div>
-                    <div class="map-placeholder bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
-                        <span class="text-muted">Mapa aquí</span>
-                    </div>
+                    <div id="businessMap" class="bg-light border rounded" style="height: 180px; z-index: 1;"></div>
                 </div>
             </div>
         </aside>
@@ -51,26 +67,26 @@
             <!-- Sobre nosotros -->
             <section class="mb-5">
                 <h2 class="mb-3">Sobre nosotros</h2>
-                <p class="text-muted">@Model.Descripcion</p>
+                <p class="text-muted">@Model.Description</p>
                 <div class="row">
-                    <div class="col-md-4">
-                        <div class="service-box">
-                            <h6>Servicio 1</h6>
-                            <p>Descripción breve.</p>
+                    @if (services != null)
+                    {
+                        foreach (var service in services)
+                        {
+                            <div class="col-md-4 mb-3">
+                                <div class="service-box">
+                                    <h6>@service.Name</h6>
+                                    <p>@service.Description</p>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12">
+                            <p class="text-muted fst-italic px-3">Los servicios se cargarán dinámicamente desde la base de datos.</p>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="service-box">
-                            <h6>Servicio 2</h6>
-                            <p>Descripción breve.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="service-box">
-                            <h6>Servicio 3</h6>
-                            <p>Descripción breve.</p>
-                        </div>
-                    </div>
+                    }
                 </div>
             </section>
 
@@ -78,31 +94,27 @@
             <section class="mb-5">
                 <h2 class="mb-3">Productos Destacados</h2>
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="card product-card shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">Producto Principal</h5>
-                                <p class="card-text">Descripción del producto.</p>
-                                <span class="price text-terracota fw-bold">S/ 1,499</span>
+                    @if (products != null)
+                    {
+                        foreach (var product in products)
+                        {
+                            <div class="col-md-4 mb-3">
+                                <div class="card product-card shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@product.Name</h5>
+                                        <p class="card-text small">@product.Description</p>
+                                        <span class="price text-terracota fw-bold">S/ @product.Price</span>
+                                    </div>
+                                </div>
                             </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12">
+                            <p class="text-muted fst-italic px-3">Los productos destacados se cargarán dinámicamente desde la base de datos.</p>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card product-card shadow-sm">
-                            <div class="card-body">
-                                <h6 class="card-title">Producto 2</h6>
-                                <p class="card-text small">Descripción.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card product-card shadow-sm">
-                            <div class="card-body">
-                                <h6 class="card-title">Producto 3</h6>
-                                <p class="card-text small">Descripción.</p>
-                            </div>
-                        </div>
-                    </div>
+                    }
                 </div>
             </section>
 
@@ -158,11 +170,9 @@
             <button id="closeReviewModal" class="modal-close" aria-label="Cerrar modal"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
-            <form id="newReviewForm" class="row g-3">
-                <div class="col-12">
-                    <label class="form-label">Tu nombre</label>
-                    <input type="text" id="reviewName" class="form-control" placeholder="Ej. Ana Martínez" />
-                </div>
+            <form id="newReviewForm" asp-action="AgregarResena" asp-controller="Home" method="post" enctype="multipart/form-data" class="row g-3">
+                <!-- Campo oculto para enviar al backend a qué negocio pertenece la reseña -->
+                <input type="hidden" name="BusinessId" value="@Model.BusinessId" />
                 <div class="col-12">
                     <label class="form-label">Calificación</label>
                     <div class="d-flex gap-2" id="reviewStars">
@@ -173,16 +183,16 @@
                             </button>
                         }
                     </div>
-                    <input type="hidden" id="reviewRating" value="5" />
+                    <input type="hidden" id="reviewRating" name="Rating" value="5" />
                 </div>
                 <div class="col-12">
                     <label class="form-label">Tu reseña</label>
-                    <textarea id="reviewComment" class="form-control" rows="4" placeholder="Comparte lo que más te gustó o lo que se puede mejorar..."></textarea>
+                    <textarea id="reviewComment" name="Comment" class="form-control" rows="4" placeholder="Comparte lo que más te gustó o lo que se puede mejorar..." required></textarea>
                 </div>
                 <div class="col-12">
                     <label class="form-label">Fotos (opcional)</label>
                     <div id="dropZone" class="upload-dropzone">
-                        <input type="file" id="reviewPhoto" accept="image/*" multiple class="form-control d-none" />
+                        <input type="file" id="reviewPhoto" name="Images" accept="image/*" multiple class="form-control d-none" />
                         <i class="fa-solid fa-cloud-arrow-up"></i>
                         <p class="mb-1 fw-semibold text-slate-900">Selecciona o arrastra tus fotos aquí</p>
                         <p class="small text-slate-500">JPG, PNG. Hasta 5 archivos. Se mostrarán en miniaturas.</p>
@@ -229,43 +239,47 @@
 </div>
 
 @section Scripts {
+    <!-- Leaflet JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
     <script>
-        const negocioId = @Model.Id;
-        const reviewStorageKey = `reviews_negocio_${negocioId}`;
-        const defaultReviews = [
+        // Serializamos dinámicamente las reseñas que vienen de tu Base de Datos
+        @{
+            var reviewsList = new List<object>();
+            if (Model.Reviews != null)
             {
-                id: 1,
-                nombre: 'María García',
-                calificacion: 5,
-                comentario: 'Excelente servicio y productos de calidad. Volveré muy pronto.',
-                fecha: '2026-04-14T10:20:00',
-                verificado: true
-            },
-            {
-                id: 2,
-                nombre: 'Carlos López',
-                calificacion: 4,
-                comentario: 'Buena atención, la comida estaba muy rica y el ambiente agradable.',
-                fecha: '2026-04-12T09:15:00',
-                verificado: true
-            },
-            {
-                id: 3,
-                nombre: 'Lucía Pérez',
-                calificacion: 5,
-                comentario: 'Me encantó la experiencia, el servicio fue rápido y amable.',
-                fecha: '2026-04-10T20:40:00',
-                verificado: false
-            },
-            {
-                id: 4,
-                nombre: 'Jorge Rivera',
-                calificacion: 4,
-                comentario: 'Muy buena opción para compartir con amigos.',
-                fecha: '2026-04-08T18:30:00',
-                verificado: false
+                foreach (var r in Model.Reviews)
+                {
+                    dynamic dr = r;
+                    try {
+                        reviewsList.Add(new {
+                            id = dr.ReviewId,
+                            nombre = dr.User?.Nombre ?? dr.Usuario?.Nombre ?? "Cliente",
+                            calificacion = dr.Rating,
+                            comentario = dr.Comment,
+                            fecha = dr.CreatedAt,
+                            verificado = true
+                        });
+                    } catch {
+                        // Fallback en caso de que aún no tengas las propiedades completas creadas
+                        reviewsList.Add(new {
+                            id = r.GetHashCode(),
+                            nombre = "Cliente",
+                            calificacion = dr.Rating,
+                            comentario = "Reseña desde base de datos.",
+                            fecha = DateTime.Now,
+                            verificado = true
+                        });
+                    }
+                }
             }
-        ];
+            var jsonReviews = System.Text.Json.JsonSerializer.Serialize(reviewsList);
+        }
+
+        const negocioId = @Model.BusinessId;
+        
+        // Reemplazamos los datos de prueba por la información real
+        const defaultReviews = @Html.Raw(jsonReviews);
 
         const newReviewModal = document.getElementById('newReviewModal');
         const allReviewsModal = document.getElementById('allReviewsModal');
@@ -288,13 +302,9 @@
         let selectedFiles = [];
 
         function loadReviews() {
-            const stored = localStorage.getItem(reviewStorageKey);
-            allReviews = stored ? JSON.parse(stored) : defaultReviews;
+            // Ya no leemos del localStorage, cargamos la información de la DB
+            allReviews = defaultReviews;
             sortAndRender();
-        }
-
-        function saveReviews() {
-            localStorage.setItem(reviewStorageKey, JSON.stringify(allReviews));
         }
 
         function formatDate(dateString) {
@@ -509,35 +519,13 @@
         }
 
         newReviewForm.addEventListener('submit', event => {
-            event.preventDefault();
-            const nombre = document.getElementById('reviewName').value.trim() || 'Cliente Anónimo';
             const comentario = document.getElementById('reviewComment').value.trim();
-            const rating = Number(reviewRating.value);
             if (!comentario) {
+                event.preventDefault();
                 alert('Por favor escribe tu reseña antes de publicar.');
                 return;
             }
-
-            const photoFiles = Array.from(selectedFiles);
-            const photoUrls = photoFiles.map(file => URL.createObjectURL(file));
-
-            const newReview = {
-                id: Date.now(),
-                nombre,
-                calificacion: rating,
-                comentario,
-                fecha: new Date().toISOString(),
-                verificado: true,
-                fotos: photoUrls
-            };
-
-            allReviews.unshift(newReview);
-            saveReviews();
-            sortAndRender();
-            closeModal(newReviewModal);
-            newReviewForm.reset();
-            setActiveStars(5);
-            clearPhotoPreview();
+            // Se permite que el formulario haga un POST nativo hacia tu Controller
         });
 
         sortReviews.addEventListener('change', () => {
@@ -553,6 +541,22 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadReviews();
             setActiveStars(5);
+
+            // Inicializar el mapa del negocio
+            const mapLat = @lat;
+            const mapLng = @lng;
+            const mapContainer = document.getElementById('businessMap');
+            
+            if (mapLat !== 0 && mapLng !== 0) {
+                const map = L.map('businessMap').setView([mapLat, mapLng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+                L.marker([mapLat, mapLng]).addTo(map)
+                    .bindPopup('<b>@Model.TradeName</b><br>@Model.Address');
+            } else {
+                mapContainer.innerHTML = '<div class="h-100 d-flex align-items-center justify-content-center text-muted small"><i class="bi bi-geo-alt-fill me-2"></i>Ubicación en mapa no disponible</div>';
+            }
         });
     </script>
 }

@@ -1,4 +1,4 @@
-@model IEnumerable<PinAppdePromo.Models.Negocio>
+@model IEnumerable<PinAppdePromo.Models.Business>
 
 @section Styles {
     <link rel="stylesheet" href="~/css/explorar.css" asp-append-version="true" />
@@ -7,38 +7,41 @@
 <div class="container-fluid mt-4">
     <div class="row">
         <aside class="col-md-3 pe-4">
-            <div class="card border-0 shadow-sm p-3 filtro-sidebar">
+            <form action="/Home/Explorar" method="get" class="card border-0 shadow-sm p-3 filtro-sidebar">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0">Filtros</h5>
-                    <a href="#" class="text-decoration-none small" style="color: var(--main-orange);">Limpiar Filtros</a>
+                    <a href="/Home/Explorar" class="text-decoration-none small" style="color: var(--main-orange);">Limpiar Filtros</a>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label text-muted small fw-bold">BÚSQUEDA DIRECTA</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control bg-light border-start-0" placeholder="Ej. Cevicheria, Taller...">
+                        <input type="text" name="busqueda" value="@Context.Request.Query["busqueda"]" class="form-control bg-light border-start-0" placeholder="Ej. Cevicheria, Taller...">
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label text-muted small fw-bold">CATEGORÍAS</label>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input custom-check" type="checkbox" checked id="cat1">
-                        <label class="form-check-label" for="cat1">Restaurantes</label>
-                    </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="cat2">
-                        <label class="form-check-label" for="cat2">Tiendas</label>
-                    </div>
+                    @if (ViewBag.Categorias != null)
+                    {
+                        foreach (var cat in ViewBag.Categorias)
+                        {
+                            <div class="form-check mb-2">
+                                <input class="form-check-input custom-check" type="checkbox" id="cat_@cat.CategoryId">
+                                <label class="form-check-label" for="cat_@cat.CategoryId">@cat.Name</label>
+                            </div>
+                        }
+                    }
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label text-muted small fw-bold">UBICACIÓN (LIMA)</label>
-                    <select class="form-select bg-light">
-                        <option selected>Miraflores</option>
-                        <option>San Isidro</option>
-                        <option>Surco</option>
+                    <select name="distrito" class="form-select bg-light">
+                        <option value="">Todos los distritos</option>
+                        <option value="Miraflores" selected="@(Context.Request.Query["distrito"] == "Miraflores" ? "selected" : null)">Miraflores</option>
+                        <option value="San Isidro" selected="@(Context.Request.Query["distrito"] == "San Isidro" ? "selected" : null)">San Isidro</option>
+                        <option value="Surco" selected="@(Context.Request.Query["distrito"] == "Surco" ? "selected" : null)">Surco</option>
                     </select>
                 </div>
 
@@ -50,12 +53,14 @@
                         <button type="button" class="btn btn-outline-secondary">S/ S/ S/</button>
                     </div>
                 </div>
-            </div>
+                
+                <button type="submit" class="btn w-100 fw-bold text-white mt-2 shadow-sm" style="background-color: var(--main-orange);">Aplicar Filtros</button>
+            </form>
         </aside>
 
         <main class="col-md-9">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <p class="text-muted mb-0">Mostrando <span class="fw-bold text-dark">@Model.Count() negocios</span> en Miraflores</p>
+                <p class="text-muted mb-0">Mostrando <span class="fw-bold text-dark">@Model.Count() negocios</span> en total</p>
                 <div class="d-flex align-items-center">
                     <span class="me-2 text-muted">Ordenar por:</span>
                     <select class="form-select form-select-sm border-0 fw-bold" style="width: auto; color: var(--main-orange);">
@@ -71,18 +76,18 @@
                     <div class="col-md-6">
                         <div class="card h-100 border-0 shadow-sm overflow-hidden card-negocio">
                             <div class="position-relative" style="height: 200px;">
-                                @if (!string.IsNullOrWhiteSpace(negocio.ImagenUrl))
+                                @if (negocio.Images != null && negocio.Images.Any())
                                 {
-                                    <img src="@Url.Content(negocio.ImagenUrl)" class="card-img-top" alt="@negocio.Nombre" style="height: 200px; object-fit: cover; width: 100%;" />
+                                    <img src="@Url.Content(negocio.Images.First().ImageUrl)" class="card-img-top" alt="@negocio.TradeName" style="height: 200px; object-fit: cover; width: 100%;" />
                                 }
                                 else
                                 {
                                     <div class="d-flex align-items-center justify-content-center bg-secondary text-white" style="height: 200px; width: 100%;">
-                                        <h4 class="fw-bold text-center m-0">@negocio.Nombre</h4>
+                                        <h4 class="fw-bold text-center m-0">@negocio.TradeName</h4>
                                     </div>
                                 }
 
-                                @if (negocio.Destacado)
+                                @if (negocio.Status == "Promoted")
                                 {
                                     <span class="badge bg-white text-dark position-absolute top-0 start-0 m-3 shadow-sm px-3 py-2">DESTACADO</span>
                                 }
@@ -90,20 +95,20 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <span class="small fw-bold text-uppercase" style="color: var(--main-orange);">@negocio.Categoria</span>
-                                        <h5 class="card-title fw-bold mt-1">@negocio.Nombre</h5>
+                                        <span class="small fw-bold text-uppercase" style="color: var(--main-orange);">@(negocio.Category?.Name ?? "General")</span>
+                                        <h5 class="card-title fw-bold mt-1">@negocio.TradeName</h5>
                                     </div>
-                                    <span class="badge bg-light text-dark border"><i class="bi bi-star-fill text-warning me-1"></i> @negocio.Calificacion</span>
+                                    <span class="badge bg-light text-dark border"><i class="bi bi-star-fill text-warning me-1"></i> @(negocio.Reviews != null && negocio.Reviews.Any() ? Math.Round(negocio.Reviews.Average(r => r.Rating), 1).ToString("0.0") : "5.0")</span>
                                 </div>
-                                <p class="card-text text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i> @negocio.Direccion</p>
+                                <p class="card-text text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i> @negocio.Address</p>
                                 <p class="card-text text-success small mb-3"><i class="bi bi-clock me-1"></i> Abierto</p>
                                 
                                 <div class="row g-2">
                                     <div class="col-6">
-                                        <a asp-action="InfNegocio" asp-route-id="@negocio.Id" class="btn btn-orange-pin w-100 py-2 fw-bold">Ver perfil</a>
+                                        <a asp-action="InfNegocio" asp-route-id="@negocio.BusinessId" class="btn btn-orange-pin w-100 py-2 fw-bold">Ver perfil</a>
                                     </div>
                                     <div class="col-6">
-                                        <button class="btn btn-light w-100 py-2 fw-bold border text-muted"><i class="bi bi-map me-1"></i> Ruta</button>
+                                       <a href="https://www.google.com/maps/search/?api=1&query=@(negocio.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(negocio.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture))" target="_blank" class="btn btn-light w-100 py-2 fw-bold border text-muted d-block text-center text-decoration-none"><i class="bi bi-map me-1"></i> Ruta</a>
                                     </div>
                                 </div>
                             </div>
@@ -112,12 +117,14 @@
                 }
             </div>
             
-            <nav class="mt-5">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item active"><a class="page-link border-0 shadow-sm mx-1 rounded text-white" style="background-color: var(--main-orange);" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link border-0 shadow-sm mx-1 rounded text-dark" href="#">2</a></li>
-                </ul>
-            </nav>
+            @if (!Model.Any())
+            {
+                <div class="text-center mt-5 py-5">
+                    <i class="bi bi-search display-1 text-muted" style="opacity: 0.3;"></i>
+                    <h4 class="mt-3 text-muted">No encontramos negocios</h4>
+                    <p class="text-muted">Intenta con otros filtros o términos de búsqueda.</p>
+                </div>
+            }
         </main>
     </div>
 </div>

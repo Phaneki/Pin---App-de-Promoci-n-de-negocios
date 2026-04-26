@@ -1,296 +1,16 @@
+@model dynamic
 @{
     ViewData["Title"] = "Mi Perfil";
+    
+    int totalFavoritos = 0;
+    IEnumerable<dynamic> favoritos = null;
+    try { favoritos = Model?.Favorites; } catch {}
+    if (favoritos != null) { totalFavoritos = Enumerable.Count(favoritos); }
 }
 
-<style>
-    .profile-banner {
-        background-color: #f5f5f5;
-        border-radius: 20px;
-        padding: 40px;
-        margin-bottom: 30px;
-        position: relative;
-    }
-
-    .profile-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 30px;
-    }
-
-    .profile-avatar {
-        position: relative;
-        flex-shrink: 0;
-    }
-
-    .profile-img {
-        width: 120px;
-        height: 120px;
-        border-radius: 12px;
-        object-fit: cover;
-        border: 3px solid white;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .verification-badge {
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        background-color: #0066cc;
-        border-radius: 50%;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 18px;
-        border: 3px solid white;
-    }
-
-    .profile-info h2 {
-        font-size: 28px;
-        font-weight: 800;
-        margin: 0 0 15px 0;
-        color: #1a1a1a;
-    }
-
-    .profile-meta {
-        display: flex;
-        gap: 25px;
-        flex-wrap: wrap;
-        margin-bottom: 10px;
-    }
-
-    .meta-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        color: #666;
-    }
-
-    .meta-item i {
-        color: #ff6b00;
-        font-size: 16px;
-    }
-
-    .edit-btn-float {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background-color: #A34323;
-        color: white;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(163, 67, 35, 0.3);
-    }
-
-    .edit-btn-float:hover {
-        background-color: #8a3621;
-        transform: scale(1.1);
-    }
-
-    .nav-pills {
-        background-color: #f5f5f5;
-        border-radius: 12px;
-        padding: 10px;
-        gap: 10px;
-        margin-bottom: 30px;
-    }
-
-    .nav-pills .nav-link {
-        border-radius: 8px;
-        color: #666 !important;
-        font-weight: 600;
-        padding: 10px 20px;
-        transition: all 0.3s ease;
-    }
-
-    .nav-pills .nav-link.active {
-        background-color: #ff6b00 !important;
-        color: white !important;
-    }
-
-    .section-title {
-        font-size: 22px;
-        font-weight: 800;
-        color: #1a1a1a;
-        margin-bottom: 25px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .filter-btn {
-        background-color: white;
-        border: 2px solid #ddd;
-        color: #666;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .filter-btn:hover {
-        border-color: #ff6b00;
-        color: #ff6b00;
-    }
-
-    .business-card {
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-
-    .business-card:hover {
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-        transform: translateY(-4px);
-    }
-
-    .card-image-container {
-        position: relative;
-        width: 100%;
-        height: 200px;
-        overflow: hidden;
-        background-color: #f0f0f0;
-    }
-
-    .card-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .category-badge {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        background-color: #A34323;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .favorite-heart {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        background-color: white;
-        border: none;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .favorite-heart:hover {
-        transform: scale(1.1);
-    }
-
-    .favorite-heart.active {
-        color: #ff6b00;
-    }
-
-    .card-body {
-        padding: 20px;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .card-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #1a1a1a;
-        margin-bottom: 10px;
-    }
-
-    .card-rating {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
-        font-size: 14px;
-        color: #666;
-    }
-
-    .card-rating .stars {
-        color: #ffc107;
-    }
-
-    .card-description {
-        font-size: 14px;
-        color: #777;
-        margin-bottom: 12px;
-        line-height: 1.5;
-        flex-grow: 1;
-    }
-
-    .card-location {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 13px;
-        color: #888;
-        margin-bottom: 15px;
-    }
-
-    .card-location i {
-        color: #ff6b00;
-    }
-
-    .view-profile-link {
-        color: #ff6b00;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 14px;
-        transition: all 0.3s ease;
-        align-self: flex-end;
-    }
-
-    .view-profile-link:hover {
-        color: #d9520a;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #999;
-    }
-
-    .empty-state i {
-        font-size: 48px;
-        color: #ddd;
-        margin-bottom: 20px;
-    }
-
-    .empty-state p {
-        font-size: 16px;
-        margin: 0;
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/perfil.css" asp-append-version="true" />
+}
 
 <div class="container-fluid px-4 py-5">
     <!-- PERFIL BANNER -->
@@ -304,7 +24,8 @@
             <div class="profile-avatar">
                 @{
                     var foto = Context.Session.GetString("Foto");
-                    var usuario = Context.Session.GetString("Usuario") ?? "Usuario";
+                    var usuario = Context.Session.GetString("Nombre");
+                    if (string.IsNullOrEmpty(usuario)) { usuario = Context.Session.GetString("Usuario") ?? "Usuario"; }
                     var inicial = usuario.Substring(0, 1).ToUpper();
                 }
 
@@ -331,15 +52,15 @@
                 <div class="profile-meta">
                     <div class="meta-item">
                         <i class="fas fa-calendar"></i>
-                        <span>Miembro desde 2026</span>
+                        <span>Miembro desde @(Model?.CreatedAt.ToString("yyyy") ?? "2026")</span>
                     </div>
                     <div class="meta-item">
                         <i class="fas fa-map-marker-alt"></i>
-                        <span>Madrid, España</span>
+                        <span>Ubicación no especificada</span>
                     </div>
                     <div class="meta-item">
                         <i class="fas fa-star"></i>
-                        <span>12 reseñas</span>
+                        <span>Activo</span>
                     </div>
                 </div>
             </div>
@@ -360,90 +81,48 @@
     </div>
 
     <div class="section-title">
-        <span>Negocios Guardados (3)</span>
+        <span>Negocios Guardados (@totalFavoritos)</span>
         <button class="filter-btn">
             <i class="fas fa-filter me-2"></i>Filtrar
         </button>
     </div>
 
     <div class="row g-4">
-        <!-- CARD 1 -->
-        <div class="col-md-6 col-lg-4">
-            <div class="business-card">
-                <div class="card-image-container">
-                    <img src="https://images.unsplash.com/photo-1495524811223-4d71bcdd2085?w=500&h=300&fit=crop" alt="Restaurante" class="card-image">
-                    <span class="category-badge">Gastronomía</span>
-                    <button class="favorite-heart active" onclick="this.classList.toggle('active')">
-                        <i class="fas fa-heart"></i>
-                    </button>
+        @if (favoritos != null && totalFavoritos > 0)
+        {
+            foreach (var fav in favoritos)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="business-card">
+                        <div class="card-image-container">
+                            <img src="@(fav.Business?.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/500x300")" alt="Negocio" class="card-image">
+                            <span class="category-badge">@(fav.Business?.Category?.Name ?? "General")</span>
+                            <button class="favorite-heart active" onclick="this.classList.toggle('active')">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">@(fav.Business?.TradeName ?? "Negocio Eliminado")</h5>
+                            <div class="card-location mt-2">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>@(fav.Business?.Address ?? "Ubicación no disponible")</span>
+                            </div>
+                            <a href="/Home/InfNegocio/@fav.BusinessId" class="view-profile-link mt-auto">Ver perfil →</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <h5 class="card-title">El Buen Gusto</h5>
-                    <div class="card-rating">
-                        <span class="stars">★★★★★</span>
-                        <span>4.8 (234)</span>
-                    </div>
-                    <p class="card-description">Restaurante de comida tradicional española con ingredientes frescos. Menú variado y ambiente acogedor.</p>
-                    <div class="card-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>Gran Vía, 45 - Madrid</span>
-                    </div>
-                    <a href="/Home/InfNegocio/1" class="view-profile-link">Ver perfil →</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- CARD 2 -->
-        <div class="col-md-6 col-lg-4">
-            <div class="business-card">
-                <div class="card-image-container">
-                    <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=500&h=300&fit=crop" alt="Tienda Tech" class="card-image">
-                    <span class="category-badge">Tecnología</span>
-                    <button class="favorite-heart active" onclick="this.classList.toggle('active')">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">TechWorld Madrid</h5>
-                    <div class="card-rating">
-                        <span class="stars">★★★★☆</span>
-                        <span>4.5 (189)</span>
-                    </div>
-                    <p class="card-description">Tienda especializada en electrónica y componentes informáticos. Atención personalizada y servicio técnico.</p>
-                    <div class="card-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>Calle Serrano, 23 - Madrid</span>
-                    </div>
-                    <a href="/Home/InfNegocio/2" class="view-profile-link">Ver perfil →</a>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="fas fa-heart-broken"></i>
+                    <p>Aún no tienes negocios guardados en tus favoritos.</p>
+                    <a href="/Home/Explorar" class="btn btn-outline-dark mt-3">Explorar negocios</a>
                 </div>
             </div>
-        </div>
-
-        <!-- CARD 3 -->
-        <div class="col-md-6 col-lg-4">
-            <div class="business-card">
-                <div class="card-image-container">
-                    <img src="https://images.unsplash.com/photo-1552820728-8ac41f1ce891?w=500&h=300&fit=crop" alt="Gimnasio" class="card-image">
-                    <span class="category-badge">Fitness</span>
-                    <button class="favorite-heart active" onclick="this.classList.toggle('active')">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">FitLife Gym</h5>
-                    <div class="card-rating">
-                        <span class="stars">★★★★★</span>
-                        <span>4.9 (156)</span>
-                    </div>
-                    <p class="card-description">Centro de fitness moderno con equipamiento de última generación y entrenadores certificados.</p>
-                    <div class="card-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>Paseo de la Castellana, 12 - Madrid</span>
-                    </div>
-                    <a href="/Home/InfNegocio/3" class="view-profile-link">Ver perfil →</a>
-                </div>
-            </div>
-        </div>
+        }
     </div>
 </div>
 
