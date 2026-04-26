@@ -172,6 +172,8 @@ namespace PinAppdePromo.Controllers
             {
                 model.FullName = user.Nombre;
                 model.CreatedAt = DateTime.UtcNow; // O usa la fecha de creación real si la tienes
+                model.Ubicacion = user.Ubicacion;
+                model.Bio = user.Bio;
                 
                 // Cargar los favoritos reales del usuario
                 model.Favorites = await _pinContext.Favorites
@@ -223,12 +225,14 @@ namespace PinAppdePromo.Controllers
             {
                 model.FullName = user.Nombre;
                 model.CreatedAt = DateTime.UtcNow;
+                model.Ubicacion = user.Ubicacion;
+                model.Bio = user.Bio;
             }
             return View("~/Views/Home/Perfil/AjustesCuenta.cshtml", model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> ActualizarPerfil(string FullName, string Bio)
+        public async Task<IActionResult> ActualizarPerfil(string FullName, string Ubicacion, string Bio)
         {
             var email = HttpContext.Session.GetString("Usuario");
             if (email == null) return RedirectToAction("Index", "Login");
@@ -237,12 +241,65 @@ namespace PinAppdePromo.Controllers
             if (user != null)
             {
                 user.Nombre = FullName; // Ahora sí actualiza el Nombre del modelo Usuario
-                // user.Bio = Bio; 
+                user.Ubicacion = Ubicacion;
+                user.Bio = Bio;
                 await _context.SaveChangesAsync();
                 
                 // Actualizamos la sesión para que el cambio de nombre se vea inmediatamente
                 HttpContext.Session.SetString("Nombre", FullName);
             }
+            return RedirectToAction("AjustesCuenta");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ActualizarFoto(IFormFile fotoPerfil)
+        {
+            var email = HttpContext.Session.GetString("Usuario");
+            if (email == null) return RedirectToAction("Index", "Login");
+
+            if (fotoPerfil != null && fotoPerfil.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "profiles");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var uniqueFileName = Guid.NewGuid().ToString() + "_" + fotoPerfil.FileName;
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await fotoPerfil.CopyToAsync(fileStream);
+                }
+
+                var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
+                if (user != null)
+                {
+                    user.FotoUrl = "/images/profiles/" + uniqueFileName;
+                    await _context.SaveChangesAsync();
+                    
+                    HttpContext.Session.SetString("Foto", user.FotoUrl);
+                }
+            }
+
+            return RedirectToAction("AjustesCuenta");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EliminarFoto()
+        {
+            var email = HttpContext.Session.GetString("Usuario");
+            if (email == null) return RedirectToAction("Index", "Login");
+
+            var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
+            if (user != null)
+            {
+                user.FotoUrl = null;
+                await _context.SaveChangesAsync();
+                HttpContext.Session.Remove("Foto");
+            }
+
             return RedirectToAction("AjustesCuenta");
         }
 
@@ -337,6 +394,55 @@ namespace PinAppdePromo.Controllers
                 await _pinContext.SaveChangesAsync();
             }
             return RedirectToAction("MisResenas");
+        }
+
+        public IActionResult Nosotros()
+        {
+            return View();
+        }
+
+        public IActionResult Privacidad()
+        {
+            return View();
+        }
+
+        public IActionResult Contacto()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EnviarMensaje(string nombre, string email, string asunto, string mensaje)
+        {
+            try
+            {
+                var smtpClient = new System.Net.Mail.SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new System.Net.NetworkCredential("tu_correo@gmail.com", "tu_contraseña_de_aplicacion"),
+                    EnableSsl = true,
+                };
+
+                var mailMessage = new System.Net.Mail.MailMessage
+                {
+                    From = new System.Net.Mail.MailAddress("tu_correo@gmail.com"), // Debe ser el mismo correo de las credenciales
+                    Subject = $"Nuevo mensaje de contacto: {asunto}",
+                    Body = $"<strong>Nombre:</strong> {nombre}<br/><strong>Email:</strong> {email}<br/><br/><strong>Mensaje:</strong><br/>{mensaje}",
+                    IsBodyHtml = true,
+                };
+                mailMessage.To.Add("diego_aliaga@usmp.pe");
+
+                // Descomenta la siguiente línea para que se envíe el correo de verdad cuando configures las credenciales en NetworkCredential:
+                await smtpClient.SendMailAsync(mailMessage);
+
+                TempData["MensajeExito"] = "Mensaje enviado. ¡Gracias por contactarnos!";
+            }
+            catch (Exception)
+            {
+                TempData["MensajeError"] = "Hubo un error al enviar tu mensaje. Intenta nuevamente.";
+            }
+
+            return RedirectToAction("Contacto");
         }
 
         // ==========================================

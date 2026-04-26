@@ -54,7 +54,7 @@
                     </div>
                     <div class="meta-item">
                         <i class="fas fa-map-marker-alt"></i>
-                        <span>Ubicación no especificada</span>
+                        <span>@(string.IsNullOrEmpty((string)Model?.Ubicacion) ? "Ubicación no especificada" : Model.Ubicacion)</span>
                     </div>
                     <div class="meta-item">
                         <i class="fas fa-star"></i>
@@ -107,13 +107,13 @@
 
                     <div class="form-group-custom">
                         <label for="ubicacion">Ubicación</label>
-                        <input type="text" id="ubicacion" placeholder="Ej. Lima, Perú">
+                        <input type="text" id="ubicacion" name="Ubicacion" value="@Model?.Ubicacion" placeholder="Ej. Lima, Perú">
                         <small>Tu ciudad o región</small>
                     </div>
 
                     <div class="form-group-custom">
                         <label for="bio">Biografía</label>
-                        <textarea name="Bio" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px;" id="bio" placeholder="Cuéntanos sobre ti..."></textarea>
+                        <textarea name="Bio" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px;" id="bio" placeholder="Cuéntanos sobre ti...">@Model?.Bio</textarea>
                         <small>Máximo 500 caracteres</small>
                     </div>
 
@@ -142,14 +142,18 @@
                         }
                     </div>
 
-                    <div class="upload-btn-wrapper">
-                        <button onclick="document.getElementById('fileInput').click()">
-                            <i class="fas fa-upload me-2"></i>Cambiar Foto
-                        </button>
-                        <button class="secondary" onclick="alert('Foto eliminada')">
-                            <i class="fas fa-trash me-2"></i>Eliminar Foto
-                        </button>
-                        <input type="file" id="fileInput" class="file-input" accept="image/*">
+                    <div class="upload-btn-wrapper d-flex gap-2">
+                        <form asp-action="ActualizarFoto" asp-controller="Home" method="post" enctype="multipart/form-data" id="photoForm">
+                            <button type="button" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-upload me-2"></i>Cambiar Foto
+                            </button>
+                            <input type="file" id="fileInput" name="fotoPerfil" class="file-input" accept="image/*" onchange="document.getElementById('photoForm').submit()" style="display:none;">
+                        </form>
+                        <form asp-action="EliminarFoto" asp-controller="Home" method="post">
+                            <button type="submit" class="secondary" onclick="return confirm('¿Estás seguro de que deseas eliminar tu foto?');" style="background-color: #f8f9fa; border: 1px solid #ddd; color: #dc3545;">
+                                <i class="fas fa-trash me-2"></i>Eliminar Foto
+                            </button>
+                        </form>
                     </div>
                 </div>
 
@@ -234,40 +238,6 @@
                 </div>
             </div>
 
-            <!-- CARD 5: PRIVACIDAD -->
-            <div class="settings-card">
-                <div class="settings-section-title">
-                    <i class="fas fa-shield-alt"></i>
-                    Privacidad
-                </div>
-
-                <div class="toggle-switch">
-                    <div class="toggle-label">
-                        <div class="title">Perfil Público</div>
-                        <div class="description">Permite que otros usuarios vean tu perfil</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="toggle-switch">
-                    <div class="toggle-label">
-                        <div class="title">Mostrar mis Reseñas Públicamente</div>
-                        <div class="description">Tus reseñas serán visibles en los perfiles de negocios</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="button-group">
-                    <button class="btn-save">Guardar Preferencias</button>
-                </div>
-            </div>
-
             <!-- CARD 6: ELIMINAR CUENTA -->
             <div class="settings-card" style="border-left: 4px solid #dc3545;">
                 <div class="settings-section-title" style="color: #dc3545; border-bottom-color: #ffe0e0;">
@@ -294,34 +264,6 @@
 
         <!-- SIDEBAR -->
         <div class="col-lg-4 ps-lg-4">
-            <div class="settings-card">
-                <h5 style="font-weight: 800; margin-bottom: 15px;">
-                    <i class="fas fa-question-circle me-2" style="color: #ff6b00;"></i>Ayuda
-                </h5>
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li style="margin-bottom: 12px;">
-                        <a href="#" style="color: #ff6b00; text-decoration: none; font-size: 14px; font-weight: 600;">
-                            <i class="fas fa-arrow-right me-2"></i>Centro de Ayuda
-                        </a>
-                    </li>
-                    <li style="margin-bottom: 12px;">
-                        <a href="#" style="color: #ff6b00; text-decoration: none; font-size: 14px; font-weight: 600;">
-                            <i class="fas fa-arrow-right me-2"></i>Contactar Soporte
-                        </a>
-                    </li>
-                    <li style="margin-bottom: 12px;">
-                        <a href="#" style="color: #ff6b00; text-decoration: none; font-size: 14px; font-weight: 600;">
-                            <i class="fas fa-arrow-right me-2"></i>Ver Política de Privacidad
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" style="color: #ff6b00; text-decoration: none; font-size: 14px; font-weight: 600;">
-                            <i class="fas fa-arrow-right me-2"></i>Términos de Servicio
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
             <div class="settings-card">
                 <h5 style="font-weight: 800; margin-bottom: 15px; color: #1a1a1a;">
                     <i class="fas fa-info-circle me-2" style="color: #ff6b00;"></i>Información de Cuenta
