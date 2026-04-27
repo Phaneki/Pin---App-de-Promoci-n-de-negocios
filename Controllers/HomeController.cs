@@ -111,7 +111,7 @@ namespace PinAppdePromo.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CrearNegocio(Business negocio, List<IFormFile> Imagenes)
+        public async Task<IActionResult> CrearNegocio(Business negocio, List<IFormFile> Imagenes, string ImageUrlLink)
         {
             try
             {
@@ -147,7 +147,18 @@ namespace PinAppdePromo.Controllers
                 _pinContext.Businesses.Add(negocio);
                 await _pinContext.SaveChangesAsync();
 
-                // Guardado físico de las imágenes
+                // 1. Si el cliente envió un Link de imagen (Opción 1)
+                if (!string.IsNullOrEmpty(ImageUrlLink))
+                {
+                    _pinContext.BusinessImages.Add(new BusinessImage
+                    {
+                        BusinessId = negocio.BusinessId,
+                        ImageUrl = ImageUrlLink
+                    });
+                    await _pinContext.SaveChangesAsync();
+                }
+
+                // 2. Guardado físico de las imágenes subidas (Opción 2)
                 if (Imagenes != null && Imagenes.Count > 0)
                 {
                     var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "negocios");
