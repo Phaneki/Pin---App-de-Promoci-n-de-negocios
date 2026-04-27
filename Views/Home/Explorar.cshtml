@@ -40,19 +40,14 @@
                     <label class="form-label text-muted small fw-bold">UBICACIÓN (LIMA)</label>
                     <select name="distrito" class="form-select bg-light">
                         <option value="">Todos los distritos</option>
-                        <option value="Miraflores" selected="@(Context.Request.Query["distrito"] == "Miraflores" ? "selected" : null)">Miraflores</option>
-                        <option value="San Isidro" selected="@(Context.Request.Query["distrito"] == "San Isidro" ? "selected" : null)">San Isidro</option>
-                        <option value="Surco" selected="@(Context.Request.Query["distrito"] == "Surco" ? "selected" : null)">Surco</option>
+                        @if (ViewBag.Distritos != null)
+                        {
+                            @foreach (var dist in ViewBag.Distritos)
+                            {
+                                <option value="@dist" selected="@(ViewBag.DistritoActual == dist)">@dist</option>
+                            }
+                        }
                     </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label text-muted small fw-bold">RANGO DE PRECIO</label>
-                    <div class="btn-group w-100" role="group">
-                        <button type="button" class="btn btn-outline-secondary active">S/</button>
-                        <button type="button" class="btn btn-outline-secondary">S/ S/</button>
-                        <button type="button" class="btn btn-outline-secondary">S/ S/ S/</button>
-                    </div>
                 </div>
                 
                 <input type="hidden" name="orden" id="ordenHidden" value="@ViewBag.OrdenActual" />

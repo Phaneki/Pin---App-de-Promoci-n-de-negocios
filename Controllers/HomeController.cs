@@ -67,6 +67,19 @@ namespace PinAppdePromo.Controllers
             ViewBag.Categorias = await _pinContext.Categories.ToListAsync();
             ViewBag.CategoriasSeleccionadas = categorias ?? new List<int>();
             ViewBag.OrdenActual = orden;
+            ViewBag.DistritoActual = distrito;
+
+            // Extraer distritos únicos de las direcciones de negocios activos
+            var todosNegocios = await _pinContext.Businesses
+                .Where(b => b.Status == "Approved" || b.Status == "Promoted")
+                .Select(b => b.Address)
+                .ToListAsync();
+            ViewBag.Distritos = todosNegocios
+                .Where(a => !string.IsNullOrEmpty(a))
+                .Select(a => a.Split(',').Last().Trim())
+                .Distinct()
+                .OrderBy(d => d)
+                .ToList();
             
             return View(negocios);
         }
