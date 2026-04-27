@@ -133,6 +133,7 @@ namespace PinAppdePromo.Controllers
                         Email = email,
                         FullName = localUser?.Nombre ?? "Usuario",
                         PasswordHash = localUser?.Password ?? "",
+                        ProfilePic = "",
                         RoleId = 1 // Rol CLIENTE por defecto
                     };
                     _pinContext.Users.Add(pinUser);
@@ -416,6 +417,7 @@ namespace PinAppdePromo.Controllers
                     Email = email,
                     FullName = localUser.Nombre ?? "Usuario",
                     PasswordHash = localUser.Password ?? "",
+                    ProfilePic = "",
                     RoleId = 1 // Rol CLIENTE por defecto
                 };
                 _pinContext.Users.Add(pinUser);
