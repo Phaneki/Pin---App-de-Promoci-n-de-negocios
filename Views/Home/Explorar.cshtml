@@ -25,10 +25,11 @@
                     <label class="form-label text-muted small fw-bold">CATEGORÍAS</label>
                     @if (ViewBag.Categorias != null)
                     {
-                        foreach (var cat in ViewBag.Categorias)
+                        @foreach (var cat in ViewBag.Categorias)
                         {
+                            var isChecked = ((List<int>)ViewBag.CategoriasSeleccionadas).Contains((int)cat.CategoryId);
                             <div class="form-check mb-2">
-                                <input class="form-check-input custom-check" type="checkbox" id="cat_@cat.CategoryId">
+                                <input class="form-check-input custom-check" type="checkbox" name="categorias" value="@cat.CategoryId" id="cat_@cat.CategoryId" @(isChecked ? "checked" : "")>
                                 <label class="form-check-label" for="cat_@cat.CategoryId">@cat.Name</label>
                             </div>
                         }

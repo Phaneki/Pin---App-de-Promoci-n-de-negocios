@@ -31,7 +31,7 @@ namespace PinAppdePromo.Controllers
             return View(negocios);
         }
 
-        public async Task<IActionResult> Explorar(string busqueda, string distrito)
+        public async Task<IActionResult> Explorar(string busqueda, string distrito, List<int> categorias)
         {
             var query = _pinContext.Businesses
                 .Include(b => b.Category)
@@ -49,9 +49,15 @@ namespace PinAppdePromo.Controllers
             {
                 query = query.Where(b => b.Address.ToLower().Contains(distrito.ToLower()));
             }
+
+            if (categorias != null && categorias.Any())
+            {
+                query = query.Where(b => categorias.Contains(b.CategoryId));
+            }
                 
             var negocios = await query.ToListAsync();
             ViewBag.Categorias = await _pinContext.Categories.ToListAsync();
+            ViewBag.CategoriasSeleccionadas = categorias ?? new List<int>();
             
             return View(negocios);
         }
