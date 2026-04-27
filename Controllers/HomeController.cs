@@ -158,26 +158,15 @@ namespace PinAppdePromo.Controllers
                     await _pinContext.SaveChangesAsync();
                 }
 
-                // 2. Guardado físico de las imágenes subidas (Opción 2)
+                // 2. Simulación del guardado de imágenes subidas (Opción 2)
                 if (Imagenes != null && Imagenes.Count > 0)
                 {
-                    var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "negocios");
-                    Directory.CreateDirectory(uploadsPath);
-
                     foreach (var img in Imagenes)
                     {
-                        var fileName = $"{Guid.NewGuid()}_{img.FileName}";
-                        var filePath = Path.Combine(uploadsPath, fileName);
-
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await img.CopyToAsync(stream);
-                        }
-
                         _pinContext.BusinessImages.Add(new BusinessImage
                         {
                             BusinessId = negocio.BusinessId,
-                            ImageUrl = $"/images/negocios/{fileName}"
+                            ImageUrl = $"/images/temp_{Guid.NewGuid()}_{img.FileName}"
                         });
                     }
                     await _pinContext.SaveChangesAsync();
