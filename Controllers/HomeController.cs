@@ -113,50 +113,59 @@ namespace PinAppdePromo.Controllers
         [HttpPost]
         public async Task<IActionResult> CrearNegocio(Business negocio, List<IFormFile> Imagenes)
         {
-            negocio.Status = "Pending";
-            negocio.CreatedAt = DateTime.UtcNow;
-
-            // Obtener el OwnerId basado en el usuario logueado en la sesión
-            var email = HttpContext.Session.GetString("Usuario");
-            
-            // Buscar el usuario en la base de datos de Pin (inglés)
-            var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
-            
-            // Si no existe en PinDbContext, lo creamos al vuelo para que no falle la Llave Foránea
-            if (pinUser == null && !string.IsNullOrEmpty(email))
+            try
             {
-                var localUser = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
-                pinUser = new User
+                negocio.Status = "Pending";
+                negocio.CreatedAt = DateTime.UtcNow;
+
+                // Obtener el OwnerId basado en el usuario logueado en la sesión
+                var email = HttpContext.Session.GetString("Usuario");
+                
+                // Buscar el usuario en la base de datos de Pin (inglés)
+                var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                
+                // Si no existe en PinDbContext, lo creamos al vuelo para que no falle la Llave Foránea
+                if (pinUser == null && !string.IsNullOrEmpty(email))
                 {
-                    Email = email,
-                    FullName = localUser?.Nombre ?? "Usuario",
-                    PasswordHash = localUser?.Password ?? "",
-                    RoleId = 1 // Rol CLIENTE por defecto
-                };
-                _pinContext.Users.Add(pinUser);
-                await _pinContext.SaveChangesAsync();
-            }
-
-            negocio.OwnerId = pinUser?.UserId ?? 1; 
-
-            _pinContext.Businesses.Add(negocio);
-            await _pinContext.SaveChangesAsync();
-
-            // Simulación del guardado de imágenes
-            if (Imagenes != null && Imagenes.Count > 0)
-            {
-                foreach (var img in Imagenes)
-                {
-                    _pinContext.BusinessImages.Add(new BusinessImage
+                    var localUser = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
+                    pinUser = new User
                     {
-                        BusinessId = negocio.BusinessId,
-                        ImageUrl = $"/images/temp_{Guid.NewGuid()}_{img.FileName}"
-                    });
+                        Email = email,
+                        FullName = localUser?.Nombre ?? "Usuario",
+                        PasswordHash = localUser?.Password ?? "",
+                        RoleId = 1 // Rol CLIENTE por defecto
+                    };
+                    _pinContext.Users.Add(pinUser);
+                    await _pinContext.SaveChangesAsync();
                 }
-                await _pinContext.SaveChangesAsync();
-            }
 
-            return RedirectToAction("Index");
+                negocio.OwnerId = pinUser?.UserId ?? 1; 
+
+                _pinContext.Businesses.Add(negocio);
+                await _pinContext.SaveChangesAsync();
+
+                // Simulación del guardado de imágenes
+                if (Imagenes != null && Imagenes.Count > 0)
+                {
+                    foreach (var img in Imagenes)
+                    {
+                        _pinContext.BusinessImages.Add(new BusinessImage
+                        {
+                            BusinessId = negocio.BusinessId,
+                            ImageUrl = $"/images/temp_{Guid.NewGuid()}_{img.FileName}"
+                        });
+                    }
+                    await _pinContext.SaveChangesAsync();
+                }
+
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                // ⚠️ TEMPORAL: Mostrar el error real en pantalla para diagnosticar
+                var innerMsg = ex.InnerException?.Message ?? "Sin inner exception";
+                return Content($"ERROR: {ex.Message}\n\nINNER: {innerMsg}\n\nSTACK: {ex.StackTrace}", "text/plain");
+            }
         }
 
         public async Task<IActionResult> Moderacion()
