@@ -1,62 +1,24 @@
-﻿﻿﻿﻿@{
+﻿﻿﻿﻿﻿﻿@{
     ViewData["Title"] = "Panel de Moderación";
     Layout = "_Layout";
 }
 @using PinAppdePromo.Models
 @model ModeracionViewModel
-<div class='min-h-screen bg-[#f8fafc] text-slate-900'>
+@section Styles {
+    <link rel="stylesheet" href="~/css/moderacion.css" asp-append-version="true" />
+}
+<div class='min-h-screen text-slate-900'>
     <div class='lg:flex lg:min-h-screen'>
-        <aside class='fixed inset-y-0 left-0 z-20 w-72 border-r border-slate-200 bg-white p-6 shadow-sm'>
-            <div class='mb-10 flex items-center gap-3'>
-                <div class='flex h-11 w-11 items-center justify-center rounded-2xl bg-[#a04028] text-white shadow-sm'>
-                    <span class='text-lg font-bold'>P</span>
-                </div>
-                <div>
-                    <p class='text-sm font-semibold uppercase tracking-[0.2em] text-slate-500'>Pin Admin</p>
-                    <p class='text-2xl font-semibold text-slate-900'>Moderación</p>
-                </div>
-            </div>
-            <nav class='space-y-1 text-sm text-slate-600'>
-                <a href='/Home/Moderacion' class='flex items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-slate-100'>
-                    <i class='fas fa-tachometer-alt text-slate-400'></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href='#' class='flex items-center gap-3 rounded-2xl bg-[#f3e5df] px-4 py-3 text-[#a04028] shadow-sm'>
-                    <i class='fas fa-store text-[#a04028]'></i>
-                    <span class='font-semibold'>Negocios</span>
-                </a>
-                <a href='#' class='flex items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-slate-100'>
-                    <i class='fas fa-tags text-slate-400'></i>
-                    <span>Categorías</span>
-                </a>
-                <a href='#' class='flex items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-slate-100'>
-                    <i class='fas fa-user-friends text-slate-400'></i>
-                    <span>Usuarios</span>
-                </a>
-                <a href='#' class='flex items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-slate-100'>
-                    <i class='fas fa-chart-line text-slate-400'></i>
-                    <span>Reportes</span>
-                </a>
-            </nav>
-            <div class='mt-12 space-y-3'>
-                <button class='w-full rounded-2xl bg-[#a04028] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#8b3722]'>+ Nuevo Registro</button>
-                <a href='#' class='flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition hover:bg-slate-100'>
-                    <span>Ayuda</span>
-                    <i class='fas fa-question-circle text-slate-400'></i>
-                </a>
-                <a href='/Login/Logout' class='flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition hover:bg-slate-100'>
-                    <span>Cerrar Sesión</span>
-                    <i class='fas fa-sign-out-alt text-slate-400'></i>
-                </a>
-            </div>
-        </aside>
-        <main class='ml-0 flex-1 lg:ml-72'>
-            <div class='border-b border-slate-200 bg-[#f8fafc] px-6 py-5 shadow-sm'>
+        <!-- Inyectamos el Sidebar modular -->
+        <partial name="_ModeracionSidebar" />
+        
+        <main class='flex-1 admin-main-content'>
+            <div class='admin-header px-6 py-5 shadow-sm'>
                 <div class='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
-                    <div class='flex flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm'>
+                    <form method="get" action="/Home/NegociosAdmin" class='flex flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm m-0'>
                         <i class='fas fa-search text-slate-400'></i>
-                        <input type='search' placeholder='Buscar negocio, categoría o RUC' class='w-full bg-transparent text-sm text-slate-700 outline-none' />
-                    </div>
+                        <input type='search' name='busqueda' placeholder='Buscar negocio en toda la plataforma...' class='w-full bg-transparent text-sm text-slate-700 outline-none' />
+                    </form>
                     <div class='flex flex-wrap items-center gap-3 text-sm text-slate-600'>
                         <a href='#' class='rounded-full bg-white px-4 py-3 shadow-sm transition hover:bg-slate-100'>Documentación</a>
                         <div class='flex items-center gap-3 rounded-full bg-white px-4 py-3 shadow-sm'>
@@ -74,72 +36,134 @@
                 </div>
             </div>
             <section class='space-y-6 px-6 py-6'>
+                <!-- KPI CARDS REDISEÑADAS -->
                 <div class='grid gap-4 md:grid-cols-3'>
-                    <article class='rounded-3xl bg-white p-6 shadow-sm'>
-                        <p class='text-sm font-semibold uppercase tracking-[0.2em] text-slate-500'>Solicitudes Pendientes</p>
-                        <p class='mt-4 text-4xl font-semibold text-slate-900'>@Model.SolicitudesPendientes</p>
-                        <p class='mt-2 text-sm text-slate-500'>+4 desde ayer</p>
+                    <article class='relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md'>
+                        <div class='flex items-center justify-between'>
+                            <p class='text-xs font-bold uppercase tracking-wider text-slate-500'>Solicitudes Pendientes</p>
+                            <div class='flex h-10 w-10 items-center justify-center rounded-full bg-amber-50 text-amber-500'>
+                                <i class='fas fa-clock text-lg'></i>
+                            </div>
+                        </div>
+                        <p class='mt-4 text-4xl font-bold text-slate-900'>@Model.SolicitudesPendientes</p>
+                        <div class='mt-4 flex items-center gap-2'>
+                            @if (ViewBag.NuevasSolicitudesHoy > 0)
+                            {
+                                <span class='inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-600'>
+                                    <i class='fas fa-arrow-up'></i> +@ViewBag.NuevasSolicitudesHoy
+                                </span>
+                                <span class='text-xs text-slate-500'>nuevas hoy</span>
+                            }
+                            else
+                            {
+                                <span class='inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600'>
+                                    <i class='fas fa-minus'></i> 0
+                                </span>
+                                <span class='text-xs text-slate-500'>nuevas hoy</span>
+                            }
+                        </div>
                     </article>
-                    <article class='rounded-3xl bg-white p-6 shadow-sm'>
-                        <p class='text-sm font-semibold uppercase tracking-[0.2em] text-slate-500'>Negocios Aprobados Hoy</p>
-                        <p class='mt-4 text-4xl font-semibold text-slate-900'>@Model.NegociosAprobadosHoy</p>
-                        <p class='mt-2 text-sm text-slate-500'>Superando meta diaria</p>
+                    <article class='relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md'>
+                        <div class='flex items-center justify-between'>
+                            <p class='text-xs font-bold uppercase tracking-wider text-slate-500'>Aprobados Hoy</p>
+                            <div class='flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-500'>
+                                <i class='fas fa-check-circle text-lg'></i>
+                            </div>
+                        </div>
+                        <p class='mt-4 text-4xl font-bold text-slate-900'>@Model.NegociosAprobadosHoy</p>
+                        <div class='mt-4 flex items-center gap-2'>
+                            @if (Model.NegociosAprobadosHoy >= 5)
+                            {
+                                <span class='inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600'>
+                                    <i class='fas fa-star'></i> ¡Meta superada!
+                                </span>
+                                <span class='text-xs text-slate-500'>excelente trabajo hoy</span>
+                            }
+                            else
+                            {
+                                <span class='inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-600'>
+                                    <i class='fas fa-bullseye'></i> @(5 - Model.NegociosAprobadosHoy) restantes
+                                </span>
+                                <span class='text-xs text-slate-500'>para la meta diaria (5)</span>
+                            }
+                        </div>
                     </article>
-                    <article class='rounded-3xl bg-white p-6 shadow-sm'>
-                        <p class='text-sm font-semibold uppercase tracking-[0.2em] text-slate-500'>Tasa de Rechazo</p>
-                        <p class='mt-4 text-4xl font-semibold text-slate-900'>@Model.TasaRechazo.ToString("0.0")%</p>
-                        <p class='mt-2 text-sm text-slate-500'>Normal operativo</p>
+                    <article class='relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md'>
+                        <div class='flex items-center justify-between'>
+                            <p class='text-xs font-bold uppercase tracking-wider text-slate-500'>Tasa de Rechazo</p>
+                            <div class='flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-500'>
+                                <i class='fas fa-chart-line text-lg'></i>
+                            </div>
+                        </div>
+                        <p class='mt-4 text-4xl font-bold text-slate-900'>@Model.TasaRechazo.ToString("0.0")%</p>
+                        <div class='mt-4 flex items-center gap-2'>
+                            @if (Model.TasaRechazo > 20)
+                            {
+                                <span class='inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600'>
+                                    <i class='fas fa-arrow-up'></i> Alta
+                                </span>
+                                <span class='text-xs text-slate-500'>requiere atención</span>
+                            }
+                            else
+                            {
+                                <span class='inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600'>
+                                    <i class='fas fa-check'></i> Normal
+                                </span>
+                                <span class='text-xs text-slate-500'>niveles saludables</span>
+                            }
+                        </div>
                     </article>
                 </div>
+
                 <div class='grid gap-6 xl:grid-cols-[8fr_4fr]'>
-                    <section class='rounded-3xl bg-white p-6 shadow-sm'>
-                        <div class='mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                <div class='flex flex-col gap-6'>
+                    <!-- NUEVA SECCIÓN: SOLICITUDES PENDIENTES -->
+                    <section class='admin-card overflow-hidden rounded-3xl shadow-sm'>
+                        <div class='border-b border-slate-100 p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-slate-50/50'>
                             <div>
-                                <h2 class='text-2xl font-semibold text-slate-900'>Denuncias Pendientes</h2>
-                                <p class='text-sm text-slate-500'>Revisa los reportes más recientes</p>
+                                <h2 class='text-2xl font-semibold text-slate-900'>Solicitudes Pendientes</h2>
+                                <p class='text-sm text-slate-500'>Aprobar o rechazar nuevos negocios</p>
                             </div>
-                            <select class='w-full max-w-xs rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 shadow-sm outline-none'>
-                                <option>Filtrar: Todas</option>
-                                <option>Más recientes</option>
-                                <option>Urgentes</option>
-                            </select>
                         </div>
-                        <div class='overflow-x-auto'>
-                            <table class='min-w-full divide-y divide-slate-200 text-left text-sm'>
-                                <thead class='bg-slate-50 text-slate-700'>
+                        <div class='overflow-x-auto max-h-[400px] overflow-y-auto'>
+                            <table class='admin-table min-w-full divide-y divide-slate-200 text-left text-sm'>
+                                <thead class='bg-slate-100/90 text-slate-600 backdrop-blur sticky top-0 z-10 shadow-sm'>
                                     <tr>
-                                        <th class='px-4 py-3 font-medium'>Negocio</th>
-                                        <th class='px-4 py-3 font-medium'>Categoría</th>
-                                        <th class='px-4 py-3 font-medium'>Fecha</th>
-                                        <th class='px-4 py-3 font-medium'>Acciones</th>
+                                        <th class='px-6 py-4 font-semibold uppercase tracking-wider text-xs'>Negocio</th>
+                                        <th class='px-6 py-4 font-semibold uppercase tracking-wider text-xs'>Categoría / Estado</th>
+                                        <th class='px-6 py-4 font-semibold uppercase tracking-wider text-xs text-right'>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class='divide-y divide-slate-200'>
-                                    @if (Model.DenunciasPendientes != null && Model.DenunciasPendientes.Any())
+                                    @if (ViewBag.NegociosPendientes != null && ViewBag.NegociosPendientes.Count > 0)
                                     {
-                                        foreach (var denuncia in Model.DenunciasPendientes)
+                                        foreach (var negocio in ViewBag.NegociosPendientes)
                                         {
                                             <tr>
-                                                <td class='px-4 py-4'>
-                                                    <div class='flex items-center gap-3'>
-                                                        <div class='h-12 w-12 overflow-hidden rounded-2xl bg-slate-100'>
-                                                            <img src='@(denuncia.Business?.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/48")' alt='Miniatura' class='h-full w-full object-cover' />
-                                                        </div>
-                                                        <div>
-                                                            <p class='font-semibold text-slate-900'>@(denuncia.Business?.TradeName ?? "Desconocido")</p>
-                                                            <p class='text-xs text-slate-500'>@(denuncia.Business?.Address ?? "Sin dirección")</p>
-                                                        </div>
+                                                <td class='px-6 py-4'>
+                                                    <p class='font-semibold text-slate-900'>@negocio.TradeName</p>
+                                                    <p class='text-xs text-slate-500'>@negocio.Address</p>
+                                                </td>
+                                                <td class='px-6 py-4'>
+                                                    <div class='flex flex-col gap-1 items-start'>
+                                                        <span class='text-sm text-slate-700'>@(negocio.Category?.Name ?? "General")</span>
+                                                        <span class='inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 border border-amber-200/50'>
+                                                            <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span> Pendiente
+                                                        </span>
                                                     </div>
                                                 </td>
-                                                <td class='px-4 py-4'>
-                                                    <span class='inline-flex rounded-full bg-[#fde8e3] px-3 py-1 text-xs font-semibold text-[#a04028]'>@(denuncia.Business?.Category?.Name ?? "General")</span>
-                                                </td>
-                                                <td class='px-4 py-4 text-slate-600'>@denuncia.CreatedAt.ToString("dd MMM yyyy")</td>
-                                                <td class='px-4 py-4'>
-                                                    <div class='flex items-center gap-2 text-slate-500'>
-                                                        <button class='rounded-lg p-2 transition hover:bg-slate-100'><i class='fas fa-eye'></i></button>
-                                                        <button class='rounded-lg p-2 text-orange-500 transition hover:bg-slate-100'><i class='fas fa-times-circle'></i></button>
-                                                        <button class='rounded-lg p-2 text-[#16a34a] transition hover:bg-slate-100'><i class='fas fa-check-circle'></i></button>
+                                                <td class='px-6 py-4'>
+                                                    <div class='flex items-center justify-end gap-2'>
+                                                        <form asp-action="CambiarEstadoNegocio" asp-controller="Home" method="post" class="m-0">
+                                                            <input type="hidden" name="businessId" value="@negocio.BusinessId" />
+                                                            <input type="hidden" name="nuevoEstado" value="Approved" />
+                                                            <button type="submit" class='action-btn approve' title="Aprobar"><i class='fas fa-check'></i></button>
+                                                        </form>
+                                                        <form asp-action="CambiarEstadoNegocio" asp-controller="Home" method="post" class="m-0">
+                                                            <input type="hidden" name="businessId" value="@negocio.BusinessId" />
+                                                            <input type="hidden" name="nuevoEstado" value="Rejected" />
+                                                            <button type="submit" class='action-btn delete' title="Rechazar"><i class='fas fa-times'></i></button>
+                                                        </form>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -148,47 +172,132 @@
                                     else
                                     {
                                         <tr>
-                                            <td colspan="4" class="px-4 py-4 text-center text-slate-500">No hay denuncias pendientes.</td>
+                                            <td colspan="3" class="px-6 py-12 text-center">
+                                                <div class="flex flex-col items-center justify-center">
+                                                    <i class="fas fa-clipboard-check text-4xl text-slate-300 mb-3"></i>
+                                                    <p class="text-base font-semibold text-slate-900">Todo al día</p>
+                                                    <p class="text-sm text-slate-500 mt-1">No hay solicitudes pendientes en este momento.</p>
+                                                </div>
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>
                             </table>
                         </div>
-                        <div class='mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                    </section>
+
+                    <section class='admin-card overflow-hidden rounded-3xl shadow-sm'>
+                        <div class='border-b border-slate-100 p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-slate-50/50'>
+                            <div>
+                                <h2 class='text-2xl font-semibold text-slate-900'>Denuncias Pendientes</h2>
+                                <p class='text-sm text-slate-500'>Revisa los reportes más recientes</p>
+                            </div>
+                            <select class='w-full max-w-xs rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm outline-none focus:border-[#a04028] focus:ring-1 focus:ring-[#a04028]'>
+                                <option>Filtrar: Todas</option>
+                                <option>Más recientes</option>
+                                <option>Urgentes</option>
+                            </select>
+                        </div>
+                        <div class='overflow-x-auto max-h-[400px] overflow-y-auto'>
+                            <table class='admin-table min-w-full divide-y divide-slate-200 text-left text-sm'>
+                                <thead class='bg-slate-100/90 text-slate-600 backdrop-blur sticky top-0 z-10 shadow-sm'>
+                                    <tr>
+                                        <th class='px-6 py-4 font-semibold uppercase tracking-wider text-xs'>Negocio / Reporte</th>
+                                        <th class='px-6 py-4 font-semibold uppercase tracking-wider text-xs'>Estado</th>
+                                        <th class='px-6 py-4 font-semibold uppercase tracking-wider text-xs'>Fecha</th>
+                                        <th class='px-6 py-4 font-semibold uppercase tracking-wider text-xs text-right'>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class='divide-y divide-slate-200'>
+                                    @if (Model.DenunciasPendientes != null && Model.DenunciasPendientes.Any())
+                                    {
+                                        foreach (var denuncia in Model.DenunciasPendientes)
+                                        {
+                                            <tr>
+                                                <td class='px-6 py-4'>
+                                                    <div class='flex items-center gap-3'>
+                                                        <div class='h-12 w-12 overflow-hidden rounded-2xl bg-slate-100'>
+                                                            <img src='@(denuncia.Business?.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/48")' alt='Miniatura' class='h-full w-full object-cover' />
+                                                        </div>
+                                                        <div>
+                                                            <p class='font-semibold text-slate-900'>@(denuncia.Business?.TradeName ?? "Desconocido")</p>
+                                                            <p class='text-xs text-slate-500 mt-0.5 max-w-[200px] truncate'>Motivo de reporte no especificado</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class='px-6 py-4'>
+                                                    <span class='inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700 border border-rose-200/50'>
+                                                        <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span> Abierto
+                                                    </span>
+                                                </td>
+                                                <td class='px-6 py-4 text-slate-600 font-medium'>@denuncia.CreatedAt.ToString("dd MMM yyyy")</td>
+                                                <td class='px-6 py-4'>
+                                                    <div class='flex items-center justify-end gap-2 text-slate-500'>
+                                                        <button class='action-btn view' title="Ver detalles"><i class='fas fa-eye'></i></button>
+                                                        <button class='action-btn edit' title="Ocultar negocio"><i class='fas fa-eye-slash'></i></button>
+                                                        <button class='action-btn approve' title="Descartar denuncia"><i class='fas fa-check'></i></button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="4" class="px-6 py-12 text-center">
+                                                <div class="flex flex-col items-center justify-center">
+                                                    <i class="fas fa-shield-alt text-4xl text-slate-300 mb-3"></i>
+                                                    <p class="text-base font-semibold text-slate-900">Comunidad segura</p>
+                                                    <p class="text-sm text-slate-500 mt-1">No hay nuevas denuncias por revisar.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class='border-t border-slate-100 bg-slate-50/50 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
                             <p class='text-sm text-slate-500'>Total de denuncias pendientes: @(Model.DenunciasPendientes?.Count ?? 0)</p>
                             <div class='flex items-center gap-2'>
-                                <button class='rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50'>Anterior</button>
-                                <button class='rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50'>Siguiente</button>
+                                <button class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-50' disabled>Anterior</button>
+                                <button class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-50' disabled>Siguiente</button>
                             </div>
                         </div>
                     </section>
-                    <aside class='rounded-3xl bg-white p-6 shadow-sm'>
-                        <h3 class='text-2xl font-semibold text-slate-900'>Guía Rápida</h3>
-                        <p class='mt-2 text-sm text-slate-500'>Pasos esenciales para validar una solicitud.</p>
-                        <ol class='mt-6 space-y-4 text-sm text-slate-700'>
-                            <li class='rounded-3xl border border-slate-200 bg-slate-50 p-4'>
-                                <span class='mb-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#fde8e3] text-lg font-semibold text-[#a04028]'>1</span>
-                                <p class='font-semibold'>Verificar RUC</p>
-                                <p class='text-slate-500'>Confirma la identificación fiscal y la razón social.</p>
+                </div>
+                    <aside class='rounded-3xl border border-slate-200 bg-white p-6 shadow-sm h-fit sticky top-6'>
+                        <h3 class='text-lg font-bold text-slate-900 flex items-center gap-2'><i class="fas fa-book-open text-[#a04028]"></i> Guía Rápida</h3>
+                        <p class='mt-1 text-sm text-slate-500'>Pasos esenciales para validar una solicitud de negocio nuevo.</p>
+                        <ol class='mt-6 space-y-5 text-sm text-slate-700'>
+                            <li class='flex gap-4'>
+                                <span class='flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-[#a04028] text-lg font-bold text-white shadow-sm'>1</span>
+                                <div>
+                                    <p class='font-bold text-slate-900 text-base'>Verificar RUC</p>
+                                    <p class='text-slate-500 mt-1 leading-relaxed'>Confirma la identificación fiscal y asegúrate de que la razón social coincida con SUNAT.</p>
+                                </div>
                             </li>
-                            <li class='rounded-3xl border border-slate-200 bg-slate-50 p-4'>
-                                <span class='mb-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#e8f5ff] text-lg font-semibold text-[#2563eb]'>2</span>
-                                <p class='font-semibold'>Calidad de Imagen</p>
-                                <p class='text-slate-500'>Asegura fotos claras y autorizadas del local.</p>
+                            <li class='flex gap-4'>
+                                <span class='flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-[#a04028]/80 text-lg font-bold text-white shadow-sm'>2</span>
+                                <div>
+                                    <p class='font-bold text-slate-900 text-base'>Calidad de Imagen</p>
+                                    <p class='text-slate-500 mt-1 leading-relaxed'>Asegura que las fotos sean claras, bien iluminadas y muestren el exterior del local real.</p>
+                                </div>
                             </li>
-                            <li class='rounded-3xl border border-slate-200 bg-slate-50 p-4'>
-                                <span class='mb-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#f8fafc] text-lg font-semibold text-slate-700'>3</span>
-                                <p class='font-semibold'>Geolocalización</p>
-                                <p class='text-slate-500'>Verifica que la dirección coincida en el mapa.</p>
+                            <li class='flex gap-4'>
+                                <span class='flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-[#a04028]/60 text-lg font-bold text-white shadow-sm'>3</span>
+                                <div>
+                                    <p class='font-bold text-slate-900 text-base'>Geolocalización</p>
+                                    <p class='text-slate-500 mt-1 leading-relaxed'>Utiliza Google Maps para constatar que el pin coincida exactamente con la dirección provista.</p>
+                                </div>
                             </li>
                         </ol>
-                        <button class='mt-6 w-full rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600'>VER MANUAL COMPLETO</button>
+                        <button class='mt-8 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-[#a04028] hover:text-[#a04028]'>Abrir Manual Completo</button>
                     </aside>
                 </div>
                 <section class='space-y-4 rounded-3xl bg-white p-6 shadow-sm'>
                     <div class='mb-4 flex items-center justify-between'>
                         <h3 class='text-xl font-semibold text-slate-900'>Actividad Reciente del Staff</h3>
-                        <span class='text-sm text-slate-500'>Actualizado hace 10 min</span>
+                        <span class='text-sm text-slate-500'>Actualizado a las @DateTime.Now.ToString("HH:mm")</span>
                     </div>
                     <div class='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
                         @if (Model.ActividadReciente != null && Model.ActividadReciente.Any())

@@ -1,0 +1,109 @@
+/* ==========================================
+   ESTILOS DEL SIDEBAR DE MODERACIÓN
+   ========================================== */
+
+.admin-sidebar {
+  /* Fondo Naranja principal (btn-orange) y tapando el navbar (z-index 1050) */
+  background-color: #ff6b00 !important;
+  z-index: 1050 !important;
+  color: #ffffff;
+}
+
+.admin-sidebar a.nav-item {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.admin-sidebar a.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff;
+}
+
+/* Estado Activo del menú */
+.admin-sidebar a.nav-item.active {
+  background-color: rgba(0, 0, 0, 0.15) !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.admin-sidebar a.nav-item.active i {
+  color: #ffffff !important;
+}
+
+/* Ajuste del contenido principal para dejar espacio al sidebar */
+@media (min-width: 1024px) {
+  .admin-main-content {
+    margin-left: 18rem !important; /* 72 * 0.25rem = 18rem */
+    position: relative;
+    background-color: #f1f5f9 !important; /* Gris claro para matar el "blanco puro" */
+  }
+}
+
+/* ==========================================
+   ESTILOS DE CONTENIDO Y TARJETAS
+   ========================================== */
+.admin-header {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-card {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0;
+}
+
+.admin-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+.admin-table tbody tr:hover {
+  background-color: #fff7ed !important; /* Naranja muy sutil en hover (orange-50) */
+}
+
+/* ==========================================
+   BOTONES DE ACCIÓN (SIEMPRE VISIBLES)
+   ========================================== */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  background-color: #f8fafc; /* Fondo gris muy sutil por defecto */
+  color: #64748b; /* Icono gris oscuro */
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  opacity: 1 !important; /* Forzamos a que siempre se vean */
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Colores específicos que se activan al pasar el mouse */
+.action-btn.edit:hover {
+  background-color: #eff6ff;
+  color: #3b82f6;
+  border-color: #bfdbfe;
+}
+.action-btn.delete:hover {
+  background-color: #fef2f2;
+  color: #ef4444;
+  border-color: #fecaca;
+}
+.action-btn.approve:hover {
+  background-color: #f0fdf4;
+  color: #22c55e;
+  border-color: #bbf7d0;
+}
+.action-btn.promote:hover {
+  background-color: #faf5ff;
+  color: #a855f7;
+  border-color: #e9d5ff;
+}
+.action-btn.view:hover {
+  background-color: #fff7ed;
+  color: #ff6b00;
+  border-color: #ffedd5;
+}

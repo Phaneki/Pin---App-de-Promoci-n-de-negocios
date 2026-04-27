@@ -1,0 +1,206 @@
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+    Layout = "_Layout";
+    var currentEmail = Context.Session.GetString("Usuario");
+}
+@model IEnumerable<PinAppdePromo.Models.Usuario>
+@section Styles {
+    <link rel="stylesheet" href="~/css/moderacion.css" asp-append-version="true" />
+}
+
+<div class='min-h-screen text-slate-900'>
+    <div class='lg:flex lg:min-h-screen'>
+        <!-- Inyectamos el Sidebar modular -->
+        <partial name="_ModeracionSidebar" />
+        
+        <main class='flex-1 admin-main-content'>
+            <div class='admin-header px-6 py-5 shadow-sm'>
+                <div class='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
+                    <h1 class="text-2xl font-bold text-slate-800">Gestión de Usuarios</h1>
+                    <div class='flex flex-wrap items-center gap-3 text-sm text-slate-600'>
+                        <div class='flex items-center gap-3 rounded-full bg-white px-4 py-3 shadow-sm'>
+                            @{
+                                var adminName = Context.Session.GetString("Nombre") ?? "Admin";
+                                var adminInitials = adminName.Length >= 2 ? adminName.Substring(0, 2).ToUpper() : "AD";
+                            }
+                            <span class='inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#ff6b00]/10 text-[#ff6b00]'>@adminInitials</span>
+                            <div>
+                                <p class='font-semibold text-slate-900'>@adminName</p>
+                                <p class='text-xs text-slate-500'>Moderador principal</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class='p-6 max-w-6xl mx-auto'>
+                @if (TempData["Error"] != null)
+                {
+                    <div class="mb-6 rounded-xl bg-red-50 p-4 border border-red-200 text-red-600 flex items-center gap-3">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p class="font-medium text-sm">@TempData["Error"]</p>
+                    </div>
+                }
+
+                <div class="mb-6">
+                    <h2 class="text-lg font-bold text-slate-800">Directorio de Usuarios</h2>
+                    <p class="text-sm text-slate-500 mt-1">Administra los permisos, asciende a moderadores o suspende cuentas problemáticas.</p>
+                </div>
+
+                <!-- BARRA DE BÚSQUEDA Y FILTROS -->
+                <form method="get" asp-action="UsuariosAdmin" class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex flex-1 items-center gap-3 w-full sm:max-w-md border border-slate-300 rounded-xl px-4 py-2 focus-within:border-[#ff6b00] focus-within:ring-1 focus-within:ring-[#ff6b00] transition bg-slate-50">
+                        <i class="fas fa-search text-slate-400"></i>
+                        <input type="text" name="busqueda" value="@ViewBag.Busqueda" placeholder="Buscar por nombre o correo..." class="w-full bg-transparent outline-none text-sm" />
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <select name="filtroRol" class="w-full sm:w-auto border border-slate-300 rounded-xl px-4 py-2 text-sm outline-none focus:border-[#ff6b00] bg-slate-50" onchange="this.form.submit()">
+                            <option value="TODOS">Todos los roles</option>
+                            <option value="CLIENTE" selected="@(ViewBag.FiltroRol == "CLIENTE")">Clientes</option>
+                            <option value="DUEÑO" selected="@(ViewBag.FiltroRol == "DUEÑO")">Dueños de Negocios</option>
+                            <option value="MODERADOR" selected="@(ViewBag.FiltroRol == "MODERADOR")">Moderadores</option>
+                            <option value="SUSPENDIDO" selected="@(ViewBag.FiltroRol == "SUSPENDIDO")">Suspendidos</option>
+                        </select>
+                        <button type="submit" class="inline-flex items-center justify-center gap-2 bg-[#ff6b00] text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-[#e66000] transition shadow-sm">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </div>
+                </form>
+
+                <div class='admin-card overflow-hidden rounded-2xl shadow-sm'>
+                    <div class="overflow-x-auto">
+                        <table class='admin-table min-w-full divide-y divide-slate-200 text-left text-sm'>
+                            <thead class='bg-slate-50 text-slate-500'>
+                                <tr>
+                                    <th scope="col" class='px-6 py-4 font-medium uppercase tracking-wider text-xs'>Usuario</th>
+                                    <th scope="col" class='px-6 py-4 font-medium uppercase tracking-wider text-xs'>Contacto</th>
+                                    <th scope="col" class='px-6 py-4 font-medium uppercase tracking-wider text-xs'>Rol / Estado</th>
+                                    <th scope="col" class='px-6 py-4 font-medium uppercase tracking-wider text-xs text-right'>Acciones de Rol</th>
+                                </tr>
+                            </thead>
+                            <tbody class='divide-y divide-slate-100 bg-white'>
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var usuario in Model)
+                                    {
+                                        var esYo = usuario.Correo == currentEmail;
+                                        <tr class="@(esYo ? "bg-blue-50/20" : "")">
+                                            <td class='px-6 py-4'>
+                                                <div class="flex items-center gap-3">
+                                                    @if (!string.IsNullOrEmpty(usuario.FotoUrl))
+                                                    {
+                                                        <img src="@usuario.FotoUrl" alt="Avatar" class="h-10 w-10 rounded-full object-cover shadow-sm border border-slate-200" referrerpolicy="no-referrer" />
+                                                    }
+                                                    else
+                                                    {
+                                                        var inicial = !string.IsNullOrEmpty(usuario.Nombre) ? usuario.Nombre.Substring(0, 1).ToUpper() : "U";
+                                                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-slate-600 font-bold shadow-sm">@inicial</div>
+                                                    }
+                                                    <div>
+                                                        <p class="font-semibold text-slate-900 text-base">@usuario.Nombre @(esYo ? "(Tú)" : "")</p>
+                                                        <p class="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                                                            <i class="fas @(usuario.TipoAuth == "GOOGLE" ? "fa-google text-red-500" : "fa-envelope text-slate-400")"></i>
+                                                            Auth: @usuario.TipoAuth
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class='px-6 py-4 text-slate-600'>
+                                                @usuario.Correo
+                                            </td>
+                                            <td class='px-6 py-4'>
+                                                @if (usuario.Rol == "MODERADOR")
+                                                {
+                                                    <span class='inline-flex items-center gap-1.5 rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700 border border-purple-200'>
+                                                        <i class="fas fa-shield-alt text-[10px]"></i> Moderador
+                                                    </span>
+                                                }
+                                                else if (usuario.Rol == "DUEÑO")
+                                                {
+                                                    <span class='inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-200'>
+                                                        <i class="fas fa-store text-[10px]"></i> Dueño
+                                                    </span>
+                                                }
+                                                else if (usuario.Rol == "SUSPENDIDO")
+                                                {
+                                                    <span class='inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 border border-red-200'>
+                                                        <i class="fas fa-ban text-[10px]"></i> Suspendido
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class='inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200'>
+                                                        <i class="fas fa-user text-[10px]"></i> Cliente
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class='px-6 py-4 text-right'>
+                                                @if (!esYo)
+                                                {
+                                                    <div class="flex items-center justify-end gap-2 flex-wrap">
+                                                        @if (usuario.Rol != "MODERADOR")
+                                                        {
+                                                            <form asp-action="CambiarRolUsuario" asp-controller="Home" method="post" class="m-0 inline" onsubmit="return confirm('¿Ascender a este usuario a Moderador? Tendrá acceso a este panel.');">
+                                                                <input type="hidden" name="usuarioId" value="@usuario.Id" />
+                                                                <input type="hidden" name="nuevoRol" value="MODERADOR" />
+                                                                <button type="submit" class='inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 shadow-sm transition hover:bg-purple-600 hover:text-white'>
+                                                                    <i class='fas fa-shield-alt'></i> Ascender
+                                                                </button>
+                                                            </form>
+                                                        }
+                                                        @if (usuario.Rol == "MODERADOR" || usuario.Rol == "SUSPENDIDO")
+                                                        {
+                                                            <form asp-action="CambiarRolUsuario" asp-controller="Home" method="post" class="m-0 inline" onsubmit="return confirm('¿Asignar rol de Cliente normal a este usuario?');">
+                                                                <input type="hidden" name="usuarioId" value="@usuario.Id" />
+                                                                <input type="hidden" name="nuevoRol" value="CLIENTE" />
+                                                                <button type="submit" class='inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 shadow-sm transition hover:bg-emerald-600 hover:text-white'>
+                                                                    <i class='fas fa-user'></i> Hacer Cliente
+                                                                </button>
+                                                            </form>
+                                                        }
+                                                        @if (usuario.Rol != "SUSPENDIDO")
+                                                        {
+                                                            <form asp-action="CambiarRolUsuario" asp-controller="Home" method="post" class="m-0 inline" onsubmit="return confirm('¿Estás seguro de suspender a este usuario? No podrá iniciar sesión.');">
+                                                                <input type="hidden" name="usuarioId" value="@usuario.Id" />
+                                                                <input type="hidden" name="nuevoRol" value="SUSPENDIDO" />
+                                                                <button type="submit" class='inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 shadow-sm transition hover:bg-red-600 hover:text-white'>
+                                                                    <i class='fas fa-ban'></i> Suspender
+                                                                </button>
+                                                            </form>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-xs text-slate-400 font-medium">Sin acciones</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- PAGINACIÓN -->
+                    @if (ViewBag.TotalUsuarios > 0)
+                    {
+                        <div class='border-t border-slate-200 bg-slate-50/50 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                            <p class='text-sm text-slate-500 font-medium'>Mostrando @Model.Count() de @ViewBag.TotalUsuarios usuarios</p>
+                            <div class='flex items-center gap-2'>
+                                @if (ViewBag.PaginaActual > 1) {
+                                    <a href="?busqueda=@ViewBag.Busqueda&filtroRol=@ViewBag.FiltroRol&pagina=@(ViewBag.PaginaActual - 1)" class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50'>Anterior</a>
+                                }
+                                @for (int i = 1; i <= ViewBag.TotalPaginas; i++) {
+                                    <a href="?busqueda=@ViewBag.Busqueda&filtroRol=@ViewBag.FiltroRol&pagina=@i" class='rounded-lg border @(i == ViewBag.PaginaActual ? "border-[#ff6b00] bg-[#ff6b00] text-white" : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50") px-3 py-1.5 text-sm font-medium shadow-sm transition'>@i</a>
+                                }
+                                @if (ViewBag.PaginaActual < ViewBag.TotalPaginas) {
+                                    <a href="?busqueda=@ViewBag.Busqueda&filtroRol=@ViewBag.FiltroRol&pagina=@(ViewBag.PaginaActual + 1)" class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50'>Siguiente</a>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
