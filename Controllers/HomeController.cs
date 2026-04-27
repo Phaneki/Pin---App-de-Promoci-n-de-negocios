@@ -23,19 +23,21 @@ namespace PinAppdePromo.Controllers
                 .Include(b => b.Category)
                 .Include(b => b.Images)
                 .Include(b => b.Reviews)
-                .Where(b => b.Status == "Approved") // Solo muestra los aprobados
-                .Take(8) // Limitamos a los 8 más recientes en el inicio
+                .Where(b => b.Status == "Approved" || b.Status == "Promoted")
+                .OrderByDescending(b => b.Status == "Promoted" ? 1 : 0)
+                .ThenByDescending(b => b.CreatedAt)
+                .Take(8)
                 .ToListAsync();
             return View(negocios);
         }
 
-        public async Task<IActionResult> Explorar(string busqueda, string distrito)
+        public async Task<IActionResult> Explorar(string busqueda, string distrito, List<int> categorias, string orden)
         {
             var query = _pinContext.Businesses
                 .Include(b => b.Category)
                 .Include(b => b.Images)
                 .Include(b => b.Reviews)
-                .Where(b => b.Status == "Approved")
+                .Where(b => b.Status == "Approved" || b.Status == "Promoted")
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(busqueda))
@@ -47,9 +49,37 @@ namespace PinAppdePromo.Controllers
             {
                 query = query.Where(b => b.Address.ToLower().Contains(distrito.ToLower()));
             }
+
+            if (categorias != null && categorias.Any())
+            {
+                query = query.Where(b => categorias.Contains(b.CategoryId));
+            }
+
+            // Ordenamiento
+            query = orden switch
+            {
+                "calificacion" => query.OrderByDescending(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0),
+                "nombre" => query.OrderBy(b => b.TradeName),
+                _ => query.OrderByDescending(b => b.Status == "Promoted" ? 1 : 0)
+            };
                 
             var negocios = await query.ToListAsync();
             ViewBag.Categorias = await _pinContext.Categories.ToListAsync();
+            ViewBag.CategoriasSeleccionadas = categorias ?? new List<int>();
+            ViewBag.OrdenActual = orden;
+            ViewBag.DistritoActual = distrito;
+
+            // Extraer distritos únicos de las direcciones de negocios activos
+            var todosNegocios = await _pinContext.Businesses
+                .Where(b => b.Status == "Approved" || b.Status == "Promoted")
+                .Select(b => b.Address)
+                .ToListAsync();
+            ViewBag.Distritos = todosNegocios
+                .Where(a => !string.IsNullOrEmpty(a))
+                .Select(a => a.Split(',').Last().Trim())
+                .Distinct()
+                .OrderBy(d => d)
+                .ToList();
             
             return View(negocios);
         }
