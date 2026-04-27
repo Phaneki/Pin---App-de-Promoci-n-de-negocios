@@ -33,8 +33,10 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
     });
 }
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbContext>(options => {
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
 
 builder.Services.AddDbContext<PinDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -58,6 +60,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try {
+        dbContext.Database.ExecuteSqlRaw("ALTER TABLE \"Usuarios\" ADD COLUMN \"Ubicacion\" text;");
+        dbContext.Database.ExecuteSqlRaw("ALTER TABLE \"Usuarios\" ADD COLUMN \"Bio\" text;");
+    } catch { }
     dbContext.Database.Migrate();
     
     var pinContext = scope.ServiceProvider.GetRequiredService<PinDbContext>();

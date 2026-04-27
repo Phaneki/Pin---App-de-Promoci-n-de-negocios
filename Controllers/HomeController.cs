@@ -186,6 +186,8 @@ namespace PinAppdePromo.Controllers
             {
                 model.FullName = user.Nombre;
                 model.CreatedAt = DateTime.UtcNow; // O usa la fecha de creación real si la tienes
+                model.Ubicacion = user.Ubicacion;
+                model.Bio = user.Bio;
                 
                 // Cargar los favoritos reales del usuario
                 model.Favorites = await _pinContext.Favorites
@@ -237,12 +239,14 @@ namespace PinAppdePromo.Controllers
             {
                 model.FullName = user.Nombre;
                 model.CreatedAt = DateTime.UtcNow;
+                model.Ubicacion = user.Ubicacion;
+                model.Bio = user.Bio;
             }
             return View("~/Views/Home/Perfil/AjustesCuenta.cshtml", model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> ActualizarPerfil(string FullName, string Bio)
+        public async Task<IActionResult> ActualizarPerfil(string FullName, string Ubicacion, string Bio)
         {
             var email = HttpContext.Session.GetString("Usuario");
             if (email == null) return RedirectToAction("Index", "Login");
@@ -251,12 +255,65 @@ namespace PinAppdePromo.Controllers
             if (user != null)
             {
                 user.Nombre = FullName; // Ahora sí actualiza el Nombre del modelo Usuario
-                // user.Bio = Bio; 
+                user.Ubicacion = Ubicacion;
+                user.Bio = Bio;
                 await _context.SaveChangesAsync();
                 
                 // Actualizamos la sesión para que el cambio de nombre se vea inmediatamente
                 HttpContext.Session.SetString("Nombre", FullName);
             }
+            return RedirectToAction("AjustesCuenta");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ActualizarFoto(IFormFile fotoPerfil)
+        {
+            var email = HttpContext.Session.GetString("Usuario");
+            if (email == null) return RedirectToAction("Index", "Login");
+
+            if (fotoPerfil != null && fotoPerfil.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "profiles");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var uniqueFileName = Guid.NewGuid().ToString() + "_" + fotoPerfil.FileName;
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await fotoPerfil.CopyToAsync(fileStream);
+                }
+
+                var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
+                if (user != null)
+                {
+                    user.FotoUrl = "/images/profiles/" + uniqueFileName;
+                    await _context.SaveChangesAsync();
+                    
+                    HttpContext.Session.SetString("Foto", user.FotoUrl);
+                }
+            }
+
+            return RedirectToAction("AjustesCuenta");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EliminarFoto()
+        {
+            var email = HttpContext.Session.GetString("Usuario");
+            if (email == null) return RedirectToAction("Index", "Login");
+
+            var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
+            if (user != null)
+            {
+                user.FotoUrl = null;
+                await _context.SaveChangesAsync();
+                HttpContext.Session.Remove("Foto");
+            }
+
             return RedirectToAction("AjustesCuenta");
         }
 
