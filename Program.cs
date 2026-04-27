@@ -39,9 +39,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddDbContext<PinDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddSession();
-
-// Configurar Redis (antes de builder.Build())
+// 1. Configurar Redis como el motor de Caché Distribuido
 var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection");
 if (!string.IsNullOrEmpty(redisConnectionString))
 {
@@ -51,6 +49,9 @@ if (!string.IsNullOrEmpty(redisConnectionString))
         options.InstanceName = "PinApp_";
     });
 }
+
+// 2. Agregar Sesiones DESPUÉS de Redis para que use la caché distribuida
+builder.Services.AddSession();
 
 var app = builder.Build();
 
