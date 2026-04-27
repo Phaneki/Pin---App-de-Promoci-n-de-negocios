@@ -117,6 +117,8 @@ namespace PinAppdePromo.Controllers
             {
                 negocio.Status = "Pending";
                 negocio.CreatedAt = DateTime.UtcNow;
+                negocio.RUC = negocio.RUC ?? "";
+                negocio.ContactPhone = negocio.ContactPhone ?? "";
 
                 // Obtener el OwnerId basado en el usuario logueado en la sesión
                 var email = HttpContext.Session.GetString("Usuario");
