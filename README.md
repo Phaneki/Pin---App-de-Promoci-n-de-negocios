@@ -10,8 +10,8 @@ Este proyecto fue desarrollado como parte del curso de **Programación I**, impl
 
 Para revisar el **Panel de Moderación** y tener control total sobre la plataforma, inicie sesión con la siguiente cuenta preconfigurada:
 
-- **Correo Electrónico:** `admin@pin.com`
-- **Contraseña:** `123` _(Nota: Si la contraseña es diferente, actualízala aquí)_
+- **Correo Electrónico:** `luiscabrera@pin.com`
+- **Contraseña:** `12345` 
 - **Rol:** `MODERADOR`
 
 > **Tip para el evaluador:** Al iniciar sesión con esta cuenta, aparecerá un botón rojo llamado **"Manager"** en la barra de navegación superior que da acceso al Dashboard Administrativo.
