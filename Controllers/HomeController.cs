@@ -31,7 +31,7 @@ namespace PinAppdePromo.Controllers
             return View(negocios);
         }
 
-        public async Task<IActionResult> Explorar(string busqueda, string distrito, List<int> categorias)
+        public async Task<IActionResult> Explorar(string busqueda, string distrito, List<int> categorias, string orden)
         {
             var query = _pinContext.Businesses
                 .Include(b => b.Category)
@@ -54,10 +54,19 @@ namespace PinAppdePromo.Controllers
             {
                 query = query.Where(b => categorias.Contains(b.CategoryId));
             }
+
+            // Ordenamiento
+            query = orden switch
+            {
+                "calificacion" => query.OrderByDescending(b => b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0),
+                "nombre" => query.OrderBy(b => b.TradeName),
+                _ => query.OrderByDescending(b => b.Status == "Promoted" ? 1 : 0)
+            };
                 
             var negocios = await query.ToListAsync();
             ViewBag.Categorias = await _pinContext.Categories.ToListAsync();
             ViewBag.CategoriasSeleccionadas = categorias ?? new List<int>();
+            ViewBag.OrdenActual = orden;
             
             return View(negocios);
         }
