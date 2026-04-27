@@ -23,8 +23,10 @@ namespace PinAppdePromo.Controllers
                 .Include(b => b.Category)
                 .Include(b => b.Images)
                 .Include(b => b.Reviews)
-                .Where(b => b.Status == "Approved") // Solo muestra los aprobados
-                .Take(8) // Limitamos a los 8 más recientes en el inicio
+                .Where(b => b.Status == "Approved" || b.Status == "Promoted")
+                .OrderByDescending(b => b.Status == "Promoted" ? 1 : 0)
+                .ThenByDescending(b => b.CreatedAt)
+                .Take(8)
                 .ToListAsync();
             return View(negocios);
         }
@@ -35,7 +37,7 @@ namespace PinAppdePromo.Controllers
                 .Include(b => b.Category)
                 .Include(b => b.Images)
                 .Include(b => b.Reviews)
-                .Where(b => b.Status == "Approved")
+                .Where(b => b.Status == "Approved" || b.Status == "Promoted")
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(busqueda))
