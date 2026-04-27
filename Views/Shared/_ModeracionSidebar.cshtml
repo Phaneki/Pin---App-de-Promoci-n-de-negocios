@@ -1,0 +1,48 @@
+@{
+    var currentAction = ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
+}
+
+<aside class='fixed inset-y-0 left-0 w-72 p-6 shadow-xl admin-sidebar'>
+    <!-- Logo y Título -->
+    <div class='mb-10 flex items-center gap-3'>
+        <div class='flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm p-1'>
+            <img src="~/images/logo.png" alt="Pin Logo" class="h-full w-full object-contain" />
+        </div>
+        <div>
+            <p class='text-sm font-semibold uppercase tracking-[0.2em] text-white/70'>Pin Admin</p>
+            <p class='text-2xl font-semibold text-white'>Moderación</p>
+        </div>
+    </div>
+    
+    <!-- Menú de Navegación -->
+    <nav class='space-y-2 text-sm'>
+        <a href='/Home/Moderacion' class='nav-item group flex items-center gap-3 rounded-2xl px-4 py-3 transition @(currentAction == "Moderacion" ? "active" : "")'>
+            <i class='fas fa-tachometer-alt transition group-hover:text-white'></i>
+            <span class='font-semibold'>Dashboard</span>
+        </a>
+        <a href='/Home/NegociosAdmin' class='nav-item group flex items-center gap-3 rounded-2xl px-4 py-3 transition @(currentAction == "NegociosAdmin" ? "active" : "")'>
+            <i class='fas fa-store transition group-hover:text-white'></i>
+            <span>Negocios</span>
+        </a>
+        <a href='/Home/CategoriasAdmin' class='nav-item group flex items-center gap-3 rounded-2xl px-4 py-3 transition @(currentAction == "CategoriasAdmin" ? "active" : "")'>
+            <i class='fas fa-tags transition group-hover:text-white'></i>
+            <span>Categorías</span>
+        </a>
+        <a href='/Home/UsuariosAdmin' class='nav-item group flex items-center gap-3 rounded-2xl px-4 py-3 transition @(currentAction == "UsuariosAdmin" ? "active" : "")'>
+            <i class='fas fa-user-friends transition group-hover:text-white'></i>
+            <span>Usuarios</span>
+        </a>
+        <a href='/Home/ReportesAdmin' class='nav-item group flex items-center gap-3 rounded-2xl px-4 py-3 transition @(currentAction == "ReportesAdmin" ? "active" : "")'>
+            <i class='fas fa-chart-line transition group-hover:text-white'></i>
+            <span>Reportes</span>
+        </a>
+    </nav>
+    
+    <!-- Botones Inferiores (Posicionados abajo) -->
+    <div class='mt-12 space-y-3' style="position: absolute; bottom: 24px; width: calc(100% - 48px);">
+        <a href='/Login/Logout' class='nav-item group flex items-center justify-between rounded-2xl bg-black/10 px-4 py-3 text-sm transition hover:bg-black/20'>
+            <span>Cerrar Sesión</span>
+            <i class='fas fa-sign-out-alt'></i>
+        </a>
+    </div>
+</aside>

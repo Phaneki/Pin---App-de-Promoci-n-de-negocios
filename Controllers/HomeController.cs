@@ -131,16 +131,25 @@ namespace PinAppdePromo.Controllers
 
         public async Task<IActionResult> Moderacion()
         {
-            if (HttpContext.Session.GetString("Usuario") != "admin@pin.com")
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol != "MODERADOR")
             {
                 return RedirectToAction("Index", "Home");
             }
+
+            // Calcular la tasa de rechazo dinámicamente
+            var totalResueltos = await _pinContext.Businesses.CountAsync(b => b.Status == "Approved" || b.Status == "Rejected");
+            var totalRechazados = await _pinContext.Businesses.CountAsync(b => b.Status == "Rejected");
+            double tasaCalculada = totalResueltos > 0 ? ((double)totalRechazados / totalResueltos) * 100 : 0;
+
+            var nuevasSolicitudesHoy = await _pinContext.Businesses.CountAsync(b => b.Status == "Pending" && b.CreatedAt.Date == DateTime.UtcNow.Date);
+            ViewBag.NuevasSolicitudesHoy = nuevasSolicitudesHoy;
 
             var model = new ModeracionViewModel
             {
                 SolicitudesPendientes = await _pinContext.Businesses.CountAsync(b => b.Status == "Pending"),
                 NegociosAprobadosHoy = await _pinContext.Businesses.CountAsync(b => b.Status == "Approved" && b.CreatedAt.Date == DateTime.UtcNow.Date),
-                TasaRechazo = 5.2,
+                TasaRechazo = tasaCalculada,
                 DenunciasPendientes = await _pinContext.BusinessReports
                     .Include(r => r.Business).ThenInclude(b => b.Category)
                     .Include(r => r.Business).ThenInclude(b => b.Images) // Corregido: Uso correcto de ThenInclude
@@ -152,6 +161,11 @@ namespace PinAppdePromo.Controllers
                     .Take(4)
                     .ToListAsync()
             };
+
+            ViewBag.NegociosPendientes = await _pinContext.Businesses
+                .Include(b => b.Category)
+                .Where(b => b.Status == "Pending")
+                .ToListAsync();
 
             return View(model);
         }
@@ -396,53 +410,317 @@ namespace PinAppdePromo.Controllers
             return RedirectToAction("MisResenas");
         }
 
-        public IActionResult Nosotros()
+        [HttpPost]
+        public async Task<IActionResult> CambiarEstadoNegocio(int businessId, string nuevoEstado, string returnUrl = null)
         {
-            return View();
+            // 🔒 Validación estricta: SOLO cuentas con rol MODERADOR pueden aceptar/rechazar negocios
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol != "MODERADOR")
+            {
+                return Unauthorized("Solo los moderadores pueden realizar esta acción.");
+            }
+
+            var negocio = await _pinContext.Businesses.FindAsync(businessId);
+            if (negocio != null)
+            {
+                // Los estados esperados son "Approved" o "Rejected"
+                negocio.Status = nuevoEstado;
+
+                // 🚀 NUEVA LÓGICA: Si se aprueba, convertimos al cliente en DUEÑO
+                if (nuevoEstado == "Approved")
+                {
+                    var pinUser = await _pinContext.Users.FindAsync(negocio.OwnerId);
+                    if (pinUser != null)
+                    {
+                        var localUser = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == pinUser.Email);
+                        if (localUser != null && localUser.Rol == "CLIENTE")
+                        {
+                            localUser.Rol = "DUEÑO";
+                        }
+                    }
+                }
+
+                // 📝 REGISTRAR ACTIVIDAD DEL STAFF AUTOMÁTICAMENTE
+                var staffEmail = HttpContext.Session.GetString("Usuario");
+                var staff = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == staffEmail);
+                if (staff != null)
+                {
+                    _pinContext.Add(new StaffLog {
+                        StaffId = staff.UserId,
+                        Action = nuevoEstado == "Approved" ? $"Aprobó el negocio '{negocio.TradeName}'" : $"Rechazó/Suspendió el negocio '{negocio.TradeName}'",
+                        ExecutedAt = DateTime.UtcNow
+                    });
+                }
+
+                await _pinContext.SaveChangesAsync();
+                await _context.SaveChangesAsync(); // Guardamos el nuevo rol en _context
+            }
+
+            if (!string.IsNullOrEmpty(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            return RedirectToAction("Moderacion");
         }
 
-        public IActionResult Privacidad()
+        // ==========================================
+        // ADMINISTRACIÓN DE CATEGORÍAS
+        // ==========================================
+        public async Task<IActionResult> CategoriasAdmin(string busqueda, int pagina = 1)
         {
-            return View();
-        }
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol != "MODERADOR") return RedirectToAction("Index", "Home");
 
-        public IActionResult Contacto()
-        {
-            return View();
+            var query = _pinContext.Categories.AsQueryable();
+
+            // 1. Filtrar por texto (Nombre)
+            if (!string.IsNullOrEmpty(busqueda))
+            {
+                query = query.Where(c => c.Name.ToLower().Contains(busqueda.ToLower()));
+            }
+
+            // 2. Paginación (Mostrar de 10 en 10)
+            int pageSize = 10;
+            var totalCategorias = await query.CountAsync();
+            var totalPaginas = (int)Math.Ceiling(totalCategorias / (double)pageSize);
+            if (pagina < 1) pagina = 1;
+            if (pagina > totalPaginas && totalPaginas > 0) pagina = totalPaginas;
+
+            ViewBag.Busqueda = busqueda;
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = totalPaginas;
+            ViewBag.TotalCategorias = totalCategorias;
+
+            var categorias = await query.OrderBy(c => c.Name).Skip((pagina - 1) * pageSize).Take(pageSize).ToListAsync();
+            return View(categorias);
         }
 
         [HttpPost]
-        public async Task<IActionResult> EnviarMensaje(string nombre, string email, string asunto, string mensaje)
+        public async Task<IActionResult> CrearCategoria(string Name)
         {
-            try
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol == "MODERADOR" && !string.IsNullOrEmpty(Name))
             {
-                var smtpClient = new System.Net.Mail.SmtpClient("smtp.gmail.com")
-                {
-                    Port = 587,
-                    Credentials = new System.Net.NetworkCredential("tu_correo@gmail.com", "tu_contraseña_de_aplicacion"),
-                    EnableSsl = true,
-                };
-
-                var mailMessage = new System.Net.Mail.MailMessage
-                {
-                    From = new System.Net.Mail.MailAddress("tu_correo@gmail.com"), // Debe ser el mismo correo de las credenciales
-                    Subject = $"Nuevo mensaje de contacto: {asunto}",
-                    Body = $"<strong>Nombre:</strong> {nombre}<br/><strong>Email:</strong> {email}<br/><br/><strong>Mensaje:</strong><br/>{mensaje}",
-                    IsBodyHtml = true,
-                };
-                mailMessage.To.Add("diego_aliaga@usmp.pe");
-
-                // Descomenta la siguiente línea para que se envíe el correo de verdad cuando configures las credenciales en NetworkCredential:
-                await smtpClient.SendMailAsync(mailMessage);
-
-                TempData["MensajeExito"] = "Mensaje enviado. ¡Gracias por contactarnos!";
+                _pinContext.Categories.Add(new Category { Name = Name });
+                await _pinContext.SaveChangesAsync();
             }
-            catch (Exception)
+            return RedirectToAction("CategoriasAdmin");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditarCategoria(int CategoryId, string Name)
+        {
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol == "MODERADOR" && !string.IsNullOrEmpty(Name))
             {
-                TempData["MensajeError"] = "Hubo un error al enviar tu mensaje. Intenta nuevamente.";
+                var categoria = await _pinContext.Categories.FindAsync(CategoryId);
+                if (categoria != null)
+                {
+                    categoria.Name = Name;
+                    await _pinContext.SaveChangesAsync();
+                }
+            }
+            return RedirectToAction("CategoriasAdmin");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EliminarCategoria(int CategoryId)
+        {
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol == "MODERADOR")
+            {
+                var categoria = await _pinContext.Categories.FindAsync(CategoryId);
+                if (categoria != null)
+                {
+                    _pinContext.Categories.Remove(categoria);
+                    await _pinContext.SaveChangesAsync();
+                }
+            }
+            return RedirectToAction("CategoriasAdmin");
+        }
+
+        // ==========================================
+        // ADMINISTRACIÓN DE NEGOCIOS
+        // ==========================================
+        public async Task<IActionResult> NegociosAdmin(string busqueda, string filtroEstado, int pagina = 1)
+        {
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol != "MODERADOR") return RedirectToAction("Index", "Home");
+
+            var query = _pinContext.Businesses.Include(b => b.Category).AsQueryable();
+
+            // 1. Filtrar por texto (Nombre o Dirección)
+            if (!string.IsNullOrEmpty(busqueda))
+            {
+                query = query.Where(b => b.TradeName.ToLower().Contains(busqueda.ToLower()) || b.Address.ToLower().Contains(busqueda.ToLower()));
             }
 
-            return RedirectToAction("Contacto");
+            // 2. Filtrar por Estado específico
+            if (!string.IsNullOrEmpty(filtroEstado) && filtroEstado != "TODOS")
+            {
+                query = query.Where(b => b.Status == filtroEstado);
+            }
+
+            // 3. Paginación (Mostrar de 10 en 10)
+            int pageSize = 10;
+            var totalNegocios = await query.CountAsync();
+            var totalPaginas = (int)Math.Ceiling(totalNegocios / (double)pageSize);
+            if (pagina < 1) pagina = 1;
+            if (pagina > totalPaginas && totalPaginas > 0) pagina = totalPaginas;
+
+            ViewBag.Busqueda = busqueda;
+            ViewBag.FiltroEstado = filtroEstado;
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = totalPaginas;
+            ViewBag.TotalNegocios = totalNegocios;
+
+            var negocios = await query.OrderByDescending(b => b.CreatedAt).Skip((pagina - 1) * pageSize).Take(pageSize).ToListAsync();
+            return View(negocios);
+        }
+
+        // ==========================================
+        // ADMINISTRACIÓN DE USUARIOS
+        // ==========================================
+        public async Task<IActionResult> UsuariosAdmin(string busqueda, string filtroRol, int pagina = 1)
+        {
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol != "MODERADOR") return RedirectToAction("Index", "Home");
+
+            var query = _context.Usuarios.AsQueryable();
+
+            // 1. Filtrar por texto (Nombre o Correo)
+            if (!string.IsNullOrEmpty(busqueda))
+            {
+                query = query.Where(u => u.Nombre.ToLower().Contains(busqueda.ToLower()) || u.Correo.ToLower().Contains(busqueda.ToLower()));
+            }
+
+            // 2. Filtrar por Rol específico
+            if (!string.IsNullOrEmpty(filtroRol) && filtroRol != "TODOS")
+            {
+                query = query.Where(u => u.Rol == filtroRol);
+            }
+
+            // 3. Paginación (Mostrar de 10 en 10)
+            int pageSize = 10;
+            var totalUsuarios = await query.CountAsync();
+            var totalPaginas = (int)Math.Ceiling(totalUsuarios / (double)pageSize);
+            if (pagina < 1) pagina = 1;
+            if (pagina > totalPaginas && totalPaginas > 0) pagina = totalPaginas;
+
+            ViewBag.Busqueda = busqueda;
+            ViewBag.FiltroRol = filtroRol;
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = totalPaginas;
+            ViewBag.TotalUsuarios = totalUsuarios;
+
+            var usuarios = await query.OrderBy(u => u.Nombre).Skip((pagina - 1) * pageSize).Take(pageSize).ToListAsync();
+            return View(usuarios);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CambiarRolUsuario(int usuarioId, string nuevoRol)
+        {
+            var rolActual = HttpContext.Session.GetString("Rol");
+            if (rolActual != "MODERADOR") return Unauthorized("No tienes permisos.");
+
+            var usuario = await _context.Usuarios.FindAsync(usuarioId);
+            if (usuario != null)
+            {
+                // Evitar que el moderador en sesión se quite el rol a sí mismo o se suspenda accidentalmente
+                if (usuario.Correo == HttpContext.Session.GetString("Usuario"))
+                {
+                    TempData["Error"] = "No puedes cambiar tu propio rol desde aquí.";
+                    return RedirectToAction("UsuariosAdmin");
+                }
+
+                usuario.Rol = nuevoRol;
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction("UsuariosAdmin");
+        }
+
+        // ==========================================
+        // ADMINISTRACIÓN DE REPORTES
+        // ==========================================
+        public async Task<IActionResult> ReportesAdmin(string busqueda, string filtroEstado, int pagina = 1)
+        {
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol != "MODERADOR") return RedirectToAction("Index", "Home");
+
+            var query = _pinContext.BusinessReports
+                .Include(r => r.Business).ThenInclude(b => b.Images)
+                .Include(r => r.Business).ThenInclude(b => b.Category)
+                .AsQueryable();
+
+            // 1. Filtrar por nombre de negocio
+            if (!string.IsNullOrEmpty(busqueda))
+            {
+                query = query.Where(r => r.Business.TradeName.ToLower().Contains(busqueda.ToLower()));
+            }
+
+            // 2. Filtrar por Estado específico
+            if (!string.IsNullOrEmpty(filtroEstado) && filtroEstado != "TODOS")
+            {
+                query = query.Where(r => r.ReportStatus == filtroEstado);
+            }
+
+            // 3. Paginación
+            int pageSize = 10;
+            var totalReportes = await query.CountAsync();
+            var totalPaginas = (int)Math.Ceiling(totalReportes / (double)pageSize);
+            if (pagina < 1) pagina = 1;
+            if (pagina > totalPaginas && totalPaginas > 0) pagina = totalPaginas;
+
+            ViewBag.Busqueda = busqueda;
+            ViewBag.FiltroEstado = filtroEstado;
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = totalPaginas;
+            ViewBag.TotalReportes = totalReportes;
+
+            var reportes = await query.OrderByDescending(r => r.CreatedAt).Skip((pagina - 1) * pageSize).Take(pageSize).ToListAsync();
+            return View(reportes);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResolverReporte(int reportId, string accion, string returnUrl = null)
+        {
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol != "MODERADOR") return Unauthorized("No tienes permisos.");
+
+            var reporte = await _pinContext.BusinessReports.Include(r => r.Business).FirstOrDefaultAsync(r => r.ReportId == reportId);
+            if (reporte != null && reporte.ReportStatus == "Open")
+            {
+                if (accion == "DESCARTAR")
+                {
+                    reporte.ReportStatus = "Closed"; // Se cierra la denuncia por ser inválida
+                }
+                else if (accion == "SANCIONAR")
+                {
+                    reporte.ReportStatus = "Resolved"; // Se resuelve sancionando
+                    if (reporte.Business != null)
+                    {
+                        reporte.Business.Status = "Rejected"; // Ocultamos el negocio
+                    }
+                }
+
+                // 📝 REGISTRAR ACTIVIDAD DEL STAFF AUTOMÁTICAMENTE
+                var staffEmail = HttpContext.Session.GetString("Usuario");
+                var staff = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == staffEmail);
+                if (staff != null)
+                {
+                    _pinContext.Add(new StaffLog {
+                        StaffId = staff.UserId,
+                        Action = accion == "DESCARTAR" ? $"Descartó la denuncia del negocio '{reporte.Business?.TradeName}'" : $"Sancionó el negocio '{reporte.Business?.TradeName}' por denuncia",
+                        ExecutedAt = DateTime.UtcNow
+                    });
+                }
+
+                await _pinContext.SaveChangesAsync();
+            }
+
+            if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+            return RedirectToAction("ReportesAdmin");
         }
 
         // ==========================================

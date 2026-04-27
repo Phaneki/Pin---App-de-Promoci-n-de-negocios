@@ -1,0 +1,203 @@
+@{
+    ViewData["Title"] = "Gestión de Categorías";
+    Layout = "_Layout";
+}
+@model IEnumerable<PinAppdePromo.Models.Category>
+@section Styles {
+    <link rel="stylesheet" href="~/css/moderacion.css" asp-append-version="true" />
+}
+
+<div class='min-h-screen text-slate-900'>
+    <div class='lg:flex lg:min-h-screen'>
+        <!-- Inyectamos el Sidebar modular -->
+        <partial name="_ModeracionSidebar" />
+        
+        <main class='flex-1 admin-main-content'>
+            <div class='admin-header px-6 py-5 shadow-sm'>
+                <div class='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
+                    <h1 class="text-2xl font-bold text-slate-800">Gestión de Categorías</h1>
+                    <div class='flex flex-wrap items-center gap-3 text-sm text-slate-600'>
+                        <div class='flex items-center gap-3 rounded-full bg-white px-4 py-3 shadow-sm'>
+                            @{
+                                var adminName = Context.Session.GetString("Nombre") ?? "Admin";
+                                var adminInitials = adminName.Length >= 2 ? adminName.Substring(0, 2).ToUpper() : "AD";
+                            }
+                            <span class='inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#a04028]/10 text-[#a04028]'>@adminInitials</span>
+                            <div>
+                                <p class='font-semibold text-slate-900'>@adminName</p>
+                                <p class='text-xs text-slate-500'>Moderador principal</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <section class='p-6 max-w-6xl mx-auto'>
+                <!-- FORMULARIO DE NUEVA CATEGORÍA ESTILO SAAS -->
+                <div class="admin-card mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-6 shadow-sm">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">Agregar Nueva Categoría</h2>
+                        <p class="text-sm text-slate-500 mt-1">Crea nuevas clasificaciones para organizar los negocios.</p>
+                    </div>
+                    
+                    <form asp-action="CrearCategoria" asp-controller="Home" method="post" class="flex w-full sm:w-auto gap-3">
+                        <div class="relative flex-1 sm:w-64">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                                <i class="fas fa-tag text-slate-400"></i>
+                            </div>
+                            <input type="text" name="Name" placeholder="Ej. Restaurantes..." required class="block w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 pl-11 pr-4 text-sm outline-none transition hover:bg-white focus:border-[#a04028] focus:bg-white focus:ring-1 focus:ring-[#a04028]" />
+                        </div>
+                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-[#a04028] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#8b3722] focus:outline-none focus:ring-2 focus:ring-[#a04028] focus:ring-offset-2">
+                            <i class="fas fa-plus mr-2"></i>Crear
+                        </button>
+                    </form>
+                </div>
+
+                <!-- BARRA DE BÚSQUEDA -->
+                <form method="get" asp-action="CategoriasAdmin" class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex flex-1 items-center gap-3 w-full sm:max-w-md border border-slate-300 rounded-xl px-4 py-2 focus-within:border-[#ff6b00] focus-within:ring-1 focus-within:ring-[#ff6b00] transition bg-slate-50">
+                        <i class="fas fa-search text-slate-400"></i>
+                        <input type="text" name="busqueda" value="@ViewBag.Busqueda" placeholder="Buscar categoría por nombre..." class="w-full bg-transparent outline-none text-sm" />
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <button type="submit" class="inline-flex items-center justify-center gap-2 bg-[#ff6b00] text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-[#e66000] transition shadow-sm">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
+                </form>
+
+                <div class='admin-card overflow-hidden rounded-2xl shadow-sm'>
+                    <div class="border-b border-slate-200 bg-slate-50/50 px-6 py-4">
+                        <h3 class="font-semibold text-slate-800">Categorías Existentes</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                    <table class='admin-table min-w-full divide-y divide-slate-200 text-left text-sm'>
+                        <thead class='bg-slate-50 text-slate-500'>
+                            <tr>
+                                <th scope="col" class='px-6 py-4 font-medium uppercase tracking-wider text-xs'>ID</th>
+                                <th scope="col" class='px-6 py-4 font-medium uppercase tracking-wider text-xs'>Nombre de la Categoría</th>
+                                <th scope="col" class='px-6 py-4 font-medium uppercase tracking-wider text-xs text-right'>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class='divide-y divide-slate-100 bg-white'>
+                            @if (Model != null && Model.Any())
+                            {
+                                foreach (var categoria in Model)
+                                {
+                                    <tr>
+                                        <td class='whitespace-nowrap px-6 py-5 text-slate-400 font-mono text-xs'>
+                                            #@categoria.CategoryId.ToString("D4")
+                                        </td>
+                                        <td class='px-6 py-5 w-full'>
+                                            <!-- ESTADO DE LECTURA (TEXTO) -->
+                                            <div id="view-mode-@categoria.CategoryId" class="flex items-center">
+                                                <div class="h-8 w-8 rounded-lg bg-[#f3e5df] text-[#a04028] flex items-center justify-center mr-3">
+                                                    <i class="fas fa-folder"></i>
+                                                </div>
+                                                <span class="font-semibold text-slate-700 text-base">@categoria.Name</span>
+                                            </div>
+                                            <!-- ESTADO DE EDICIÓN (OCULTO POR DEFECTO) -->
+                                            <form id="edit-mode-@categoria.CategoryId" asp-action="EditarCategoria" asp-controller="Home" method="post" class="hidden items-center gap-2">
+                                                <input type="hidden" name="CategoryId" value="@categoria.CategoryId" />
+                                                <div class="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-1">
+                                                    <i class="fas fa-pen"></i>
+                                                </div>
+                                                <input type="text" name="Name" value="@categoria.Name" required class="block w-full max-w-sm rounded-lg border border-blue-300 bg-white py-1.5 px-3 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm" />
+                                                <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 shadow-sm transition hover:bg-emerald-600 hover:text-white">
+                                                    <i class="fas fa-save"></i> Guardar
+                                                </button>
+                                                <button type="button" onclick="toggleEdit(@categoria.CategoryId, false)" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50">
+                                                    <i class="fas fa-times"></i> Cancelar
+                                                </button>
+                                            </form>
+                                        </td>
+                                        <td class='whitespace-nowrap px-6 py-5 text-right'>
+                                            <div id="actions-@categoria.CategoryId" class="flex items-center justify-end gap-2 flex-wrap">
+                                                <!-- BOTÓN DE EDITAR -->
+                                                <button type="button" onclick="toggleEdit(@categoria.CategoryId, true)" class='inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm transition hover:bg-blue-600 hover:text-white'>
+                                                    <i class='fas fa-pen'></i> Editar
+                                                </button>
+                                                <!-- BOTÓN DE ELIMINAR -->
+                                                <form asp-action="EliminarCategoria" asp-controller="Home" method="post" onsubmit="return confirm('¿Seguro que deseas eliminar esta categoría? Si tiene negocios asociados podría ocultarlos del panel de explorar.');" class="inline m-0">
+                                                    <input type="hidden" name="CategoryId" value="@categoria.CategoryId" />
+                                                    <button type="submit" class='inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 shadow-sm transition hover:bg-red-600 hover:text-white'>
+                                                        <i class='fas fa-trash-alt'></i> Eliminar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <!-- EMPTY STATE REDISEÑADO -->
+                                <tr>
+                                    <td colspan="3" class="px-6 py-16 text-center">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                                <i class="fas fa-folder-open text-2xl"></i>
+                                            </div>
+                                            <h3 class="text-base font-semibold text-slate-900">No hay categorías</h3>
+                                            <p class="mt-1 text-sm text-slate-500">Empieza creando tu primera categoría para clasificar los negocios.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    </div>
+                    <!-- PAGINACIÓN -->
+                    @if (ViewBag.TotalCategorias > 0)
+                    {
+                        <div class='border-t border-slate-200 bg-slate-50/50 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                            <p class='text-sm text-slate-500 font-medium'>Mostrando @Model.Count() de @ViewBag.TotalCategorias categorías</p>
+                            <div class='flex items-center gap-2'>
+                                @if (ViewBag.PaginaActual > 1) {
+                                    <a href="?busqueda=@ViewBag.Busqueda&pagina=@(ViewBag.PaginaActual - 1)" class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50'>Anterior</a>
+                                }
+                                @for (int i = 1; i <= ViewBag.TotalPaginas; i++) {
+                                    <a href="?busqueda=@ViewBag.Busqueda&pagina=@i" class='rounded-lg border @(i == ViewBag.PaginaActual ? "border-[#ff6b00] bg-[#ff6b00] text-white" : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50") px-3 py-1.5 text-sm font-medium shadow-sm transition'>@i</a>
+                                }
+                                @if (ViewBag.PaginaActual < ViewBag.TotalPaginas) {
+                                    <a href="?busqueda=@ViewBag.Busqueda&pagina=@(ViewBag.PaginaActual + 1)" class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50'>Siguiente</a>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Script para cambiar entre el modo visualización y modo edición
+        function toggleEdit(id, showEdit) {
+            const viewMode = document.getElementById('view-mode-' + id);
+            const editMode = document.getElementById('edit-mode-' + id);
+            const actions = document.getElementById('actions-' + id);
+            
+            if (showEdit) {
+                viewMode.classList.add('hidden');
+                actions.classList.add('hidden');
+                editMode.classList.remove('hidden');
+                editMode.classList.add('flex');
+                
+                const input = editMode.querySelector('input[type="text"]');
+                if(input) {
+                    input.focus();
+                    const val = input.value;
+                    input.value = '';
+                    input.value = val;
+                }
+            } else {
+                editMode.classList.add('hidden');
+                editMode.classList.remove('flex');
+                viewMode.classList.remove('hidden');
+                actions.classList.remove('hidden');
+            }
+        }
+    </script>
+}
