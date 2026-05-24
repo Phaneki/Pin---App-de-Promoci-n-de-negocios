@@ -1,0 +1,288 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Ajustes de Cuenta";
+    
+    var fechaRegistro = "2026";
+    try { fechaRegistro = Model?.CreatedAt.ToString("yyyy") ?? "2026"; } catch { }
+    var fullName = "";
+    try { fullName = Model?.FullName ?? Context.Session.GetString("Nombre"); } catch { fullName = Context.Session.GetString("Nombre"); }
+    if (string.IsNullOrEmpty(fullName)) { fullName = Context.Session.GetString("Usuario"); }
+    var email = Context.Session.GetString("Usuario");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/perfil.css" asp-append-version="true" />
+}
+
+<div class="container-fluid px-4 py-5">
+    <!-- PERFIL BANNER -->
+    <div class="profile-banner">
+        <div class="profile-header">
+            <!-- AVATAR -->
+            <div class="profile-avatar">
+                @{
+                    var foto = Context.Session.GetString("Foto");
+                    var usuario = Context.Session.GetString("Nombre");
+                    if (string.IsNullOrEmpty(usuario)) { usuario = Context.Session.GetString("Usuario") ?? "Usuario"; }
+                    var inicial = usuario.Substring(0, 1).ToUpper();
+                }
+
+                @if (!string.IsNullOrEmpty(foto))
+                {
+                    <img src="@foto" alt="@usuario" class="profile-img" referrerpolicy="no-referrer" />
+                }
+                else
+                {
+                    <div style="width: 120px; height: 120px; border-radius: 12px; background-color: #ff6b00; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: 800; border: 3px solid white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+                        @inicial
+                    </div>
+                }
+
+                <div class="verification-badge">
+                    <i class="fas fa-check"></i>
+                </div>
+            </div>
+
+            <!-- INFORMACIÓN DEL USUARIO -->
+            <div class="profile-info flex-grow-1">
+                <h2>@usuario</h2>
+
+                <div class="profile-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Miembro desde @fechaRegistro</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>@(string.IsNullOrEmpty((string)Model?.Ubicacion) ? "Ubicación no especificada" : Model.Ubicacion)</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-star"></i>
+                        <span>Activo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN INTERNA -->
+    <div class="d-flex gap-2 nav-pills">
+        <a href="/Home/Perfil" class="nav-link" type="button">
+            <i class="fas fa-heart me-2"></i>Mis Favoritos
+        </a>
+        <a href="/Home/MisResenas" class="nav-link" type="button">
+            <i class="fas fa-star me-2"></i>Mis Reseñas
+        </a>
+        <a href="/Home/AjustesCuenta" class="nav-link active" type="button">
+            <i class="fas fa-cog me-2"></i>Ajustes de Cuenta
+        </a>
+    </div>
+
+    <!-- CONTENIDO: AJUSTES DE CUENTA -->
+    <div class="section-title">
+        <span>Ajustes de Cuenta</span>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- CARD 1: INFORMACIÓN PERSONAL -->
+            <form asp-action="ActualizarPerfil" asp-controller="Home" method="post">
+                <div class="settings-card">
+                    <div class="settings-section-title">
+                        <i class="fas fa-user"></i>
+                        Información Personal
+                    </div>
+
+                    <div class="form-group-custom">
+                        <label for="fullName">Nombre Visible</label>
+                        <input type="text" id="fullName" name="FullName" placeholder="Ingresa tu nombre..." value="@fullName" required>
+                        <small>Este es el nombre que verán otros usuarios</small>
+                    </div>
+
+                    <div class="form-group-custom">
+                        <label for="email">Correo Electrónico</label>
+                        <input type="email" id="email" value="@email" disabled>
+                        <small>Tu email no puede ser modificado por razones de seguridad</small>
+                    </div>
+
+                    <div class="form-group-custom">
+                        <label for="ubicacion">Ubicación</label>
+                        <input type="text" id="ubicacion" name="Ubicacion" value="@Model?.Ubicacion" placeholder="Ej. Lima, Perú">
+                        <small>Tu ciudad o región</small>
+                    </div>
+
+                    <div class="form-group-custom">
+                        <label for="bio">Biografía</label>
+                        <textarea name="Bio" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; min-height: 80px;" id="bio" placeholder="Cuéntanos sobre ti...">@Model?.Bio</textarea>
+                        <small>Máximo 500 caracteres</small>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-save">Guardar Cambios</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- CARD 2: FOTO DE PERFIL -->
+            <div class="settings-card">
+                <div class="settings-section-title">
+                    <i class="fas fa-image"></i>
+                    Foto de Perfil
+                </div>
+
+                <div class="photo-upload">
+                    <div class="photo-preview">
+                        @if (!string.IsNullOrEmpty(foto))
+                        {
+                            <img src="@foto" alt="@usuario" referrerpolicy="no-referrer" />
+                        }
+                        else
+                        {
+                            <div class="photo-preview-avatar">@inicial</div>
+                        }
+                    </div>
+
+                    <div class="upload-btn-wrapper d-flex gap-2">
+                        <form asp-action="ActualizarFoto" asp-controller="Home" method="post" enctype="multipart/form-data" id="photoForm">
+                            <button type="button" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-upload me-2"></i>Cambiar Foto
+                            </button>
+                            <input type="file" id="fileInput" name="fotoPerfil" class="file-input" accept="image/*" onchange="document.getElementById('photoForm').submit()" style="display:none;">
+                        </form>
+                        <form asp-action="EliminarFoto" asp-controller="Home" method="post">
+                            <button type="submit" class="secondary" onclick="return confirm('¿Estás seguro de que deseas eliminar tu foto?');" style="background-color: #f8f9fa; border: 1px solid #ddd; color: #dc3545;">
+                                <i class="fas fa-trash me-2"></i>Eliminar Foto
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <p style="margin-top: 15px; color: #999; font-size: 12px;">
+                    <i class="fas fa-info-circle me-2"></i>Formatos soportados: JPG, PNG. Tamaño máximo: 5MB
+                </p>
+            </div>
+
+            <!-- CARD 3: SEGURIDAD -->
+            <form asp-action="CambiarPassword" asp-controller="Home" method="post">
+                <div class="settings-card">
+                    <div class="settings-section-title">
+                        <i class="fas fa-lock"></i>
+                        Seguridad
+                    </div>
+
+                    <div class="form-group-custom">
+                        <label for="currentPassword">Contraseña Actual</label>
+                        <input type="password" id="currentPassword" name="CurrentPassword" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="form-group-custom">
+                        <label for="newPassword">Nueva Contraseña</label>
+                        <input type="password" id="newPassword" name="NewPassword" placeholder="••••••••" required>
+                        <small>Mínimo 8 caracteres, incluye mayúsculas, minúsculas y números</small>
+                    </div>
+
+                    <div class="form-group-custom">
+                        <label for="confirmPassword">Confirmar Contraseña</label>
+                        <input type="password" id="confirmPassword" name="ConfirmPassword" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-save">Cambiar Contraseña</button>
+                        <button type="reset" class="btn-cancel">Cancelar</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- CARD 4: NOTIFICACIONES -->
+            <div class="settings-card">
+                <div class="settings-section-title">
+                    <i class="fas fa-bell"></i>
+                    Notificaciones
+                </div>
+
+                <div class="toggle-switch">
+                    <div class="toggle-label">
+                        <div class="title">Notificaciones por Email</div>
+                        <div class="description">Recibe actualizaciones sobre tus reseñas y favoritos</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-switch">
+                    <div class="toggle-label">
+                        <div class="title">Respuestas a tus Reseñas</div>
+                        <div class="description">Notificaciones cuando alguien responde a tus reseñas</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-switch">
+                    <div class="toggle-label">
+                        <div class="title">Nuevos Negocios en Favoritos</div>
+                        <div class="description">Alertas sobre actualizaciones de tus negocios favoritos</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-save">Guardar Preferencias</button>
+                </div>
+            </div>
+
+            <!-- CARD 6: ELIMINAR CUENTA -->
+            <div class="settings-card" style="border-left: 4px solid #dc3545;">
+                <div class="settings-section-title" style="color: #dc3545; border-bottom-color: #ffe0e0;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Zona de Peligro
+                </div>
+
+                <p style="color: #666; margin-bottom: 20px; font-size: 14px;">
+                    Las acciones en esta sección son irreversibles. Por favor, procede con cuidado.
+                </p>
+
+                <div class="button-group">
+                    <button class="btn-danger" onclick="alert('Funcionalidad de descarga en construcción')">
+                        <i class="fas fa-trash me-2"></i>Descargar mis Datos
+                    </button>
+                    <form asp-action="EliminarCuenta" asp-controller="Home" method="post" onsubmit="return confirm('¿Estás completamente seguro de que deseas eliminar tu cuenta? Esta acción borrará todas tus reseñas y negocios. No se puede deshacer.');">
+                        <button type="submit" class="btn-danger">
+                            <i class="fas fa-times me-2"></i>Eliminar Cuenta
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="col-lg-4 ps-lg-4">
+            <div class="settings-card">
+                <h5 style="font-weight: 800; margin-bottom: 15px; color: #1a1a1a;">
+                    <i class="fas fa-info-circle me-2" style="color: #ff6b00;"></i>Información de Cuenta
+                </h5>
+                <div style="font-size: 13px; color: #666;">
+                    <p style="margin-bottom: 10px;">
+                        <strong>Email:</strong><br>
+                        @email
+                    </p>
+                    <p style="margin-bottom: 10px;">
+                        <strong>Miembro desde:</strong><br>
+                        @fechaRegistro
+                    </p>
+                    <p>
+                        <strong>Último acceso:</strong><br>
+                        Recientemente
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

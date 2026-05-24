@@ -1,0 +1,251 @@
+/* Estilos para la página InfNegocio */
+
+/* Variables de color estandarizadas */
+:root {
+  --terracota: #c4552d; /* Color principal existente */
+  --gris-claro: #f4f4f4;
+  --gris-carbon: #333;
+  --blanco: #ffffff;
+}
+
+/* Header */
+.navbar-brand {
+  color: var(--gris-carbon) !important;
+}
+
+.btn-terracota {
+  background-color: var(--terracota);
+  color: var(--blanco);
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.btn-terracota:hover {
+  background-color: #a94424;
+  color: var(--blanco);
+}
+
+/* Hero Section */
+.hero-section {
+  height: 60vh;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.hero-section .container {
+  z-index: 2;
+}
+
+/* Sidebar de Contacto */
+.contact-sidebar {
+  position: sticky;
+  top: 20px;
+  border-radius: 12px;
+}
+
+.map-placeholder {
+  border-radius: 8px;
+}
+
+/* Service Boxes */
+.service-box {
+  border-left: 4px solid var(--terracota);
+  padding-left: 15px;
+  margin-bottom: 20px;
+}
+
+.service-box:nth-child(2) {
+  border-left-color: #007bff; /* Azul */
+}
+
+.service-box:nth-child(3) {
+  border-left-color: #fd7e14; /* Naranja */
+}
+
+/* Product Cards */
+.product-card {
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+}
+
+.price {
+  color: var(--terracota);
+  font-size: 1.2rem;
+}
+
+/* Testimonial Cards */
+.testimonial-card {
+  border-radius: 12px;
+}
+
+.avatar {
+  background-color: var(--terracota);
+}
+
+/* Text utilities */
+.text-terracota {
+  color: var(--terracota);
+}
+
+/* General shadows and radius */
+.card {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.btn {
+  border-radius: 8px;
+}
+
+/* InfNegocio popup and photo upload styles */
+.review-action-card {
+  border: 1px solid #e9ecef;
+  border-radius: 24px;
+  transition: box-shadow 0.2s ease;
+}
+.review-action-card:hover {
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+}
+.review-card {
+  border: 1px solid #e9ecef;
+  border-radius: 20px;
+}
+.star-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+.star-btn.active,
+.star-btn:hover {
+  background-color: #8b4513;
+  color: #fff;
+  border-color: #8b4513;
+}
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  z-index: 1050;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+.modal-overlay.show {
+  display: flex;
+}
+.modal-card {
+  width: 100%;
+  max-width: 760px;
+  background: #fff;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 40px 80px rgba(15, 23, 42, 0.16);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 1.75rem;
+  border-bottom: 1px solid #e9ecef;
+  background: #faf7f2;
+}
+.modal-body {
+  padding: 1.75rem;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.35);
+  border-radius: 999px;
+}
+.modal-close {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 1.2rem;
+}
+.modal-close:hover {
+  color: #111827;
+}
+.upload-dropzone {
+  border: 2px dashed #d6d3d1;
+  border-radius: 24px;
+  padding: 1.5rem;
+  text-align: center;
+  background: #f8fafc;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.upload-dropzone:hover,
+.upload-dropzone.active {
+  border-color: #8b4513;
+  background-color: #fffbf5;
+}
+.upload-dropzone i {
+  font-size: 1.75rem;
+  color: #8b4513;
+}
+.upload-dropzone p {
+  margin: 0.75rem 0 0;
+  color: #6b7280;
+}
+.review-photo-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 72px);
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  justify-content: start;
+}
+.review-photo-thumb {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  width: 72px;
+  height: 72px;
+  background: #f8fafc;
+}
+.review-photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.review-photo-thumb button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  border: none;
+  background: rgba(15, 23, 42, 0.7);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}

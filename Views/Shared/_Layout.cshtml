@@ -1,17 +1,43 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Pin___App_de_Promoci_n_de_negocios</title>
+    <title>@ViewData["Title"] - PinAppdePromo</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/infnegocio.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-3b7u0NkQfO9Jx7D0n+u4f9z3pY+8gO67nPZ+uO3l3wGzVtM+QKf5Lz0RtWJhgJy0P3e0Kq1tTMtaaY4rQoDdVg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="~/Pin___App_de_Promoci_n_de_negocios.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/PinAppdePromo.styles.css" asp-append-version="true" />
     @RenderSection("Styles", required: false)
 </head>
+
 <body>
+    <div class="modal fade" id="welcomeModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4 rounded-4">
+
+                <h4 class="mb-3">👋 Bienvenido</h4>
+
+                <p id="welcomeText" class="mb-4"></p>
+
+                <a href="/Home/Perfil" class="btn btn-orange mb-2">Ir al perfil</a>
+
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Cerrar
+                </button>
+
+            </div>
+        </div>
+    </div>
     <header>
+        @{
+        var usuario = Context.Session.GetString("Usuario");
+        var rol = Context.Session.GetString("Rol");
+    }
         <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm">
             <div class="container-fluid px-4">
 
@@ -31,26 +57,87 @@
                     <!-- CENTRO -->
                     <ul class="navbar-nav mx-auto fw-semibold">
                         <li class="nav-item">
-                            <a class="nav-link active-custom" asp-controller="Home" asp-action="Index">Inicio</a>
+                            <a class="nav-link" id="navInicio" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Explorar">Explorar</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Categorías</a>
+                            <a class="nav-link" id="navExplorar" asp-controller="Home" asp-action="Explorar">Explorar</a>
                         </li>
                     </ul>
 
                     <!-- DERECHA -->
                     <ul class="navbar-nav align-items-center">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark fw-semibold" href="#">Ingresar</a>
-                        </li>
-                        <li class="nav-item ms-2">
-                            <a class="btn btn-orange px-3" href="#">
-                                Registrar negocio
-                            </a>
-                        </li>
+
+                        @if (usuario == null)
+                        {
+                            <li class="nav-item">
+                                <a asp-controller="Login" asp-action="Index" class="btn btn-outline-dark">
+                                    Iniciar sesión
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            @if (usuario != null)
+                            {
+                                <li class="nav-item ms-2">
+                                    <a asp-controller="Home" asp-action="RegistrarNegocio" class="btn btn-orange">
+                                        Registrar negocio
+                                    </a>
+                                </li>
+                            }
+
+                            @if (rol == "MODERADOR")
+                            {
+                                <li class="nav-item ms-2">
+                                    <a asp-controller="Home" asp-action="Moderacion" class="btn" style="background-color: #a04028; color: white;">
+                                        Manager
+                                    </a>
+                                </li>
+                            }
+
+                            <li class="nav-item dropdown">
+
+                                <a class="nav-link p-0" href="#" role="button" data-bs-toggle="dropdown">
+                                    @if (!string.IsNullOrEmpty(Context.Session.GetString("Foto")))
+                                    {
+                                        <img src="@Context.Session.GetString("Foto")" class="avatar-img" referrerpolicy="no-referrer"  />
+                                    }
+                                    else
+                                    {
+                                        <div class="avatar-circle">
+                                            @usuario.Substring(0,1).ToUpper()
+                                        </div>
+                                    }
+                                    
+
+                                </a>
+
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Home" asp-action="Perfil">
+                                            👤 Perfil
+                                        </a>
+                                    </li>
+
+                                    <li><hr class="dropdown-divider"></li>
+
+                                    <li>
+                                        <a class="dropdown-item text-danger"
+                                        asp-controller="Login"
+                                        asp-action="Logout"
+                                        onclick="sessionStorage.removeItem('bienvenidaMostrada')">
+                                            🚪 Cerrar sesión
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </li>
+
+                        }
+
+                        
+
                     </ul>
 
                 </div>
@@ -75,9 +162,9 @@
                 <!-- DERECHA -->
                 <div class="col-md-6 text-md-end">
                     <div class="footer-links">
-                        <a href="#">Nosotros</a>
-                        <a href="#">Privacidad</a>
-                        <a href="#">Contacto</a>
+                        <a asp-controller="Home" asp-action="Nosotros">Nosotros</a>
+                        <a asp-controller="Home" asp-action="Privacidad">Privacidad</a>
+                        <a asp-controller="Home" asp-action="Contacto">Contacto</a>
                     </div>
                 </div>
 
@@ -89,5 +176,39 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            var usuario = '@Context.Session.GetString("Usuario")';
+
+            // bandera para evitar que salga siempre
+            if (usuario && sessionStorage.getItem("bienvenidaMostrada") !== "true") {
+
+                document.getElementById("welcomeText").innerText =
+                    "Hola, " + usuario;
+
+                var modal = new bootstrap.Modal(document.getElementById('welcomeModal'));
+                modal.show();
+
+                sessionStorage.setItem("bienvenidaMostrada", "true");
+            }
+
+            // Detectar página actual y aplicar clase active-custom
+            var currentPath = window.location.pathname.toLowerCase();
+            var navInicio = document.getElementById('navInicio');
+            var navExplorar = document.getElementById('navExplorar');
+
+            // Remover clase activa de ambos
+            if (navInicio) navInicio.classList.remove('active-custom');
+            if (navExplorar) navExplorar.classList.remove('active-custom');
+
+            // Aplicar clase activa según la ruta actual
+            if (currentPath.includes('/home/explorar') || currentPath.includes('/explorar')) {
+                if (navExplorar) navExplorar.classList.add('active-custom');
+            } else {
+                if (navInicio) navInicio.classList.add('active-custom');
+            }
+        });
+    </script>
 </body>
 </html>

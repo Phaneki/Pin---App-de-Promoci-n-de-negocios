@@ -1,0 +1,137 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Mi Perfil";
+    
+    int totalFavoritos = 0;
+    IEnumerable<dynamic> favoritos = null;
+    try { favoritos = Model?.Favorites; } catch {}
+    if (favoritos != null) { totalFavoritos = Enumerable.Count(favoritos); }
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/perfil.css" asp-append-version="true" />
+}
+
+<div class="container-fluid px-4 py-5">
+    <!-- PERFIL BANNER -->
+    <div class="profile-banner">
+        <button class="edit-btn-float" title="Editar perfil">
+            <i class="fas fa-pen"></i>
+        </button>
+
+        <div class="profile-header">
+            <!-- AVATAR -->
+            <div class="profile-avatar">
+                @{
+                    var foto = Context.Session.GetString("Foto");
+                    var usuario = Context.Session.GetString("Nombre");
+                    if (string.IsNullOrEmpty(usuario)) { usuario = Context.Session.GetString("Usuario") ?? "Usuario"; }
+                    var inicial = usuario.Substring(0, 1).ToUpper();
+                }
+
+                @if (!string.IsNullOrEmpty(foto))
+                {
+                    <img src="@foto" alt="@usuario" class="profile-img" referrerpolicy="no-referrer" />
+                }
+                else
+                {
+                    <div style="width: 120px; height: 120px; border-radius: 12px; background-color: #ff6b00; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: 800; border: 3px solid white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+                        @inicial
+                    </div>
+                }
+
+                <div class="verification-badge">
+                    <i class="fas fa-check"></i>
+                </div>
+            </div>
+
+            <!-- INFORMACIÓN DEL USUARIO -->
+            <div class="profile-info flex-grow-1">
+                <h2>@usuario</h2>
+
+                <div class="profile-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Miembro desde @(Model?.CreatedAt.ToString("yyyy") ?? "2026")</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Ubicación no especificada</span>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-star"></i>
+                        <span>Activo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN INTERNA -->
+    <div class="d-flex gap-2 nav-pills">
+        <a href="/Home/Perfil" class="nav-link active" type="button">
+            <i class="fas fa-heart me-2"></i>Mis Favoritos
+        </a>
+        <a href="/Home/MisResenas" class="nav-link" type="button">
+            <i class="fas fa-star me-2"></i>Mis Reseñas
+        </a>
+        <a href="/Home/AjustesCuenta" class="nav-link" type="button">
+            <i class="fas fa-cog me-2"></i>Ajustes de Cuenta
+        </a>
+    </div>
+
+    <div class="section-title">
+        <span>Negocios Guardados (@totalFavoritos)</span>
+        <button class="filter-btn">
+            <i class="fas fa-filter me-2"></i>Filtrar
+        </button>
+    </div>
+
+    <div class="row g-4">
+        @if (favoritos != null && totalFavoritos > 0)
+        {
+            foreach (var fav in favoritos)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="business-card">
+                        <div class="card-image-container">
+                            <img src="@(fav.Business?.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/500x300")" alt="Negocio" class="card-image">
+                            <span class="category-badge">@(fav.Business?.Category?.Name ?? "General")</span>
+                            <button class="favorite-heart active" onclick="this.classList.toggle('active')">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">@(fav.Business?.TradeName ?? "Negocio Eliminado")</h5>
+                            <div class="card-location mt-2">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>@(fav.Business?.Address ?? "Ubicación no disponible")</span>
+                            </div>
+                            <a href="/Home/InfNegocio/@fav.BusinessId" class="view-profile-link mt-auto">Ver perfil →</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="fas fa-heart-broken"></i>
+                    <p>Aún no tienes negocios guardados en tus favoritos.</p>
+                    <a href="/Home/Explorar" class="btn btn-outline-dark mt-3">Explorar negocios</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    // Agregar interactividad a los botones de favoritos
+    document.querySelectorAll('.favorite-heart').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            this.classList.toggle('active');
+        });
+    });
+</script>
