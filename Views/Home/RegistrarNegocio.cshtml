@@ -52,6 +52,14 @@
                             }
                         </select>
                     </div>
+                    <div class="mt-4">
+                        <label class="form-label fw-semibold">RUC</label>
+                        <input type="text" class="form-control" name="RUC" placeholder="Ej. 20512345678" maxlength="11">
+                    </div>
+                    <div class="mt-4">
+                        <label class="form-label fw-semibold">Teléfono de contacto</label>
+                        <input type="tel" class="form-control" name="ContactPhone" placeholder="Ej. 987654321">
+                    </div>
                 </div>
             </div>
 
@@ -75,7 +83,17 @@
             <div class="card mb-4">
                 <div class="card-body p-5">
                     <p class="section-label">Imágenes del Negocio</p>
-                    <div class="border border-dashed rounded-4 p-5 text-center" style="background: #f8fafc;">
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Opción 1: Ingresa el link de una imagen de internet</label>
+                        <input type="url" class="form-control" name="ImageUrlLink" placeholder="Ej. https://images.unsplash.com/photo-...">
+                        <small class="text-muted">Si ingresas un link, ayudarás a que la app sea mucho más rápida y liviana.</small>
+                    </div>
+                    
+                    <div class="text-center mb-3 text-muted fw-bold">Ó</div>
+                    
+                    <label class="form-label fw-semibold">Opción 2: Sube un archivo desde tu computadora</label>
+                    <div class="border border-dashed rounded-4 p-5 text-center mt-2" style="background: #f8fafc;">
                         <div class="mx-auto mb-3" style="width: 60px; height: 60px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                             📸
                         </div>
@@ -213,13 +231,19 @@
         document.getElementById('addressInput').addEventListener('change', searchAddress);
     }
 
-    // Actualizar dirección desde coordenadas (usando servicio de Nominatim)
+    // Actualizar dirección desde coordenadas (usando API backend)
     function updateAddressFromCoordinates(lat, lng) {
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+        fetch('/api/geocoding/obtener-direccion', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ latitude: lat, longitude: lng })
+        })
             .then(response => response.json())
             .then(data => {
-                if (data.address) {
-                    document.getElementById('addressInput').value = data.display_name;
+                if (data.displayName) {
+                    document.getElementById('addressInput').value = data.displayName;
                 }
             })
             .catch(error => console.log('Error al obtener la dirección:', error));
@@ -231,23 +255,28 @@
         
         if (!address) return;
 
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
-            .then(response => response.json())
+        fetch('/api/geocoding/buscar-direccion', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ address: address })
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Dirección no encontrada');
+                return response.json();
+            })
             .then(data => {
-                if (data && data.length > 0) {
-                    const result = data[0];
-                    const latLng = [parseFloat(result.lat), parseFloat(result.lon)];
-                    marker.setLatLng(latLng);
-                    document.getElementById('latitude').value = result.lat;
-                    document.getElementById('longitude').value = result.lon;
-                    map.setView(latLng, 13);
-                } else {
-                    alert('No se encontró la dirección. Intenta con otra.');
-                }
+                const latLng = [parseFloat(data.latitude), parseFloat(data.longitude)];
+                marker.setLatLng(latLng);
+                document.getElementById('latitude').value = data.latitude;
+                document.getElementById('longitude').value = data.longitude;
+                document.getElementById('addressInput').value = data.displayName;
+                map.setView(latLng, 13);
             })
             .catch(error => {
                 console.log('Error:', error);
-                alert('Error al buscar la dirección.');
+                alert('No se encontró la dirección. Intenta con otra.');
             });
     }
 
