@@ -231,13 +231,19 @@
         document.getElementById('addressInput').addEventListener('change', searchAddress);
     }
 
-    // Actualizar dirección desde coordenadas (usando servicio de Nominatim)
+    // Actualizar dirección desde coordenadas (usando API backend)
     function updateAddressFromCoordinates(lat, lng) {
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+        fetch('/api/geocoding/obtener-direccion', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ latitude: lat, longitude: lng })
+        })
             .then(response => response.json())
             .then(data => {
-                if (data.address) {
-                    document.getElementById('addressInput').value = data.display_name;
+                if (data.displayName) {
+                    document.getElementById('addressInput').value = data.displayName;
                 }
             })
             .catch(error => console.log('Error al obtener la dirección:', error));
@@ -249,23 +255,28 @@
         
         if (!address) return;
 
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
-            .then(response => response.json())
+        fetch('/api/geocoding/buscar-direccion', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ address: address })
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Dirección no encontrada');
+                return response.json();
+            })
             .then(data => {
-                if (data && data.length > 0) {
-                    const result = data[0];
-                    const latLng = [parseFloat(result.lat), parseFloat(result.lon)];
-                    marker.setLatLng(latLng);
-                    document.getElementById('latitude').value = result.lat;
-                    document.getElementById('longitude').value = result.lon;
-                    map.setView(latLng, 13);
-                } else {
-                    alert('No se encontró la dirección. Intenta con otra.');
-                }
+                const latLng = [parseFloat(data.latitude), parseFloat(data.longitude)];
+                marker.setLatLng(latLng);
+                document.getElementById('latitude').value = data.latitude;
+                document.getElementById('longitude').value = data.longitude;
+                document.getElementById('addressInput').value = data.displayName;
+                map.setView(latLng, 13);
             })
             .catch(error => {
                 console.log('Error:', error);
-                alert('Error al buscar la dirección.');
+                alert('No se encontró la dirección. Intenta con otra.');
             });
     }
 
