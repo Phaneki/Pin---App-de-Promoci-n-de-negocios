@@ -71,6 +71,9 @@ builder.Services.AddHttpClient<NominatimService>()
     });
 builder.Services.AddScoped<NominatimService>();
 
+// 5. Registrar BusinessHoursService
+builder.Services.AddScoped<IBusinessHoursService, BusinessHoursService>();
+
 var app = builder.Build();
 
 // Ejecutar migraciones automáticamente
