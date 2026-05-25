@@ -43,7 +43,13 @@
                     <a href="/Home/InfNegocio/@negocio.BusinessId" class="text-decoration-none text-dark">
                     <div class="business-card">
 
-                        <img src="@(negocio.Images?.FirstOrDefault()?.ImageUrl ?? "/images/picanteria.jpg")" class="business-img" alt="@negocio.TradeName">
+                        @{
+                            var imgUrl = negocio.Images?.FirstOrDefault()?.ImageUrl;
+                            var displayImg = string.IsNullOrEmpty(imgUrl) 
+                                ? "/images/logo.png" 
+                                : (!imgUrl.StartsWith("http") && !imgUrl.StartsWith("/") ? "/images/businesses/" + imgUrl : imgUrl);
+                        }
+                        <img src="@displayImg" class="business-img" alt="@negocio.TradeName" onerror="this.onerror=null; this.src='/images/logo.png';" />
 
                         <div class="p-3">
 

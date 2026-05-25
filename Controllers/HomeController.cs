@@ -34,8 +34,25 @@ namespace PinAppdePromo.Controllers
             return View(negocios);
         }
 
-        public async Task<IActionResult> Explorar(string busqueda, string distrito, List<int> categorias, string orden)
+        [HttpGet]
+        public IActionResult DebugImages()
         {
+            var data = _pinContext.Businesses
+                .Include(b => b.Images)
+                .Select(b => new { 
+                    b.BusinessId, 
+                    b.TradeName, 
+                    ImageCount = b.Images.Count, 
+                    Images = b.Images.Select(i => i.ImageUrl).ToList() 
+                })
+                .ToList();
+            return Json(data);
+        }
+
+        public async Task<IActionResult> Explorar(string busqueda, string distrito, List<int> categorias, string orden, int page = 1)
+        {
+            const int pageSize = 10;
+            
             var query = _pinContext.Businesses
                 .Include(b => b.Category)
                 .Include(b => b.Images)
@@ -57,11 +74,23 @@ namespace PinAppdePromo.Controllers
                 _ => query.OrderByDescending(b => b.Status == "Promoted" ? 1 : 0)
             };
 
-            var negocios = await query.ToListAsync();
+            // Obtener total antes de paginar
+            int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // Validar página
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            // Aplicar paginación
+            int skip = (page - 1) * pageSize;
+            var negocios = await query.Skip(skip).Take(pageSize).ToListAsync();
+
             ViewBag.Categorias = await _pinContext.Categories.ToListAsync();
             ViewBag.CategoriasSeleccionadas = categorias ?? new List<int>();
             ViewBag.OrdenActual = orden;
             ViewBag.DistritoActual = distrito;
+            ViewBag.BusquedaActual = busqueda;
 
             var todosNegocios = await _pinContext.Businesses
                 .Where(b => b.Status == "Approved" || b.Status == "Promoted")
@@ -73,6 +102,12 @@ namespace PinAppdePromo.Controllers
                 .Distinct()
                 .OrderBy(d => d)
                 .ToList();
+
+            // Paginación
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
 
             return View(negocios);
         }
@@ -124,8 +159,16 @@ namespace PinAppdePromo.Controllers
                 }
                 if (Imagenes != null && Imagenes.Count > 0)
                 {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "businesses");
+                    if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
                     foreach (var img in Imagenes)
-                        _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = $"/images/temp_{Guid.NewGuid()}_{img.FileName}" });
+                    {
+                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(img.FileName);
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                        using (var fileStream = new FileStream(filePath, FileMode.Create)) { await img.CopyToAsync(fileStream); }
+                        _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = $"/images/businesses/{uniqueFileName}" });
+                    }
                     await _pinContext.SaveChangesAsync();
                 }
                 return RedirectToAction("Index");
@@ -496,6 +539,7 @@ namespace PinAppdePromo.Controllers
 
         public async Task<IActionResult> GenerarDatosDePrueba()
         {
+// ... existing code ...
             if (!await _context.Usuarios.AnyAsync(u => u.Correo == "lucia@gmail.com"))
             {
                 _context.Usuarios.AddRange(
@@ -521,18 +565,40 @@ namespace PinAppdePromo.Controllers
             var catRestaurantes = await _pinContext.Categories.FirstOrDefaultAsync(c => c.Name == "Restaurantes");
             var catTecnologia = await _pinContext.Categories.FirstOrDefaultAsync(c => c.Name == "Tecnología");
             var catServicios = await _pinContext.Categories.FirstOrDefaultAsync(c => c.Name == "Servicios Automotrices");
-            if (!await _pinContext.Businesses.AnyAsync(b => b.TradeName == "Cevichería Punto Azul"))
+            
+            var b1 = await _pinContext.Businesses.FirstOrDefaultAsync(b => b.TradeName == "Cevichería Punto Azul");
+            var b2 = await _pinContext.Businesses.FirstOrDefaultAsync(b => b.TradeName == "TechCenter Lima");
+            var b3 = await _pinContext.Businesses.FirstOrDefaultAsync(b => b.TradeName == "Taller FastFix");
+
+            if (b1 == null)
             {
-                var b1 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catRestaurantes!.CategoryId, TradeName = "Cevichería Punto Azul", Description = "Los mejores pescados y mariscos frescos del día.", Address = "Calle San Martín 595, Miraflores", Latitude = (decimal)-12.1245, Longitude = (decimal)-77.0250, ContactPhone = "987654321", Status = "Promoted", CreatedAt = DateTime.UtcNow };
-                var b2 = new Business { OwnerId = pinUserCarlos!.UserId, CategoryId = catTecnologia!.CategoryId, TradeName = "TechCenter Lima", Description = "Venta de laptops y accesorios gamer.", Address = "Av. Arenales 1234, San Isidro", Latitude = (decimal)-12.0833, Longitude = (decimal)-77.0355, ContactPhone = "999888777", Status = "Approved", CreatedAt = DateTime.UtcNow };
-                var b3 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catServicios!.CategoryId, TradeName = "Taller FastFix", Description = "Mantenimiento y pintura automotriz.", Address = "Av. Santiago de Surco 456, Surco", Latitude = (decimal)-12.1388, Longitude = (decimal)-76.9989, ContactPhone = "912345678", Status = "Approved", CreatedAt = DateTime.UtcNow };
+                b1 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catRestaurantes!.CategoryId, TradeName = "Cevichería Punto Azul", Description = "Los mejores pescados y mariscos frescos del día.", Address = "Calle San Martín 595, Miraflores", Latitude = (decimal)-12.1245, Longitude = (decimal)-77.0250, ContactPhone = "987654321", Status = "Promoted", CreatedAt = DateTime.UtcNow };
+                b2 = new Business { OwnerId = pinUserCarlos!.UserId, CategoryId = catTecnologia!.CategoryId, TradeName = "TechCenter Lima", Description = "Venta de laptops y accesorios gamer.", Address = "Av. Arenales 1234, San Isidro", Latitude = (decimal)-12.0833, Longitude = (decimal)-77.0355, ContactPhone = "999888777", Status = "Approved", CreatedAt = DateTime.UtcNow };
+                b3 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catServicios!.CategoryId, TradeName = "Taller FastFix", Description = "Mantenimiento y pintura automotriz.", Address = "Av. Santiago de Surco 456, Surco", Latitude = (decimal)-12.1388, Longitude = (decimal)-76.9989, ContactPhone = "912345678", Status = "Approved", CreatedAt = DateTime.UtcNow };
                 _pinContext.Businesses.AddRange(b1, b2, b3);
                 await _pinContext.SaveChangesAsync();
-                _pinContext.BusinessImages.AddRange(new BusinessImage { BusinessId = b1.BusinessId, ImageUrl = "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=800&q=80" }, new BusinessImage { BusinessId = b2.BusinessId, ImageUrl = "https://images.unsplash.com/photo-1531297172869-c7d6b8b82922?w=800&q=80" }, new BusinessImage { BusinessId = b3.BusinessId, ImageUrl = "https://images.unsplash.com/photo-1613214149922-f1809c99b414?w=800&q=80" });
-                _pinContext.Reviews.AddRange(new Review { BusinessId = b1.BusinessId, UserId = pinUserCarlos.UserId, Rating = 5, Comment = "¡Excelente!", CreatedAt = DateTime.UtcNow.AddDays(-2) }, new Review { BusinessId = b1.BusinessId, UserId = pinUserLucia.UserId, Rating = 4, Comment = "Muy bueno", CreatedAt = DateTime.UtcNow.AddDays(-1) }, new Review { BusinessId = b2.BusinessId, UserId = pinUserLucia.UserId, Rating = 5, Comment = "Buen servicio", CreatedAt = DateTime.UtcNow });
-                await _pinContext.SaveChangesAsync();
             }
-            return Content("¡ÉXITO! Base de datos poblada.");
+
+            // Asegurar que tengan imágenes
+            if (!await _pinContext.BusinessImages.AnyAsync(i => i.BusinessId == b1.BusinessId))
+                _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = b1.BusinessId, ImageUrl = "default-cevicheria.jpg" });
+            if (!await _pinContext.BusinessImages.AnyAsync(i => i.BusinessId == b2.BusinessId))
+                _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = b2.BusinessId, ImageUrl = "default-tech.jpg" });
+            if (!await _pinContext.BusinessImages.AnyAsync(i => i.BusinessId == b3.BusinessId))
+                _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = b3.BusinessId, ImageUrl = "default-taller.jpg" });
+            
+            // Asegurar que tengan reseñas
+            if (!await _pinContext.Reviews.AnyAsync(r => r.BusinessId == b1.BusinessId))
+            {
+                _pinContext.Reviews.AddRange(new Review { BusinessId = b1.BusinessId, UserId = pinUserCarlos!.UserId, Rating = 5, Comment = "¡Excelente!", CreatedAt = DateTime.UtcNow.AddDays(-2) }, new Review { BusinessId = b1.BusinessId, UserId = pinUserLucia!.UserId, Rating = 4, Comment = "Muy bueno", CreatedAt = DateTime.UtcNow.AddDays(-1) });
+            }
+            if (!await _pinContext.Reviews.AnyAsync(r => r.BusinessId == b2.BusinessId))
+            {
+                _pinContext.Reviews.Add(new Review { BusinessId = b2.BusinessId, UserId = pinUserLucia!.UserId, Rating = 5, Comment = "Buen servicio", CreatedAt = DateTime.UtcNow });
+            }
+
+            await _pinContext.SaveChangesAsync();
+            return Content("¡ÉXITO! Base de datos poblada con imágenes y reseñas aseguradas.");
         }
     }
 }

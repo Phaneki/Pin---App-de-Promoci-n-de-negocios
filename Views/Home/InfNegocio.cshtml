@@ -2,7 +2,10 @@
 
 @{
     ViewData["Title"] = Model.TradeName;
-    var coverImage = Model.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/1920x1080/333/fff?text=Showroom";
+    var rawCover = Model.Images?.FirstOrDefault()?.ImageUrl;
+    var coverImage = string.IsNullOrEmpty(rawCover)
+        ? "/images/logo.png" 
+        : (!rawCover.StartsWith("http") && !rawCover.StartsWith("/") ? "/images/businesses/" + rawCover : rawCover);
 
     // Uso de dynamic para prevenir errores si aún no agregas 'Services' o 'Products' a tu modelo Business
     dynamic dynModel = Model;
@@ -101,7 +104,45 @@
                 </div>
             </section>
 
-            <!-- Productos Destacados -->
+            <!-- Galería de Fotos -->
+            @if (Model.Images?.Any() == true)
+            {
+                <section class="mb-5">
+                    <h2 class="mb-3">
+                        <i class="bi bi-images"></i> Galería
+                    </h2>
+                    <div id="businessGalleryCarousel" class="carousel slide shadow-lg" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-3">
+                            @for (int i = 0; i < Model.Images.Count; i++)
+                            {
+                                <div class="carousel-item @(i == 0 ? "active" : "")">
+                                    <img src="@Model.Images.ElementAt(i).ImageUrl" class="d-block w-100" alt="@Model.TradeName" style="height: 400px; object-fit: cover;">
+                                </div>
+                            }
+                        </div>
+
+                        @if (Model.Images.Count > 1)
+                        {
+                            <button class="carousel-control-prev" type="button" data-bs-target="#businessGalleryCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Anterior</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#businessGalleryCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Siguiente</span>
+                            </button>
+
+                            <!-- Indicadores -->
+                            <div class="carousel-indicators">
+                                @for (int i = 0; i < Model.Images.Count; i++)
+                                {
+                                    <button type="button" data-bs-target="#businessGalleryCarousel" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-label="Foto @(i + 1)"></button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
             <section class="mb-5">
                 <h2 class="mb-3">Productos Destacados</h2>
                 <div class="row">

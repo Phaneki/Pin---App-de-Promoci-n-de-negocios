@@ -279,11 +279,15 @@ namespace PinAppdePromo.Services
         /// </summary>
         private string GetBusinessImageUrl(Dictionary<string, string> tags, string name)
         {
-            var amenity = GetTagValue(tags, "amenity", "shop", "leisure", "tourism");
-            var query = string.IsNullOrEmpty(amenity) ? "business" : amenity;
+            // 1. Intentar obtener una foto REAL si OpenStreetMap la tiene registrada
+            var realImage = GetTagValue(tags, "image");
+            if (!string.IsNullOrEmpty(realImage) && realImage.StartsWith("http"))
+            {
+                return realImage;
+            }
 
-            // Usamos imágenes de Unsplash Source (gratuito)
-            return $"https://source.unsplash.com/800x600/?{query},{Uri.EscapeDataString(name)}";
+            // 2. Si no tiene foto real, asignamos una imagen por defecto de tu app en lugar de usar fotos ficticias
+            return "/images/default-business.png";
         }
 
         /// <summary>
