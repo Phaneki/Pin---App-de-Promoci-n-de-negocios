@@ -579,13 +579,7 @@ namespace PinAppdePromo.Controllers
                 await _pinContext.SaveChangesAsync();
             }
 
-            // Asegurar que tengan imágenes
-            if (!await _pinContext.BusinessImages.AnyAsync(i => i.BusinessId == b1.BusinessId))
-                _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = b1.BusinessId, ImageUrl = "default-cevicheria.jpg" });
-            if (!await _pinContext.BusinessImages.AnyAsync(i => i.BusinessId == b2.BusinessId))
-                _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = b2.BusinessId, ImageUrl = "default-tech.jpg" });
-            if (!await _pinContext.BusinessImages.AnyAsync(i => i.BusinessId == b3.BusinessId))
-                _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = b3.BusinessId, ImageUrl = "default-taller.jpg" });
+            // NO agregar imágenes ficticias - los dueños subirán sus propias imágenes reales
             
             // Asegurar que tengan reseñas
             if (!await _pinContext.Reviews.AnyAsync(r => r.BusinessId == b1.BusinessId))

@@ -4,7 +4,7 @@
     ViewData["Title"] = Model.TradeName;
     var rawCover = Model.Images?.FirstOrDefault()?.ImageUrl;
     var coverImage = string.IsNullOrEmpty(rawCover)
-        ? "/images/logo.png" 
+        ? "linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)" 
         : (!rawCover.StartsWith("http") && !rawCover.StartsWith("/") ? "/images/businesses/" + rawCover : rawCover);
 
     // Uso de dynamic para prevenir errores si aún no agregas 'Services' o 'Products' a tu modelo Business

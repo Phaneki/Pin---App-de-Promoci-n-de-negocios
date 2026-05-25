@@ -45,11 +45,23 @@
 
                         @{
                             var imgUrl = negocio.Images?.FirstOrDefault()?.ImageUrl;
-                            var displayImg = string.IsNullOrEmpty(imgUrl) 
-                                ? "/images/logo.png" 
-                                : (!imgUrl.StartsWith("http") && !imgUrl.StartsWith("/") ? "/images/businesses/" + imgUrl : imgUrl);
+                            var displayImg = !string.IsNullOrEmpty(imgUrl) && (imgUrl.StartsWith("http") || imgUrl.StartsWith("/"))
+                                ? imgUrl
+                                : (!string.IsNullOrEmpty(imgUrl) ? "/images/businesses/" + imgUrl : null);
                         }
-                        <img src="@displayImg" class="business-img" alt="@negocio.TradeName" onerror="this.onerror=null; this.src='/images/logo.png';" />
+                        @if (!string.IsNullOrEmpty(displayImg))
+                        {
+                            <img src="@displayImg" class="business-img" alt="@negocio.TradeName" />
+                        }
+                        else
+                        {
+                            <div style="height: 200px; width: 100%; background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%); display: flex; align-items: center; justify-content: center;">
+                                <div class="text-center">
+                                    <i class="bi bi-image" style="font-size: 48px; color: #ccc; display: block; margin-bottom: 8px;"></i>
+                                    <small style="color: #999;">Sin imagen</small>
+                                </div>
+                            </div>
+                        }
 
                         <div class="p-3">
 

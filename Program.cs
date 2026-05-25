@@ -141,31 +141,26 @@ using (var scope = app.Services.CreateScope())
 
     if (b1 != null && !pinContext.BusinessImages.Any(i => i.BusinessId == b1.BusinessId))
     {
-        pinContext.BusinessImages.Add(new BusinessImage { BusinessId = b1.BusinessId, ImageUrl = "default-cevicheria.jpg" });
-        pinContext.SaveChanges();
+        // NO agregar imágenes ficticias - los dueños subirán sus propias imágenes
     }
     if (b2 != null && !pinContext.BusinessImages.Any(i => i.BusinessId == b2.BusinessId))
     {
-        pinContext.BusinessImages.Add(new BusinessImage { BusinessId = b2.BusinessId, ImageUrl = "default-tech.jpg" });
-        pinContext.SaveChanges();
+        // NO agregar imágenes ficticias - los dueños subirán sus propias imágenes
     }
     if (b3 != null && !pinContext.BusinessImages.Any(i => i.BusinessId == b3.BusinessId))
     {
-        pinContext.BusinessImages.Add(new BusinessImage { BusinessId = b3.BusinessId, ImageUrl = "default-taller.jpg" });
-        pinContext.SaveChanges();
+        // NO agregar imágenes ficticias - los dueños subirán sus propias imágenes
     }
 
-    // UPDATE ALL DEAD UNSPLASH AND PLACEHOLD.CO URLS - REMOVE PICSUM REFERENCES TOO
+    // UPDATE ALL DEAD UNSPLASH AND PLACEHOLD.CO URLS - DELETE INSTEAD
     var deadImages = pinContext.BusinessImages.Where(i => 
         i.ImageUrl.Contains("unsplash.com") || 
         i.ImageUrl.Contains("placehold.co") ||
-        i.ImageUrl.Contains("picsum.photos")).ToList();
+        i.ImageUrl.Contains("picsum.photos") ||
+        i.ImageUrl.Contains("default-")).ToList();
     if (deadImages.Any())
     {
-        foreach (var img in deadImages)
-        {
-            img.ImageUrl = "/images/logo.png";
-        }
+        pinContext.BusinessImages.RemoveRange(deadImages);
         pinContext.SaveChanges();
     }
 }
