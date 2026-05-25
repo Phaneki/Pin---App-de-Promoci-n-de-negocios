@@ -54,10 +54,9 @@
                     <div class="mb-2">
                         <i class="bi bi-telephone me-2"></i>@(string.IsNullOrEmpty(Model.ContactPhone) ? "Sin teléfono" : Model.ContactPhone)
                     </div>
-                    <div class="mb-3">
-                        <i class="bi bi-clock me-2"></i>Consultar horarios
-                    </div>
-                    <div id="businessMap" class="bg-light border rounded" style="height: 180px; z-index: 1;"></div>
+                    <!-- Horarios dinámicos cargados con JavaScript -->
+                    <div id="businessHoursContainer" class="mt-3"></div>
+                    <div id="businessMap" class="bg-light border rounded mt-3" style="height: 180px; z-index: 1;"></div>
                 </div>
             </div>
         </aside>
@@ -87,6 +86,18 @@
                             <p class="text-muted fst-italic px-3">Los servicios se cargarán dinámicamente desde la base de datos.</p>
                         </div>
                     }
+                </div>
+            </section>
+
+            <!-- Horarios de Atención -->
+            <section class="mb-5">
+                <div id="scheduleContainer">
+                    <div class="text-center">
+                        <div class="spinner-border spinner-border-sm text-muted" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="text-muted mt-2">Cargando horarios...</p>
+                    </div>
                 </div>
             </section>
 
@@ -557,6 +568,118 @@
             } else {
                 mapContainer.innerHTML = '<div class="h-100 d-flex align-items-center justify-content-center text-muted small"><i class="bi bi-geo-alt-fill me-2"></i>Ubicación en mapa no disponible</div>';
             }
+
+            // Cargar horarios dinámicos
+            loadBusinessHours(@Model.BusinessId);
         });
+
+        function loadBusinessHours(businessId) {
+            fetch(`/api/businesshours/status/${businessId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('businessHoursContainer');
+                    if (!container) return;
+
+                    let badgeHtml = '';
+                    if (data.isOpen) {
+                        const warningClass = data.minutesUntilClose <= 30 ? 'alert-warning' : 'alert-success';
+                        const warningText = data.minutesUntilClose <= 30 ? 
+                            `<br><small class="text-warning"><i class="bi bi-exclamation-triangle"></i> ⚠️ Cierra en ${data.minutesUntilClose} minutos</small>` : 
+                            '';
+                        
+                        badgeHtml = `
+                            <div class="alert ${warningClass} d-flex align-items-center" role="alert">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <div>
+                                    <strong>Abierto ahora</strong>
+                                    <br>
+                                    <small class="text-muted">Cierra a las ${data.closeTime}</small>
+                                    ${warningText}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        const opensAtText = data.opensAt ? 
+                            new Date(data.opensAt).toLocaleString('es-ES', { weekday: 'long', hour: '2-digit', minute: '2-digit' }) :
+                            'Horario no disponible';
+                        
+                        badgeHtml = `
+                            <div class="alert alert-danger d-flex align-items-center" role="alert">
+                                <i class="bi bi-x-circle-fill me-2"></i>
+                                <div>
+                                    <strong>Cerrado ahora</strong>
+                                    <br>
+                                    <small class="text-muted">Abre ${opensAtText}</small>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    container.innerHTML = badgeHtml;
+                })
+                .catch(error => console.error('Error loading business hours:', error));
+
+            // Cargar tabla de horarios semanales
+            fetch(`/api/businesshours/week/${businessId}`)
+                .then(response => response.json())
+                .then(schedules => {
+                    const scheduleContainer = document.getElementById('scheduleContainer');
+                    if (!scheduleContainer || schedules.length === 0) return;
+
+                    const dayNames = {
+                        'Monday': 'Lunes',
+                        'Tuesday': 'Martes',
+                        'Wednesday': 'Miércoles',
+                        'Thursday': 'Jueves',
+                        'Friday': 'Viernes',
+                        'Saturday': 'Sábados',
+                        'Sunday': 'Domingos'
+                    };
+
+                    const dayOrder = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 7 };
+                    schedules.sort((a, b) => (dayOrder[a.dayOfWeek] || 8) - (dayOrder[b.dayOfWeek] || 8));
+
+                    let html = `
+                        <h3 class="mb-3"><i class="bi bi-clock"></i> Horarios de Atención</h3>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Día</th>
+                                        <th>Apertura</th>
+                                        <th>Cierre</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    schedules.forEach(schedule => {
+                        const openTime = schedule.openTime.substring(0, 5); // HH:mm
+                        const closeTime = schedule.closeTime.substring(0, 5);
+                        const dayName = dayNames[schedule.dayOfWeek] || schedule.dayOfWeek;
+                        html += `
+                            <tr>
+                                <td class="fw-semibold">${dayName}</td>
+                                <td>${openTime}</td>
+                                <td>${closeTime}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+
+                    scheduleContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading schedules:', error);
+                    const scheduleContainer = document.getElementById('scheduleContainer');
+                    if (scheduleContainer) {
+                        scheduleContainer.innerHTML = '<div class="alert alert-info"><i class="bi bi-info-circle"></i> No hay horarios registrados</div>';
+                    }
+                });
+        }
     </script>
 }
