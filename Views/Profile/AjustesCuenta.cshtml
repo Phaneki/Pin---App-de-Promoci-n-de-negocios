@@ -67,13 +67,13 @@
 
     <!-- NAVEGACIÓN INTERNA -->
     <div class="d-flex gap-2 nav-pills">
-        <a href="/Home/Perfil" class="nav-link" type="button">
+        <a href="/Profile/Index" class="nav-link" type="button">
             <i class="fas fa-heart me-2"></i>Mis Favoritos
         </a>
-        <a href="/Home/MisResenas" class="nav-link" type="button">
+        <a href="/Profile/MisResenas" class="nav-link" type="button">
             <i class="fas fa-star me-2"></i>Mis Reseñas
         </a>
-        <a href="/Home/AjustesCuenta" class="nav-link active" type="button">
+        <a href="/Profile/AjustesCuenta" class="nav-link active" type="button">
             <i class="fas fa-cog me-2"></i>Ajustes de Cuenta
         </a>
     </div>
@@ -86,7 +86,7 @@
     <div class="row">
         <div class="col-lg-8">
             <!-- CARD 1: INFORMACIÓN PERSONAL -->
-            <form asp-action="ActualizarPerfil" asp-controller="Home" method="post">
+            <form asp-action="ActualizarPerfil" asp-controller="Profile" method="post">
                 <div class="settings-card">
                     <div class="settings-section-title">
                         <i class="fas fa-user"></i>
@@ -143,13 +143,13 @@
                     </div>
 
                     <div class="upload-btn-wrapper d-flex gap-2">
-                        <form asp-action="ActualizarFoto" asp-controller="Home" method="post" enctype="multipart/form-data" id="photoForm">
+                        <form asp-action="ActualizarFoto" asp-controller="Profile" method="post" enctype="multipart/form-data" id="photoForm">
                             <button type="button" onclick="document.getElementById('fileInput').click()">
                                 <i class="fas fa-upload me-2"></i>Cambiar Foto
                             </button>
                             <input type="file" id="fileInput" name="fotoPerfil" class="file-input" accept="image/*" onchange="document.getElementById('photoForm').submit()" style="display:none;">
                         </form>
-                        <form asp-action="EliminarFoto" asp-controller="Home" method="post">
+                        <form asp-action="EliminarFoto" asp-controller="Profile" method="post">
                             <button type="submit" class="secondary" onclick="return confirm('¿Estás seguro de que deseas eliminar tu foto?');" style="background-color: #f8f9fa; border: 1px solid #ddd; color: #dc3545;">
                                 <i class="fas fa-trash me-2"></i>Eliminar Foto
                             </button>
@@ -163,7 +163,7 @@
             </div>
 
             <!-- CARD 3: SEGURIDAD -->
-            <form asp-action="CambiarPassword" asp-controller="Home" method="post">
+            <form asp-action="CambiarPassword" asp-controller="Profile" method="post">
                 <div class="settings-card">
                     <div class="settings-section-title">
                         <i class="fas fa-lock"></i>
@@ -253,7 +253,7 @@
                     <button class="btn-danger" onclick="alert('Funcionalidad de descarga en construcción')">
                         <i class="fas fa-trash me-2"></i>Descargar mis Datos
                     </button>
-                    <form asp-action="EliminarCuenta" asp-controller="Home" method="post" onsubmit="return confirm('¿Estás completamente seguro de que deseas eliminar tu cuenta? Esta acción borrará todas tus reseñas y negocios. No se puede deshacer.');">
+                    <form asp-action="EliminarCuenta" asp-controller="Profile" method="post" onsubmit="return confirm('¿Estás completamente seguro de que deseas eliminar tu cuenta? Esta acción borrará todas tus reseñas y negocios. No se puede deshacer.');">
                         <button type="submit" class="btn-danger">
                             <i class="fas fa-times me-2"></i>Eliminar Cuenta
                         </button>
@@ -286,3 +286,4 @@
         </div>
     </div>
 </div>
+

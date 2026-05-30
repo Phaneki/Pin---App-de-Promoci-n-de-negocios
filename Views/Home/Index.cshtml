@@ -1,5 +1,5 @@
-ÔªøÔªø@{
-    ViewData["Title"] = "PIN - App de Promoci√≥n de negocios";
+?@{
+    ViewData["Title"] = "PIN - App de PromociÛn de negocios";
 }
 @model List<PinAppdePromo.Models.Business>
 
@@ -14,14 +14,14 @@
         </h1>
 
         <p class="hero-subtitle">
-            Conectamos el coraz√≥n de los negocios peruanos con la comunidad.
-            Encuentra desde la mejor gastronom√≠a hasta servicios especializados cerca de ti.
+            Conectamos el corazÛn de los negocios peruanos con la comunidad.
+            Encuentra desde la mejor gastronomÌa hasta servicios especializados cerca de ti.
         </p>
 
         <form action="/Home/Explorar" method="get" class="search-box mx-auto mt-5 d-flex">
-            <input type="text" name="busqueda" placeholder="¬øQu√© est√°s buscando?" class="input-search">
+            <input type="text" name="busqueda" placeholder="øQuÈ est·s buscando?" class="input-search">
             <input type="text" name="distrito" placeholder="Distrito" class="input-location">
-            <button type="submit" class="btn-search">Buscar ‚Üí</button>
+            <button type="submit" class="btn-search">Buscar ?</button>
         </form>
 
     </div>
@@ -40,7 +40,7 @@
             @foreach (var negocio in Model)
             {
                 <div class="col-md-3">
-                    <a href="/Home/InfNegocio/@negocio.BusinessId" class="text-decoration-none text-dark">
+                    <a href="/Business/InfNegocio/@negocio.BusinessId" class="text-decoration-none text-dark">
                     <div class="business-card">
 
                         <img src="@(negocio.Images?.FirstOrDefault()?.ImageUrl ?? "/images/picanteria.jpg")" class="business-img" alt="@negocio.TradeName">
@@ -81,26 +81,26 @@
             <!-- TEXTO -->
             <div class="col-md-6 text-white">
                 <h2 class="cta-title">
-                    ¬øTienes un negocio? <br>
+                    øTienes un negocio? <br>
                     Hazlo crecer con nosotros.
                 </h2>
 
                 <p class="cta-text">
-                    √önete a la red m√°s grande de negocios locales en Per√∫ y llega a miles de clientes potenciales en tu distrito hoy mismo.
+                    ⁄nete a la red m·s grande de negocios locales en Per˙ y llega a miles de clientes potenciales en tu distrito hoy mismo.
                 </p>
 
                 <div class="mt-4">
                     <a asp-controller="Login" asp-action="Index" class="btn btn-light me-2">
                         Comenzar gratis
                     </a>
-                    <a href="#" class="btn btn-outline-light">Saber m√°s</a>
+                    <a href="#" class="btn btn-outline-light">Saber m·s</a>
                 </div>
             </div>
 
             <!-- TARJETA -->
             <div class="col-md-6 text-center mt-4 mt-md-0">
                 <div class="cta-card">
-                    <p class="small mb-2">TUS ESTAD√çSTICAS</p>
+                    <p class="small mb-2">TUS ESTADÕSTICAS</p>
                     <h6>Visibilidad este mes</h6>
 
                     <div class="progress mt-3">

@@ -180,7 +180,7 @@
             <button id="closeReviewModal" class="modal-close" aria-label="Cerrar modal"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
-            <form id="newReviewForm" asp-action="AgregarResena" asp-controller="Home" method="post" enctype="multipart/form-data" class="row g-3">
+            <form id="newReviewForm" asp-action="AgregarResena" asp-controller="Business" method="post" enctype="multipart/form-data" class="row g-3">
                 <!-- Campo oculto para enviar al backend a qué negocio pertenece la reseña -->
                 <input type="hidden" name="BusinessId" value="@Model.BusinessId" />
                 <div class="col-12">
@@ -688,3 +688,4 @@
         }
     </script>
 }
+

@@ -64,13 +64,13 @@
 
     <!-- NAVEGACIÓN INTERNA -->
     <div class="d-flex gap-2 nav-pills">
-        <a href="/Home/Perfil" class="nav-link" type="button">
+        <a href="/Profile/Index" class="nav-link" type="button">
             <i class="fas fa-heart me-2"></i>Mis Favoritos
         </a>
-        <a href="/Home/MisResenas" class="nav-link active" type="button">
+        <a href="/Profile/MisResenas" class="nav-link active" type="button">
             <i class="fas fa-star me-2"></i>Mis Reseñas
         </a>
-        <a href="/Home/AjustesCuenta" class="nav-link" type="button">
+        <a href="/Profile/AjustesCuenta" class="nav-link" type="button">
             <i class="fas fa-cog me-2"></i>Ajustes de Cuenta
         </a>
     </div>
@@ -108,7 +108,7 @@
                         <p class="review-text">@review.Comment</p>
 
                         <div class="review-actions">
-                            <form asp-action="EliminarResena" asp-controller="Home" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta reseña?');">
+                            <form asp-action="EliminarResena" asp-controller="Business" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta reseña?');">
                                 <input type="hidden" name="reviewId" value="@review.ReviewId" />
                                 <button type="submit" class="review-action-btn text-danger">
                                     <i class="fas fa-trash me-2"></i>Eliminar
@@ -171,3 +171,4 @@
         </div>
     </div>
 </div>
+

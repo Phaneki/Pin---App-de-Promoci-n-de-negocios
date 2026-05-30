@@ -1,4 +1,4 @@
-ï»¿ï»¿<!DOCTYPE html>
+?<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -20,11 +20,11 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-center p-4 rounded-4">
 
-                <h4 class="mb-3">ðŸ‘‹ Bienvenido</h4>
+                <h4 class="mb-3">?? Bienvenido</h4>
 
                 <p id="welcomeText" class="mb-4"></p>
 
-                <a href="/Home/Perfil" class="btn btn-orange mb-2">Ir al perfil</a>
+                <a href="/Profile/Index" class="btn btn-orange mb-2">Ir al perfil</a>
 
                 <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
                     Cerrar
@@ -46,7 +46,7 @@
                     <img src="~/images/logo.png" alt="logo" style="height:40px;" class="me-2">
                 </a>
 
-                <!-- BOTÃ“N RESPONSIVE -->
+                <!-- BOTÓN RESPONSIVE -->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -71,7 +71,7 @@
                         {
                             <li class="nav-item">
                                 <a asp-controller="Login" asp-action="Index" class="btn btn-outline-dark">
-                                    Iniciar sesiÃ³n
+                                    Iniciar sesión
                                 </a>
                             </li>
                         }
@@ -80,7 +80,7 @@
                             @if (usuario != null)
                             {
                                 <li class="nav-item ms-2">
-                                    <a asp-controller="Home" asp-action="RegistrarNegocio" class="btn btn-orange">
+                                    <a asp-controller="Business" asp-action="RegistrarNegocio" class="btn btn-orange">
                                         Registrar negocio
                                     </a>
                                 </li>
@@ -89,7 +89,7 @@
                             @if (rol == "MODERADOR")
                             {
                                 <li class="nav-item ms-2">
-                                    <a asp-controller="Home" asp-action="Moderacion" class="btn" style="background-color: #a04028; color: white;">
+                                    <a asp-controller="Admin" asp-action="Moderacion" class="btn" style="background-color: #a04028; color: white;">
                                         Manager
                                     </a>
                                 </li>
@@ -115,8 +115,8 @@
                                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
 
                                     <li>
-                                        <a class="dropdown-item" asp-controller="Home" asp-action="Perfil">
-                                            ðŸ‘¤ Perfil
+                                        <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
+                                            ?? Perfil
                                         </a>
                                     </li>
 
@@ -127,7 +127,7 @@
                                         asp-controller="Login"
                                         asp-action="Logout"
                                         onclick="sessionStorage.removeItem('bienvenidaMostrada')">
-                                            ðŸšª Cerrar sesiÃ³n
+                                            ?? Cerrar sesión
                                         </a>
                                     </li>
 
@@ -155,7 +155,7 @@
 
                 <!-- IZQUIERDA -->
                 <div class="col-md-6 mb-3 mb-md-0">
-                    <p class="mb-0 fw-semibold">Â© 2026 Pin</p>
+                    <p class="mb-0 fw-semibold">© 2026 Pin</p>
                     <small class="text-muted">Todos los derechos reservados.</small>
                 </div>
 
@@ -193,7 +193,7 @@
                 sessionStorage.setItem("bienvenidaMostrada", "true");
             }
 
-            // Detectar pÃ¡gina actual y aplicar clase active-custom
+            // Detectar página actual y aplicar clase active-custom
             var currentPath = window.location.pathname.toLowerCase();
             var navInicio = document.getElementById('navInicio');
             var navExplorar = document.getElementById('navExplorar');
@@ -202,7 +202,7 @@
             if (navInicio) navInicio.classList.remove('active-custom');
             if (navExplorar) navExplorar.classList.remove('active-custom');
 
-            // Aplicar clase activa segÃºn la ruta actual
+            // Aplicar clase activa según la ruta actual
             if (currentPath.includes('/home/explorar') || currentPath.includes('/explorar')) {
                 if (navExplorar) navExplorar.classList.add('active-custom');
             } else {
@@ -212,3 +212,4 @@
     </script>
 </body>
 </html>
+
