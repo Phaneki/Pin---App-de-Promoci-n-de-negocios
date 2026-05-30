@@ -33,6 +33,17 @@ namespace PinAppdePromo.Controllers
                 .ThenByDescending(b => b.CreatedAt)
                 .Take(8)
                 .ToListAsync();
+
+            var resenasRecientes = await _pinContext.Reviews
+                .Include(r => r.User)
+                .Include(r => r.Business)
+                .Where(r => r.Rating >= 4 && r.Comment != null && r.Comment != "")
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(5)
+                .ToListAsync();
+
+            ViewBag.ResenasRecientes = resenasRecientes;
+
             return View(negocios);
         }
 
