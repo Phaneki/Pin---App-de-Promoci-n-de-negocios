@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IPhotoService, PhotoService>();
 // 🔐 AUTENTICACIÓN (Google + Cookies)
 var authBuilder = builder.Services.AddAuthentication(options =>
 {
@@ -71,6 +72,9 @@ builder.Services.AddHttpClient<NominatimService>()
         client.Timeout = TimeSpan.FromSeconds(10);
     });
 builder.Services.AddScoped<NominatimService>();
+
+// 5. Registrar BusinessHoursService
+builder.Services.AddScoped<IBusinessHoursService, BusinessHoursService>();
 
 var app = builder.Build();
 

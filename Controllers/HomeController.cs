@@ -12,12 +12,14 @@ namespace PinAppdePromo.Controllers
         private readonly AppDbContext _context;
         private readonly PinDbContext _pinContext;
         private readonly OverpassService _overpassService;
+        private readonly IPhotoService _photoService;
 
-        public HomeController(AppDbContext context, PinDbContext pinContext, OverpassService overpassService)
+        public HomeController(AppDbContext context, PinDbContext pinContext, OverpassService overpassService, IPhotoService photoService)
         {
             _context = context;
             _pinContext = pinContext;
             _overpassService = overpassService;
+            _photoService = photoService;
         }
 
         public async Task<IActionResult> Index()
@@ -122,13 +124,31 @@ namespace PinAppdePromo.Controllers
                 .Where(b => b.Status == "Approved" || b.Status == "Promoted")
                 .Select(b => b.Address)
                 .ToListAsync();
-            ViewBag.Distritos = todosNegocios
-                .Where(a => !string.IsNullOrEmpty(a))
-                .Select(a => a.Split(',').Last().Trim())
-                .Distinct()
-                .OrderBy(d => d)
-                .ToList();
+            var distritosLima = new List<string> {
+                "Ancón", "Ate", "Barranco", "Breña", "Carabayllo", "Chaclacayo", "Chorrillos", "Cieneguilla", 
+                "Comas", "El Agustino", "Independencia", "Jesús María", "La Molina", "La Victoria", "Lince", 
+                "Los Olivos", "Lurigancho", "Lurín", "Magdalena del Mar", "Miraflores", "Pachacámac", "Pucusana", 
+                "Pueblo Libre", "Puente Piedra", "Punta Hermosa", "Punta Negra", "Rímac", "San Bartolo", 
+                "San Borja", "San Isidro", "San Juan de Lurigancho", "San Juan de Miraflores", "San Luis", 
+                "San Martín de Porres", "San Miguel", "Santa Anita", "Santa María del Mar", "Santa Rosa", 
+                "Santiago de Surco", "Surco", "Surquillo", "Villa El Salvador", "Villa María del Triunfo",
+                "Cercado de Lima", "Lima", "Callao", "Bellavista", "Carmen de la Legua", "La Perla", "La Punta", "Ventanilla", "Mi Perú"
+            };
 
+            var distritosEncontrados = new HashSet<string>();
+            foreach (var addr in todosNegocios.Where(a => !string.IsNullOrEmpty(a)))
+            {
+                var upperAddr = addr.ToUpper();
+                foreach (var d in distritosLima)
+                {
+                    if (upperAddr.Contains(d.ToUpper()))
+                    {
+                        distritosEncontrados.Add(d);
+                    }
+                }
+            }
+
+            ViewBag.Distritos = distritosEncontrados.OrderBy(d => d).ToList();
             return View(negocios);
         }
 
@@ -180,7 +200,13 @@ namespace PinAppdePromo.Controllers
                 if (Imagenes != null && Imagenes.Count > 0)
                 {
                     foreach (var img in Imagenes)
-                        _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = $"/images/temp_{Guid.NewGuid()}_{img.FileName}" });
+                    {
+                        var url = await _photoService.SubirImagenAsync(img);
+                        if (!string.IsNullOrEmpty(url))
+                        {
+                            _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = url });
+                        }
+                    }
                     await _pinContext.SaveChangesAsync();
                 }
                 return RedirectToAction("Index");
@@ -276,13 +302,15 @@ namespace PinAppdePromo.Controllers
             if (email == null) return RedirectToAction("Index", "Login");
             if (fotoPerfil != null && fotoPerfil.Length > 0)
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "profiles");
-                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-                var uniqueFileName = Guid.NewGuid().ToString() + "_" + fotoPerfil.FileName;
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create)) { await fotoPerfil.CopyToAsync(fileStream); }
-                var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
-                if (user != null) { user.FotoUrl = "/images/profiles/" + uniqueFileName; await _context.SaveChangesAsync(); HttpContext.Session.SetString("Foto", user.FotoUrl); }
+                var url = await _photoService.SubirImagenAsync(fotoPerfil);
+                if (!string.IsNullOrEmpty(url))
+                {
+                    var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
+                    if (user != null) { user.FotoUrl = url; await _context.SaveChangesAsync(); HttpContext.Session.SetString("Foto", user.FotoUrl); }
+                    
+                    var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                    if (pinUser != null) { pinUser.ProfilePic = url; await _pinContext.SaveChangesAsync(); }
+                }
             }
             return RedirectToAction("AjustesCuenta");
         }
