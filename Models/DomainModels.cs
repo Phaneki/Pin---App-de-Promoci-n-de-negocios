@@ -58,6 +58,11 @@ namespace PinAppdePromo.Models
         public string ContactPhone { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        // 🌐 Campos para importación de APIs externas
+        public string Source { get; set; } = "User"; // "User", "OSM", "Foursquare", "Google"
+        public string ExternalId { get; set; } = ""; // ID del nodo en OpenStreetMap
+        public DateTime? LastSyncedAt { get; set; } // Última sincronización con API
+
         public User Owner { get; set; }
         public Category Category { get; set; }
         public ICollection<BusinessImage> Images { get; set; }

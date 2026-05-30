@@ -1,13 +1,11 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Registrar Negocio - Pin";
+    var googleMapsApiKey = Configuration["GoogleMaps:ApiKey"];
 }
 @model PinAppdePromo.Models.Business
 
 @section Styles {
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    <!-- Leaflet Geocoder CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <!-- Nuestro CSS personalizado -->
     <link rel="stylesheet" href="~/css/registrar-negocio.css" asp-append-version="true" />
 }
@@ -172,101 +170,84 @@
     </div>
 </div>
 
-<!-- Leaflet JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<!-- Leaflet Geocoder JS -->
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=@googleMapsApiKey&libraries=places&callback=initMap" async defer></script>
 
 <script>
     let map;
     let marker;
-    const defaultLocation = [-12.0464, -77.0428]; // Lima, Perú [lat, lng]
+    let geocoder;
+    const defaultLocation = { lat: -12.0464, lng: -77.0428 }; // Lima, Perú
 
     // Inicializar el mapa
     function initMap() {
-        map = L.map('map').setView(defaultLocation, 13);
+        geocoder = new google.maps.Geocoder();
+        
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: defaultLocation,
+            zoom: 13,
+            mapTypeControl: false,
+            streetViewControl: false
+        });
 
-        // Usar tiles de OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors',
-            maxZoom: 19
-        }).addTo(map);
-
-        // Crear marcador arrastrabledefault marker
-        marker = L.marker(defaultLocation, {
+        // Crear marcador arrastrable
+        marker = new google.maps.Marker({
+            position: defaultLocation,
+            map: map,
             draggable: true,
             title: 'Ubica tu negocio aquí'
-        }).addTo(map);
-
-        // Guardar coordenadas cuando se arrastra el marcador
-        marker.on('dragend', function() {
-            const pos = marker.getLatLng();
-            document.getElementById('latitude').value = pos.lat;
-            document.getElementById('longitude').value = pos.lng;
-            updateAddressFromCoordinates(pos.lat, pos.lng);
         });
 
-        // Permitir hacer clic en el mapa para colocar el marcador
-        map.on('click', function(event) {
-            marker.setLatLng(event.latlng);
-            document.getElementById('latitude').value = event.latlng.lat;
-            document.getElementById('longitude').value = event.latlng.lng;
-            updateAddressFromCoordinates(event.latlng.lat, event.latlng.lng);
+        // Evento al arrastrar el marcador
+        marker.addListener('dragend', function() {
+            const position = marker.getPosition();
+            updateCoordinates(position.lat(), position.lng());
+            geocodePosition(position);
         });
 
-        // Agregar control de búsqueda
-        L.Control.geocoder({
-            defaultMarkGeocode: false
-        }).on('markgeocode', function(e) {
-            const bbox = e.geocode.bbox;
-            const latLng = e.geocode.center;
-            marker.setLatLng(latLng);
-            document.getElementById('latitude').value = latLng.lat;
-            document.getElementById('longitude').value = latLng.lng;
-            document.getElementById('addressInput').value = e.geocode.name;
-            map.setView(latLng, 13);
-        }).addTo(map);
+        // Evento al hacer clic en el mapa
+        map.addListener('click', function(event) {
+            marker.setPosition(event.latLng);
+            updateCoordinates(event.latLng.lat(), event.latLng.lng());
+            geocodePosition(event.latLng);
+        });
 
-        // Buscar dirección cuando se escribe en el input
-        document.getElementById('addressInput').addEventListener('change', searchAddress);
+        // Configurar Autocompletado para el input de dirección
+        const addressInput = document.getElementById('addressInput');
+        // Prevenir envío del formulario al presionar Enter en el autocompletado
+        addressInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+
+        const autocomplete = new google.maps.places.Autocomplete(addressInput);
+        autocomplete.bindTo('bounds', map);
+
+        autocomplete.addListener('place_changed', function() {
+            const place = autocomplete.getPlace();
+            if (!place.geometry || !place.geometry.location) {
+                return;
+            }
+            
+            map.setCenter(place.geometry.location);
+            map.setZoom(16);
+            marker.setPosition(place.geometry.location);
+            updateCoordinates(place.geometry.location.lat(), place.geometry.location.lng());
+        });
     }
 
-    // Actualizar dirección desde coordenadas (usando servicio de Nominatim)
-    function updateAddressFromCoordinates(lat, lng) {
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.address) {
-                    document.getElementById('addressInput').value = data.display_name;
-                }
-            })
-            .catch(error => console.log('Error al obtener la dirección:', error));
+    function updateCoordinates(lat, lng) {
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lng;
     }
 
-    // Buscar ubicación por dirección
-    function searchAddress() {
-        const address = document.getElementById('addressInput').value;
-        
-        if (!address) return;
-
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.length > 0) {
-                    const result = data[0];
-                    const latLng = [parseFloat(result.lat), parseFloat(result.lon)];
-                    marker.setLatLng(latLng);
-                    document.getElementById('latitude').value = result.lat;
-                    document.getElementById('longitude').value = result.lon;
-                    map.setView(latLng, 13);
-                } else {
-                    alert('No se encontró la dirección. Intenta con otra.');
-                }
-            })
-            .catch(error => {
-                console.log('Error:', error);
-                alert('Error al buscar la dirección.');
-            });
+    function geocodePosition(pos) {
+        geocoder.geocode({ location: pos }, function(results, status) {
+            if (status === 'OK' && results[0]) {
+                document.getElementById('addressInput').value = results[0].formatted_address;
+            }
+        });
     }
 
     // Validar antes de enviar el formulario real
@@ -286,6 +267,5 @@
         document.getElementById('domingo_horarios').style.display = 'none';
     });
 
-    // Inicializar mapa cuando carga la página
-    document.addEventListener('DOMContentLoaded', initMap);
+    // Ya no usamos DOMContentLoaded para initMap porque lo maneja el callback de Google Maps
 </script>

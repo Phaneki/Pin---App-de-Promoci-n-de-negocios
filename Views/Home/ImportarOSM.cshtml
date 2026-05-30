@@ -1,0 +1,198 @@
+@{
+    ViewData["Title"] = "Importar Negocios - OpenStreetMap";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="min-h-screen flex">
+    <!-- Sidebar de Moderación -->
+    @await Html.PartialAsync("~/Views/Shared/_ModeracionSidebar.cshtml")
+
+    <!-- Contenido principal -->
+    <div class="flex-1 bg-gray-50 p-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Encabezado -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">🌐 Importar desde OpenStreetMap</h1>
+                    <p class="text-gray-600 mt-2">Importa negocios reales de Lima usando datos abiertos de OpenStreetMap</p>
+                </div>
+                <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-sm font-medium">
+                    <span>Gratuito • Sin límites</span>
+                </div>
+            </div>
+
+            <!-- Mensajes de feedback -->
+            @if (TempData["Exito"] != null)
+            {
+                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg shadow">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">✅</span>
+                        <p class="font-medium">@TempData["Exito"]</p>
+                    </div>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r-lg shadow">
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-3">❌</span>
+                        <p class="font-medium">@TempData["Error"]</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Formulario de importación -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">📍 Configuración de importación</h2>
+                
+                <form asp-action="ImportarOSM" method="post" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Latitud -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                🌍 Latitud
+                            </label>
+                            <input type="number" name="latitud" id="latitud"
+                                   value="-12.0464"
+                                   step="0.000001"
+                                   min="-90"
+                                   max="90"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 text-base"
+                                   placeholder="-12.0464" required />
+                            <p class="text-xs text-gray-500 mt-1">Ej: -12.0464 (centro de Lima)</p>
+                        </div>
+
+                        <!-- Longitud -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                🌍 Longitud
+                            </label>
+                            <input type="number" name="longitud" id="longitud"
+                                   value="-77.0428"
+                                   step="0.000001"
+                                   min="-180"
+                                   max="180"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 text-base"
+                                   placeholder="-77.0428" required />
+                            <p class="text-xs text-gray-500 mt-1">Ej: -77.0428 (centro de Lima)</p>
+                        </div>
+                    </div>
+
+                    <!-- Radio -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            📏 Radio de búsqueda (metros)
+                        </label>
+                        <input type="number" name="radio" id="radio" min="100" max="5000" step="100"
+                               value="1000"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 text-base" required />
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>100m</span>
+                            <span id="radioLabel">1000 metros (~1 km)</span>
+                            <span>5000m</span>
+                        </div>
+                        <!-- Slider visual (sincronizado con input numérico) -->
+                        <input type="range" id="radioSlider" min="100" max="5000" step="100" value="1000"
+                               class="w-full mt-2 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                    </div>
+
+                    <!-- Botón de importar -->
+                    <button type="submit" id="btnImportar"
+                            class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        Importar Negocios desde OpenStreetMap
+                    </button>
+                </form>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl shadow p-6">
+                    <div class="text-blue-500 text-2xl mb-3">📍</div>
+                    <h3 class="font-semibold text-gray-800 mb-2">¿Qué se importa?</h3>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li>• Restaurantes y cafeterías</li>
+                        <li>• Tiendas y comercios</li>
+                        <li>• Farmacias y clínicas</li>
+                        <li>• Bancos y escuelas</li>
+                        <li>• Hoteles y más</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6">
+                    <div class="text-green-500 text-2xl mb-3">💾</div>
+                    <h3 class="font-semibold text-gray-800 mb-2">¿Dónde se guardan?</h3>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li>• En tu base de datos local</li>
+                        <li>• Con estado "Aprobado"</li>
+                        <li>• Identificados como "OSM"</li>
+                        <li>• Evita duplicados</li>
+                        <li>• Listos para usar</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6">
+                    <div class="text-purple-500 text-2xl mb-3">🎯</div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Coordenadas de Lima</h3>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li>• <strong>Centro:</strong> -12.0464, -77.0428</li>
+                        <li>• <strong>Miraflores:</strong> -12.1216, -77.0300</li>
+                        <li>• <strong>San Isidro:</strong> -12.0981, -77.0369</li>
+                        <li>• <strong>Surco:</strong> -12.1480, -76.9960</li>
+                        <li>• <strong>La Molina:</strong> -12.0782, -76.9441</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Nota importante -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-8 rounded-r-lg">
+                <div class="flex items-start">
+                    <span class="text-yellow-600 text-xl mr-3">💡</span>
+                    <div>
+                        <p class="font-medium text-yellow-800">Consejo para empezar</p>
+                        <p class="text-sm text-yellow-700 mt-1">
+                            Usa las coordenadas del centro de Lima (-12.0464, -77.0428) con un radio de 1000m 
+                            para obtener tus primeros negocios. Luego puedes importar de otras zonas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Sincronizar slider con input numérico (y vice versa)
+        const radioInput = document.getElementById('radio');
+        const radioSlider = document.getElementById('radioSlider');
+        const radioLabel = document.getElementById('radioLabel');
+
+        // Cuando cambias el slider
+        radioSlider.addEventListener('input', function() {
+            radioInput.value = this.value;
+            updateLabel();
+        });
+
+        // Cuando cambias el input numérico
+        radioInput.addEventListener('input', function() {
+            radioSlider.value = this.value;
+            updateLabel();
+        });
+
+        function updateLabel() {
+            const valor = radioInput.value;
+            const km = Math.round(valor / 1000 * 10) / 10;
+            radioLabel.textContent = valor + ' metros (~' + km + ' km)';
+        }
+
+        // Manejar el submit del formulario
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const btnImportar = document.getElementById('btnImportar');
+            btnImportar.disabled = true;
+            btnImportar.innerHTML = '<svg class="animate-spin h-5 w-5 mr-3 inline" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg> Importando...';
+        });
+    </script>
+}
