@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "PIN - App de Promoción de negocios";
 }
 @model List<PinAppdePromo.Models.Business>
@@ -51,7 +51,7 @@
                     <a href="/Home/InfNegocio/@negocio.BusinessId" class="text-decoration-none text-dark">
                     <div class="business-card">
 
-                        <img src="@(negocio.Images?.FirstOrDefault()?.ImageUrl ?? "/images/picanteria.jpg")" class="business-img" alt="@negocio.TradeName">
+                        <img src="@(negocio.Images?.FirstOrDefault()?.ImageUrl ?? "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=800&q=80")" class="business-img" alt="@negocio.TradeName">
 
                         <div class="p-3">
 

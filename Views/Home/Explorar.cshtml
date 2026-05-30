@@ -76,7 +76,7 @@
                             <div class="position-relative" style="height: 200px;">
                                 @if (negocio.Images != null && negocio.Images.Any())
                                 {
-                                    <img src="@Url.Content(negocio.Images.First().ImageUrl)" class="card-img-top" alt="@negocio.TradeName" style="height: 200px; object-fit: cover; width: 100%;" />
+                                    <img src="@(negocio.Images?.FirstOrDefault()?.ImageUrl ?? "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=800&q=80")" class="card-img-top" alt="@negocio.TradeName" style="height: 200px; object-fit: cover; width: 100%;" />
                                 }
                                 else
                                 {

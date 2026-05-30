@@ -38,6 +38,14 @@
                     <h2 class="text-lg font-bold text-slate-800">Directorio de Negocios</h2>
                     <p class="text-sm text-slate-500 mt-1">Supervisa, aprueba y administra los establecimientos registrados en la plataforma.</p>
                 </div>
+                
+                @if (TempData["ExitoEdicion"] != null)
+                {
+                    <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl flex items-center gap-3">
+                        <i class="fas fa-check-circle text-emerald-500"></i>
+                        <p class="text-sm font-medium">@TempData["ExitoEdicion"]</p>
+                    </div>
+                }
 
                 <!-- BARRA DE BÚSQUEDA Y FILTROS -->
                 <form method="get" asp-action="NegociosAdmin" class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
@@ -112,6 +120,9 @@
                                             </td>
                                             <td class='px-6 py-4 text-right'>
                                                 <div class="flex items-center justify-end gap-2 flex-wrap">
+                                                    <a href="/Home/EditarNegocioModerador/@negocio.BusinessId" class='inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm transition hover:bg-blue-600 hover:text-white'>
+                                                        <i class='fas fa-edit'></i> Editar
+                                                    </a>
                                                     @if (negocio.Status != "Approved" && negocio.Status != "Promoted")
                                                     {
                                                         <form asp-action="CambiarEstadoNegocio" asp-controller="Home" method="post" class="m-0 inline" onsubmit="return confirm('¿Aprobar este negocio? Será visible públicamente.');">
