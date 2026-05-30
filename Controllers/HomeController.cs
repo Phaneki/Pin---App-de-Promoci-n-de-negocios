@@ -139,8 +139,12 @@ namespace PinAppdePromo.Controllers
                 await _pinContext.SaveChangesAsync();
                 if (!string.IsNullOrEmpty(ImageUrlLink))
                 {
-                    _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = ImageUrlLink });
-                    await _pinContext.SaveChangesAsync();
+                    var secureUrl = await _photoService.SubirImagenPorUrlAsync(ImageUrlLink);
+                    if (!string.IsNullOrEmpty(secureUrl))
+                    {
+                        _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = secureUrl });
+                        await _pinContext.SaveChangesAsync();
+                    }
                 }
                 if (Imagenes != null && Imagenes.Count > 0)
                 {
@@ -154,12 +158,13 @@ namespace PinAppdePromo.Controllers
                     }
                     await _pinContext.SaveChangesAsync();
                 }
+                TempData["Exito"] = "¡Tu negocio se ha registrado con éxito! Un moderador lo revisará pronto para publicarlo en la plataforma.";
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                var innerMsg = ex.InnerException?.Message ?? "Sin inner exception";
-                return Content($"ERROR: {ex.Message}\n\nINNER: {innerMsg}\n\nSTACK: {ex.StackTrace}", "text/plain");
+                TempData["Error"] = "Ocurrió un error al registrar tu negocio. Inténtalo de nuevo.";
+                return RedirectToAction("RegistrarNegocio");
             }
         }
 

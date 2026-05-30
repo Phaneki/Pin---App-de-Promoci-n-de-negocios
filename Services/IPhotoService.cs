@@ -6,6 +6,7 @@ namespace PinAppdePromo.Services
     public interface IPhotoService
     {
         Task<string> SubirImagenAsync(IFormFile archivo);
+        Task<string> SubirImagenPorUrlAsync(string url);
         Task<bool> BorrarImagenAsync(string idPublico);
     }
 }

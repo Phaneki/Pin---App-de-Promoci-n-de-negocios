@@ -1,7 +1,15 @@
-﻿﻿@{
+﻿@{
     ViewData["Title"] = "PIN - App de Promoción de negocios";
 }
 @model List<PinAppdePromo.Models.Business>
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
 <section class="hero-section d-flex align-items-center justify-content-center text-center">
     <div class="container-fluid hero-content">
