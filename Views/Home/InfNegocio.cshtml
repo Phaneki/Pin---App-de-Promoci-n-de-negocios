@@ -1,7 +1,9 @@
 @model PinAppdePromo.Models.Business
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = Model.TradeName;
+    var googleMapsApiKey = Configuration["GoogleMaps:ApiKey"];
     var coverImage = Model.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/1920x1080/333/fff?text=Showroom";
 
     // Uso de dynamic para prevenir errores si aún no agregas 'Services' o 'Products' a tu modelo Business
@@ -14,9 +16,6 @@
     var lat = Model.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
     var lng = Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }
-
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 
 <!-- Hero Section -->
 <section class="hero-section position-relative d-flex align-items-center" style="background: url('@Url.Content(coverImage)'); background-size: cover; background-position: center;">
@@ -250,8 +249,8 @@
 </div>
 
 @section Scripts {
-    <!-- Leaflet JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <!-- Google Maps JS -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=@googleMapsApiKey&callback=initBusinessMap" async defer></script>
 
     <script>
         // Serializamos dinámicamente las reseñas que vienen de tu Base de Datos
@@ -548,30 +547,36 @@
             sortReviews.value = sortReviewsModal.value;
             sortAndRender();
         });
-
         document.addEventListener('DOMContentLoaded', () => {
             loadReviews();
             setActiveStars(5);
+            // Cargar horarios dinámicos
+            loadBusinessHours(@Model.BusinessId);
+        });
 
-            // Inicializar el mapa del negocio
+        // Callback global para Google Maps
+        window.initBusinessMap = function() {
             const mapLat = @lat;
             const mapLng = @lng;
             const mapContainer = document.getElementById('businessMap');
             
             if (mapLat !== 0 && mapLng !== 0) {
-                const map = L.map('businessMap').setView([mapLat, mapLng], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
-                L.marker([mapLat, mapLng]).addTo(map)
-                    .bindPopup('<b>@Model.TradeName</b><br>@Model.Address');
+                const position = { lat: parseFloat(mapLat), lng: parseFloat(mapLng) };
+                const map = new google.maps.Map(mapContainer, {
+                    center: position,
+                    zoom: 15,
+                    disableDefaultUI: true // Interfaz limpia
+                });
+                
+                new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: '@Html.Raw(Model.TradeName)'
+                });
             } else {
                 mapContainer.innerHTML = '<div class="h-100 d-flex align-items-center justify-content-center text-muted small"><i class="bi bi-geo-alt-fill me-2"></i>Ubicación en mapa no disponible</div>';
             }
-
-            // Cargar horarios dinámicos
-            loadBusinessHours(@Model.BusinessId);
-        });
+        };
 
         function loadBusinessHours(businessId) {
             fetch(`/api/businesshours/status/${businessId}`)
