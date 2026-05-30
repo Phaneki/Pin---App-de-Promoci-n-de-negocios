@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PinAppdePromo.Models;
+using PinAppdePromo.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 var builder = WebApplication.CreateBuilder(args);
@@ -39,11 +40,12 @@ builder.Services.AddDbContext<AppDbContext>(options => {
 });
 
 builder.Services.AddDbContext<PinDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.ConfigureWarnings(warnings => warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
 
-builder.Services.AddSession();
-
-// Configurar Redis (antes de builder.Build())
+// 1. Configurar Redis como el motor de Caché Distribuido
 var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnection");
 if (!string.IsNullOrEmpty(redisConnectionString))
 {
@@ -53,6 +55,24 @@ if (!string.IsNullOrEmpty(redisConnectionString))
         options.InstanceName = "PinApp_";
     });
 }
+
+// 2. Agregar Sesiones DESPUÉS de Redis para que use la caché distribuida
+builder.Services.AddSession();
+
+// 3. Registrar servicios personalizados
+builder.Services.AddHttpClient<OverpassService>();
+builder.Services.AddScoped<OverpassService>();
+
+// 4. Registrar NominatimService con HttpClient y timeout
+builder.Services.AddHttpClient<NominatimService>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(10);
+    });
+builder.Services.AddScoped<NominatimService>();
+
+// 5. Registrar BusinessHoursService
+builder.Services.AddScoped<IBusinessHoursService, BusinessHoursService>();
 
 var app = builder.Build();
 

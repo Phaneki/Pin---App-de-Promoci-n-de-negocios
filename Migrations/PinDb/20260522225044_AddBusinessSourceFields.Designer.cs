@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PinAppdePromo.Models;
@@ -11,9 +12,11 @@ using PinAppdePromo.Models;
 namespace PinAppdePromo.Migrations.PinDb
 {
     [DbContext(typeof(PinDbContext))]
-    partial class PinDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260522225044_AddBusinessSourceFields")]
+    partial class AddBusinessSourceFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -232,7 +235,7 @@ namespace PinAppdePromo.Migrations.PinDb
 
                     b.HasIndex("BusinessId");
 
-                    b.ToTable("BusinessSchedules");
+                    b.ToTable("BusinessSchedule");
                 });
 
             modelBuilder.Entity("PinAppdePromo.Models.Category", b =>
