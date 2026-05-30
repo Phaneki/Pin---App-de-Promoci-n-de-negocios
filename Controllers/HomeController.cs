@@ -36,6 +36,11 @@ namespace PinAppdePromo.Controllers
             return View(negocios);
         }
 
+        public IActionResult Beneficios()
+        {
+            return View();
+        }
+
         public async Task<IActionResult> Explorar(string busqueda, string distrito, List<int> categorias, string orden)
         {
             var query = _pinContext.Businesses
