@@ -140,7 +140,7 @@
                                                     <div class="flex items-center justify-end gap-2 flex-wrap">
                                                         @if (usuario.Rol != "MODERADOR")
                                                         {
-                                                            <form asp-action="CambiarRolUsuario" asp-controller="Admin" method="post" class="m-0 inline" onsubmit="return confirm('¿Ascender a este usuario a Moderador? Tendrá acceso a este panel.');">
+                                                            <form asp-action="CambiarRolUsuario" asp-controller="Home" method="post" class="m-0 inline" onsubmit="return confirm('¿Ascender a este usuario a Moderador? Tendrá acceso a este panel.');">
                                                                 <input type="hidden" name="usuarioId" value="@usuario.Id" />
                                                                 <input type="hidden" name="nuevoRol" value="MODERADOR" />
                                                                 <button type="submit" class='inline-flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 shadow-sm transition hover:bg-purple-600 hover:text-white'>
@@ -150,7 +150,7 @@
                                                         }
                                                         @if (usuario.Rol == "MODERADOR" || usuario.Rol == "SUSPENDIDO")
                                                         {
-                                                            <form asp-action="CambiarRolUsuario" asp-controller="Admin" method="post" class="m-0 inline" onsubmit="return confirm('¿Asignar rol de Cliente normal a este usuario?');">
+                                                            <form asp-action="CambiarRolUsuario" asp-controller="Home" method="post" class="m-0 inline" onsubmit="return confirm('¿Asignar rol de Cliente normal a este usuario?');">
                                                                 <input type="hidden" name="usuarioId" value="@usuario.Id" />
                                                                 <input type="hidden" name="nuevoRol" value="CLIENTE" />
                                                                 <button type="submit" class='inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 shadow-sm transition hover:bg-emerald-600 hover:text-white'>
@@ -160,7 +160,7 @@
                                                         }
                                                         @if (usuario.Rol != "SUSPENDIDO")
                                                         {
-                                                            <form asp-action="CambiarRolUsuario" asp-controller="Admin" method="post" class="m-0 inline" onsubmit="return confirm('¿Estás seguro de suspender a este usuario? No podrá iniciar sesión.');">
+                                                            <form asp-action="CambiarRolUsuario" asp-controller="Home" method="post" class="m-0 inline" onsubmit="return confirm('¿Estás seguro de suspender a este usuario? No podrá iniciar sesión.');">
                                                                 <input type="hidden" name="usuarioId" value="@usuario.Id" />
                                                                 <input type="hidden" name="nuevoRol" value="SUSPENDIDO" />
                                                                 <button type="submit" class='inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 shadow-sm transition hover:bg-red-600 hover:text-white'>

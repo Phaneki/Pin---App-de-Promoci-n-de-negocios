@@ -40,7 +40,7 @@
                         <p class="text-sm text-slate-500 mt-1">Crea nuevas clasificaciones para organizar los negocios.</p>
                     </div>
                     
-                    <form asp-action="CrearCategoria" asp-controller="Admin" method="post" class="flex w-full sm:w-auto gap-3">
+                    <form asp-action="CrearCategoria" asp-controller="Home" method="post" class="flex w-full sm:w-auto gap-3">
                         <div class="relative flex-1 sm:w-64">
                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                                 <i class="fas fa-tag text-slate-400"></i>
@@ -97,7 +97,7 @@
                                                 <span class="font-semibold text-slate-700 text-base">@categoria.Name</span>
                                             </div>
                                             <!-- ESTADO DE EDICIÓN (OCULTO POR DEFECTO) -->
-                                            <form id="edit-mode-@categoria.CategoryId" asp-action="EditarCategoria" asp-controller="Admin" method="post" class="hidden items-center gap-2">
+                                            <form id="edit-mode-@categoria.CategoryId" asp-action="EditarCategoria" asp-controller="Home" method="post" class="hidden items-center gap-2">
                                                 <input type="hidden" name="CategoryId" value="@categoria.CategoryId" />
                                                 <div class="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-1">
                                                     <i class="fas fa-pen"></i>
@@ -118,7 +118,7 @@
                                                     <i class='fas fa-pen'></i> Editar
                                                 </button>
                                                 <!-- BOTÓN DE ELIMINAR -->
-                                                <form asp-action="EliminarCategoria" asp-controller="Admin" method="post" onsubmit="return confirm('¿Seguro que deseas eliminar esta categoría? Si tiene negocios asociados podría ocultarlos del panel de explorar.');" class="inline m-0">
+                                                <form asp-action="EliminarCategoria" asp-controller="Home" method="post" onsubmit="return confirm('¿Seguro que deseas eliminar esta categoría? Si tiene negocios asociados podría ocultarlos del panel de explorar.');" class="inline m-0">
                                                     <input type="hidden" name="CategoryId" value="@categoria.CategoryId" />
                                                     <button type="submit" class='inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 shadow-sm transition hover:bg-red-600 hover:text-white'>
                                                         <i class='fas fa-trash-alt'></i> Eliminar
