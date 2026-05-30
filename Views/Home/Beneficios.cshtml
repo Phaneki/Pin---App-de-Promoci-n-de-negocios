@@ -1,47 +1,188 @@
 @{
-    ViewData["Title"] = "Beneficios Premium - PIN";
+    ViewData["Title"] = "PIN Premium - Estadísticas y Beneficios";
+    bool isPremium = ViewBag.IsPremium ?? false;
+    bool isLoggedIn = ViewBag.IsLoggedIn ?? false;
+    var negocios = ViewBag.Negocios as List<PinAppdePromo.Models.Business>;
+    var metrics = ViewBag.Metrics as List<PinAppdePromo.Models.BusinessMetric>;
 }
 
-<section class="hero-section d-flex align-items-center justify-content-center text-center" style="min-height: 40vh;">
-    <div class="container-fluid hero-content">
-        <span class="badge-custom mb-3">IMPULSA TU NEGOCIO</span>
-        <h1 class="hero-title">
-            Beneficios de <span class="text-orange">PIN Premium</span>
-        </h1>
-        <p class="hero-subtitle">
-            Lleva tu negocio al siguiente nivel con herramientas exclusivas diseñadas para aumentar tus ventas.
-        </p>
-    </div>
-</section>
+@if (isPremium)
+{
+    <section class="hero-section d-flex align-items-center justify-content-center text-center" style="min-height: 35vh; background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);">
+        <div class="container-fluid hero-content">
+            <span class="badge-custom mb-3" style="background-color: var(--main-orange); color: white; font-weight: 700; padding: 8px 20px; border-radius: 50px;">MIEMBRO PREMIUM 🌟</span>
+            <h1 class="hero-title" style="font-size: 3rem;">
+                Tu Panel de <span class="text-orange">Estadísticas</span>
+            </h1>
+            <p class="hero-subtitle">
+                Monitorea el rendimiento de tus negocios y maximiza tu impacto local en tiempo real.
+            </p>
+        </div>
+    </section>
 
-<section class="py-5">
-    <div class="container px-5 text-center">
-        <h3 class="fw-bold mb-4">¿Por qué obtener el plan de pago?</h3>
-        <p class="lead mb-5 mx-auto" style="max-width: 800px;">
-            Al suscribirte a nuestro plan Premium, desbloquearás funcionalidades avanzadas como <strong>estadísticas detalladas</strong> de tu negocio. 
-            Podrás saber exactamente <strong>cuántas personas visitan la página de tu negocio</strong>, permitiéndote medir tu impacto y mejorar tus estrategias para atraer más clientes.
-        </p>
-        
-        <div class="row justify-content-center mb-5">
-            <div class="col-md-6 col-lg-5">
-                <div class="cta-card text-left" style="background-color: #1a1a1a; padding: 2rem; border-radius: 15px; color: white; text-align: left; position: relative;">
-                    <p class="small mb-2" style="color: #ccc;">TUS ESTADÍSTICAS</p>
-                    <h6 style="font-weight: 600;">Visibilidad de tu negocio</h6>
-
-                    <div class="progress mt-3" style="height: 8px; background-color: #333;">
-                        <div class="progress-bar" style="width: 85%; background-color: var(--main-orange);"></div>
+    <section class="py-5" style="background-color: #0c0c0c; min-height: 50vh; color: white;">
+        <div class="container px-5">
+            @if (negocios != null && negocios.Any())
+            {
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="fw-bold mb-4 text-orange"><i class="fas fa-chart-bar me-2"></i> Rendimiento de tus Negocios</h3>
                     </div>
+                </div>
 
-                    <div class="d-flex justify-content-between mt-3">
-                        <small class="fw-bold" style="font-size: 1.2rem;">+3,540 clics</small>
-                        <small class="text-success fw-bold" style="font-size: 1.1rem;">+12%</small>
+                <div class="row g-4">
+                    @foreach (var negocio in negocios)
+                    {
+                        var metric = metrics?.FirstOrDefault(m => m.BusinessId == negocio.BusinessId);
+                        var clicks = metric?.Clicks ?? 0;
+                        var views = metric?.Views ?? 0;
+                        var rating = metric?.AverageRating ?? 5.0m;
+
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-lg p-4" style="background-color: #1a1a1a; border-radius: 20px; color: white;">
+                                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3" style="border-color: #333 !important;">
+                                    <div>
+                                        <h4 class="fw-bold mb-1 text-orange">@negocio.TradeName</h4>
+                                        <span class="badge bg-dark text-white-50">@(negocio.Category?.Name ?? "General")</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-success" style="background-color: var(--main-orange) !important;">Premium</span>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 text-center my-2">
+                                    <div class="col-4">
+                                        <div class="p-3 bg-dark rounded-3" style="border: 1px solid #333;">
+                                            <p class="small text-white-50 mb-1"><i class="fas fa-eye text-primary"></i> Impresiones</p>
+                                            <h3 class="fw-bold text-white">@views.ToString("N0")</h3>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3 bg-dark rounded-3" style="border: 1px solid #333;">
+                                            <p class="small text-white-50 mb-1"><i class="fas fa-mouse-pointer text-success"></i> Clics</p>
+                                            <h3 class="fw-bold text-white">@clicks.ToString("N0")</h3>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3 bg-dark rounded-3" style="border: 1px solid #333;">
+                                            <p class="small text-white-50 mb-1"><i class="fas fa-star text-warning"></i> Calificación</p>
+                                            <h3 class="fw-bold text-white">@rating.ToString("F1")</h3>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <h6 class="fw-bold mb-2">Tasa de Conversión (CTR)</h6>
+                                    @{
+                                        double ctr = views > 0 ? ((double)clicks / views) * 100 : 0.0;
+                                    }
+                                    <div class="progress" style="height: 10px; background-color: #333;">
+                                        <div class="progress-bar" role="progressbar" style="width: @(Math.Min(ctr * 5, 100))%; background-color: var(--main-orange);" aria-valuenow="@ctr" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-2">
+                                        <small class="text-white-50">Eficiencia de atracción</small>
+                                        <small class="text-orange fw-bold">@ctr.ToString("F2")%</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="row justify-content-center">
+                    <div class="col-md-8 text-center py-5 card border-0 p-5 shadow-lg" style="background-color: #1a1a1a; border-radius: 20px;">
+                        <div class="mb-4">
+                            <i class="fas fa-store-slash text-white-50" style="font-size: 4rem;"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">¡Ya eres Miembro Premium!</h3>
+                        <p class="lead text-white-50 mb-4">
+                            Sin embargo, aún no has registrado ningún negocio bajo tu cuenta o tus negocios están pendientes de aprobación. 
+                            ¡Registra o publica tu negocio hoy para empezar a recibir estadísticas de visitas, clics y conversiones en tiempo real!
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="/Home/RegistrarNegocio" class="btn btn-warning fw-bold px-4 py-3" style="background-color: var(--main-orange); color: white; border: none; border-radius: 30px;">
+                                <i class="fas fa-plus me-2"></i> Registrar mi Negocio
+                            </a>
+                            <a href="/" class="btn btn-outline-light px-4 py-3" style="border-radius: 30px;">Volver al Inicio</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+}
+else
+{
+    <section class="hero-section d-flex align-items-center justify-content-center text-center" style="min-height: 40vh;">
+        <div class="container-fluid hero-content">
+            <span class="badge-custom mb-3">IMPULSA TU NEGOCIO</span>
+            <h1 class="hero-title">
+                Beneficios de <span class="text-orange">PIN Premium</span>
+            </h1>
+            <p class="hero-subtitle">
+                Lleva tu negocio al siguiente nivel con herramientas exclusivas diseñadas para aumentar tus ventas.
+            </p>
+        </div>
+    </section>
+
+    <section class="py-5" style="background-color: #fafafa;">
+        <div class="container px-5 text-center">
+            <h3 class="fw-bold mb-4 text-dark">¿Por qué obtener el plan de pago?</h3>
+            <p class="lead mb-5 mx-auto text-muted" style="max-width: 800px;">
+                Al suscribirte a nuestro plan Premium, desbloquearás funcionalidades avanzadas como <strong>estadísticas detalladas</strong> de tu negocio. 
+                Podrás saber exactamente <strong>cuántas personas visitan la página de tu negocio</strong>, permitiéndote medir tu impacto y mejorar tus estrategias para atraer más clientes.
+            </p>
+            
+            <div class="row justify-content-center g-4 mb-5">
+                <!-- Beneficio 1: Estadísticas -->
+                <div class="col-md-6 col-lg-5 text-start">
+                    <div class="cta-card text-left h-100" style="background-color: #1a1a1a; padding: 2.5rem; border-radius: 20px; color: white; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                        <span class="badge bg-warning mb-3" style="background-color: var(--main-orange) !important;">PREMIUM</span>
+                        <h4 class="fw-bold mb-3">Estadísticas Reales</h4>
+                        <p class="text-white-50 mb-4">Mide el CTR, clics y visualizaciones que recibe tu negocio en nuestro portal para optimizar tu presencia.</p>
+                        
+                        <div class="p-3 bg-dark rounded-3" style="border: 1px solid #333;">
+                            <p class="small mb-1 text-white-50">TUS ESTADÍSTICAS</p>
+                            <h6 class="fw-bold">Visibilidad de tu negocio</h6>
+                            <div class="progress mt-3" style="height: 8px; background-color: #333;">
+                                <div class="progress-bar" style="width: 85%; background-color: var(--main-orange);"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-3">
+                                <small class="fw-bold" style="font-size: 1.2rem;">+3,540 clics</small>
+                                <small class="text-success fw-bold" style="font-size: 1.1rem;">+12%</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Beneficio 2: Posicionamiento -->
+                <div class="col-md-6 col-lg-4 text-start">
+                    <div class="card border-0 p-4 h-100 shadow-sm" style="border-radius: 20px; background-color: white;">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="p-3 rounded-circle me-3" style="background-color: rgba(242, 118, 20, 0.1); color: var(--main-orange);">
+                                <i class="fas fa-crown fa-2x"></i>
+                            </div>
+                            <h4 class="fw-bold mb-0 text-dark">Destacado</h4>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-3">Posicionamiento prioritario</h5>
+                        <p class="text-muted">Aparece en la parte superior de las búsquedas locales y categorías, garantizando que más clientes potenciales te encuentren primero.</p>
+                        
+                        <div class="mt-auto pt-3 border-top">
+                            <h5 class="fw-bold text-dark mb-1">9.90 PEN <span class="small text-muted fw-normal">/ pago único</span></h5>
+                            <small class="text-muted">Asegura tu crecimiento hoy mismo.</small>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="mt-4 mb-5">
-            <a href="#" class="btn btn-warning btn-lg fw-bold" style="background-color: var(--main-orange); color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 1.1rem;">Continuar a pago</a>
+            <div class="mt-4 mb-5">
+                <a href="/Payment/CreatePreference" class="btn btn-warning btn-lg fw-bold px-5 py-3 shadow-lg" style="background-color: var(--main-orange); color: white; border: none; border-radius: 30px; font-size: 1.2rem; transition: transform 0.2s;">
+                    <i class="fas fa-shopping-cart me-2"></i> Adquirir PIN Premium por S/ 9.90
+                </a>
+                <p class="text-muted small mt-3"><i class="fas fa-lock me-1"></i> Pago 100% seguro procesado por Mercado Pago Checkout Pro</p>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+}
