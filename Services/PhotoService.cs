@@ -42,6 +42,20 @@ namespace PinAppdePromo.Services
             return uploadResult.SecureUrl?.ToString();
         }
 
+        public async Task<string> SubirImagenPorUrlAsync(string url)
+        {
+            if (string.IsNullOrEmpty(url)) return null;
+
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(url),
+                Transformation = new Transformation().Quality("auto").FetchFormat("auto")
+            };
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            return uploadResult.SecureUrl?.ToString();
+        }
+
         public async Task<bool> BorrarImagenAsync(string idPublico)
         {
             var deleteParams = new DeletionParams(idPublico);

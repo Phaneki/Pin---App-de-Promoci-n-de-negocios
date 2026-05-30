@@ -33,6 +33,17 @@ namespace PinAppdePromo.Controllers
                 .ThenByDescending(b => b.CreatedAt)
                 .Take(8)
                 .ToListAsync();
+
+            var resenasRecientes = await _pinContext.Reviews
+                .Include(r => r.User)
+                .Include(r => r.Business)
+                .Where(r => r.Rating >= 4 && r.Comment != null && r.Comment != "")
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(5)
+                .ToListAsync();
+
+            ViewBag.ResenasRecientes = resenasRecientes;
+
             return View(negocios);
         }
 
@@ -194,8 +205,12 @@ namespace PinAppdePromo.Controllers
                 await _pinContext.SaveChangesAsync();
                 if (!string.IsNullOrEmpty(ImageUrlLink))
                 {
-                    _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = ImageUrlLink });
-                    await _pinContext.SaveChangesAsync();
+                    var secureUrl = await _photoService.SubirImagenPorUrlAsync(ImageUrlLink);
+                    if (!string.IsNullOrEmpty(secureUrl))
+                    {
+                        _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = secureUrl });
+                        await _pinContext.SaveChangesAsync();
+                    }
                 }
                 if (Imagenes != null && Imagenes.Count > 0)
                 {
@@ -209,12 +224,13 @@ namespace PinAppdePromo.Controllers
                     }
                     await _pinContext.SaveChangesAsync();
                 }
+                TempData["Exito"] = "¡Tu negocio se ha registrado con éxito! Un moderador lo revisará pronto para publicarlo en la plataforma.";
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                var innerMsg = ex.InnerException?.Message ?? "Sin inner exception";
-                return Content($"ERROR: {ex.Message}\n\nINNER: {innerMsg}\n\nSTACK: {ex.StackTrace}", "text/plain");
+                TempData["Error"] = "Ocurrió un error al registrar tu negocio. Inténtalo de nuevo.";
+                return RedirectToAction("RegistrarNegocio");
             }
         }
 
@@ -393,6 +409,69 @@ namespace PinAppdePromo.Controllers
             }
             if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
             return RedirectToAction("Moderacion");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditarNegocioModerador(int id)
+        {
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol != "MODERADOR") return RedirectToAction("Index", "Home");
+
+            var negocio = await _pinContext.Businesses.FindAsync(id);
+            if (negocio == null) return NotFound();
+
+            ViewBag.Categorias = await _pinContext.Categories.ToListAsync();
+            return View(negocio);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditarNegocioModerador(int BusinessId, string TradeName, string Description, string Address, string ContactPhone, int CategoryId, decimal Latitude, decimal Longitude, IFormFile NuevaImagen, string NuevaImagenUrl)
+        {
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol != "MODERADOR") return Unauthorized();
+
+            var negocio = await _pinContext.Businesses.FindAsync(BusinessId);
+            if (negocio != null)
+            {
+                negocio.TradeName = TradeName;
+                negocio.Description = Description;
+                negocio.Address = Address;
+                negocio.ContactPhone = ContactPhone;
+                negocio.CategoryId = CategoryId;
+                negocio.Latitude = Latitude;
+                negocio.Longitude = Longitude;
+
+                // Handle Photo Update
+                string newImageUrl = null;
+                if (!string.IsNullOrEmpty(NuevaImagenUrl))
+                {
+                    newImageUrl = await _photoService.SubirImagenPorUrlAsync(NuevaImagenUrl);
+                }
+                else if (NuevaImagen != null && NuevaImagen.Length > 0)
+                {
+                    newImageUrl = await _photoService.SubirImagenAsync(NuevaImagen);
+                }
+
+                if (!string.IsNullOrEmpty(newImageUrl))
+                {
+                    // Remove existing images
+                    var existingImages = _pinContext.BusinessImages.Where(bi => bi.BusinessId == BusinessId);
+                    _pinContext.BusinessImages.RemoveRange(existingImages);
+                    // Add new image
+                    _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = BusinessId, ImageUrl = newImageUrl });
+                }
+
+                var staffEmail = HttpContext.Session.GetString("Usuario");
+                var staff = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == staffEmail);
+                if (staff != null) 
+                { 
+                    _pinContext.Add(new StaffLog { StaffId = staff.UserId, Action = $"Editó información del negocio '{TradeName}'", ExecutedAt = DateTime.UtcNow }); 
+                }
+                
+                await _pinContext.SaveChangesAsync();
+                TempData["ExitoEdicion"] = $"El negocio '{TradeName}' fue editado correctamente.";
+            }
+            return RedirectToAction("NegociosAdmin");
         }
 
         public async Task<IActionResult> CategoriasAdmin(string busqueda, int pagina = 1)
