@@ -67,13 +67,31 @@ namespace PinAppdePromo.Controllers
                 .Where(b => b.Status == "Approved" || b.Status == "Promoted")
                 .Select(b => b.Address)
                 .ToListAsync();
-            ViewBag.Distritos = todosNegocios
-                .Where(a => !string.IsNullOrEmpty(a))
-                .Select(a => a.Split(',').Last().Trim())
-                .Distinct()
-                .OrderBy(d => d)
-                .ToList();
+            var distritosLima = new List<string> {
+                "Ancón", "Ate", "Barranco", "Breña", "Carabayllo", "Chaclacayo", "Chorrillos", "Cieneguilla", 
+                "Comas", "El Agustino", "Independencia", "Jesús María", "La Molina", "La Victoria", "Lince", 
+                "Los Olivos", "Lurigancho", "Lurín", "Magdalena del Mar", "Miraflores", "Pachacámac", "Pucusana", 
+                "Pueblo Libre", "Puente Piedra", "Punta Hermosa", "Punta Negra", "Rímac", "San Bartolo", 
+                "San Borja", "San Isidro", "San Juan de Lurigancho", "San Juan de Miraflores", "San Luis", 
+                "San Martín de Porres", "San Miguel", "Santa Anita", "Santa María del Mar", "Santa Rosa", 
+                "Santiago de Surco", "Surco", "Surquillo", "Villa El Salvador", "Villa María del Triunfo",
+                "Cercado de Lima", "Lima", "Callao", "Bellavista", "Carmen de la Legua", "La Perla", "La Punta", "Ventanilla", "Mi Perú"
+            };
 
+            var distritosEncontrados = new HashSet<string>();
+            foreach (var addr in todosNegocios.Where(a => !string.IsNullOrEmpty(a)))
+            {
+                var upperAddr = addr.ToUpper();
+                foreach (var d in distritosLima)
+                {
+                    if (upperAddr.Contains(d.ToUpper()))
+                    {
+                        distritosEncontrados.Add(d);
+                    }
+                }
+            }
+
+            ViewBag.Distritos = distritosEncontrados.OrderBy(d => d).ToList();
             return View(negocios);
         }
 
