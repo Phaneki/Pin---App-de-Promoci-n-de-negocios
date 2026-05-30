@@ -61,6 +61,7 @@ if (!string.IsNullOrEmpty(redisConnectionString))
 builder.Services.AddSession();
 
 // 3. Registrar servicios personalizados
+builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<OverpassService>();
 builder.Services.AddScoped<OverpassService>();
 
@@ -85,9 +86,15 @@ using (var scope = app.Services.CreateScope())
         dbContext.Database.ExecuteSqlRaw("ALTER TABLE \"Usuarios\" ADD COLUMN \"Ubicacion\" text;");
         dbContext.Database.ExecuteSqlRaw("ALTER TABLE \"Usuarios\" ADD COLUMN \"Bio\" text;");
     } catch { }
+    try {
+        dbContext.Database.ExecuteSqlRaw("ALTER TABLE \"Usuarios\" ADD COLUMN \"IsPremium\" boolean NOT NULL DEFAULT false;");
+    } catch { }
     dbContext.Database.Migrate();
     
     var pinContext = scope.ServiceProvider.GetRequiredService<PinDbContext>();
+    try {
+        pinContext.Database.ExecuteSqlRaw("ALTER TABLE \"Users\" ADD COLUMN \"IsPremium\" boolean NOT NULL DEFAULT false;");
+    } catch { }
     pinContext.Database.Migrate();
 }
 

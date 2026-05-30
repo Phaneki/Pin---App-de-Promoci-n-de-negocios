@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Pago Cancelado - PIN Premium";
+}
+
+<div class="container py-5 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 70vh;">
+    <div class="card p-5 shadow-lg border-0 mx-auto" style="max-width: 550px; border-radius: 20px; background-color: #1a1a1a; color: white;">
+        <div class="mb-4">
+            <div class="mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%; background-color: rgba(220, 53, 69, 0.2);">
+                <i class="fas fa-times-circle text-danger" style="font-size: 3rem;"></i>
+            </div>
+        </div>
+        
+        <h2 class="fw-bold mb-3 text-danger">Pago No Procesado</h2>
+        <p class="lead mb-4">
+            Lo sentimos, el pago no pudo completarse o fue cancelado. No se ha realizado ningún cobro en tu cuenta.
+        </p>
+
+        <hr style="border-color: #333;" class="my-4">
+
+        <p class="text-white-50 small mb-4">
+            Por favor, verifica tus datos de pago, saldo en tu tarjeta o intenta con otro medio de pago de Mercado Pago.
+        </p>
+
+        <div class="d-grid gap-2">
+            <a href="/Home/Beneficios" class="btn btn-warning fw-bold py-3" style="background-color: var(--main-orange); color: white; border: none; border-radius: 30px;">Reintentar Pago</a>
+            <a href="/" class="btn btn-outline-light py-3" style="border-radius: 30px;">Volver al Inicio</a>
+        </div>
+    </div>
+</div>
