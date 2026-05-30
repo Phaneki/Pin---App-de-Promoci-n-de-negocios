@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -12,6 +12,88 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-3b7u0NkQfO9Jx7D0n+u4f9z3pY+8gO67nPZ+uO3l3wGzVtM+QKf5Lz0RtWJhgJy0P3e0Kq1tTMtaaY4rQoDdVg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="~/Pin___App_de_Promoci_n_de_negocios.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/PinAppdePromo.styles.css" asp-append-version="true" />
+    <style>
+        /* Estilos Modernos del Navbar */
+        .nav-link-modern {
+            position: relative;
+            font-weight: 600;
+            color: #4b5563 !important;
+            padding: 0.5rem 1rem !important;
+            transition: color 0.3s ease;
+        }
+        .nav-link-modern:hover, .nav-link-modern.active-custom {
+            color: #ff6b00 !important;
+            border-bottom: none !important;
+        }
+        .nav-link-modern::after {
+            content: '';
+            position: absolute;
+            width: 0%;
+            height: 3px;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ff6b00;
+            transition: width 0.3s ease;
+            border-radius: 3px 3px 0 0;
+        }
+        .nav-link-modern:hover::after, .nav-link-modern.active-custom::after {
+            width: 80%;
+        }
+        .btn-modern-login {
+            border-radius: 9999px !important;
+            font-weight: 600 !important;
+            padding: 0.5rem 1.5rem !important;
+            border: 2px solid #e5e7eb !important;
+            transition: all 0.3s ease !important;
+            color: #374151 !important;
+        }
+        .btn-modern-login:hover {
+            border-color: #111827 !important;
+            background-color: #111827 !important;
+            color: white !important;
+        }
+        .btn-modern-orange {
+            border-radius: 9999px !important;
+            font-weight: 600 !important;
+            padding: 0.5rem 1.5rem !important;
+            background: linear-gradient(135deg, #ff6b00, #ff8c33) !important;
+            border: none !important;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+        .btn-modern-orange:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.4) !important;
+            color: white !important;
+        }
+        .dropdown-modern {
+            border-radius: 1rem !important;
+            border: 1px solid rgba(229,231,235,0.5) !important;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1) !important;
+            animation: dropdownFade 0.2s ease-out;
+            padding: 0.5rem !important;
+        }
+        .dropdown-modern .dropdown-item {
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .dropdown-modern .dropdown-item:hover {
+            background-color: #fffaf5;
+            color: #ff6b00;
+        }
+        .dropdown-modern .text-danger:hover {
+            background-color: #fef2f2;
+            color: #dc2626 !important;
+        }
+        @@keyframes dropdownFade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
     @RenderSection("Styles", required: false)
 </head>
 
@@ -35,19 +117,21 @@
     </div>
     <header>
         @{
-        var usuario = Context.Session.GetString("Usuario");
+        var usuario = Context.Session.GetString("Usuario"); // Esto guarda el correo
         var rol = Context.Session.GetString("Rol");
+        var nombreReal = Context.Session.GetString("Nombre");
+        var nombreMostrar = !string.IsNullOrEmpty(nombreReal) ? nombreReal : (usuario?.Split('@')[0] ?? "");
     }
-        <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm">
-            <div class="container-fluid px-4">
+        <nav class="navbar navbar-expand-lg sticky-top z-50 transition-all duration-300" style="background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(229,231,235,0.5); box-shadow: 0 4px 30px rgba(0,0,0,0.03);">
+            <div class="container-fluid px-4 py-1">
 
                 <!-- LOGO -->
-                <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
-                    <img src="~/images/logo.png" alt="logo" style="height:40px;" class="me-2">
+                <a class="navbar-brand d-flex align-items-center transition-transform hover:scale-105" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/logo.png" alt="logo" style="height:45px;" class="me-2">
                 </a>
 
                 <!-- BOTÓN RESPONSIVE -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <button class="navbar-toggler border-0 focus:ring-2 focus:ring-orange-200 rounded-lg" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -55,22 +139,22 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
 
                     <!-- CENTRO -->
-                    <ul class="navbar-nav mx-auto fw-semibold">
+                    <ul class="navbar-nav mx-auto gap-2 mt-3 mt-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link" id="navInicio" asp-controller="Home" asp-action="Index">Inicio</a>
+                            <a class="nav-link nav-link-modern" id="navInicio" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="navExplorar" asp-controller="Home" asp-action="Explorar">Explorar</a>
+                            <a class="nav-link nav-link-modern" id="navExplorar" asp-controller="Home" asp-action="Explorar">Explorar</a>
                         </li>
                     </ul>
 
                     <!-- DERECHA -->
-                    <ul class="navbar-nav align-items-center">
+                    <ul class="navbar-nav align-items-center gap-3 mt-4 mt-lg-0">
 
                         @if (usuario == null)
                         {
                             <li class="nav-item">
-                                <a asp-controller="Login" asp-action="Index" class="btn btn-outline-dark">
+                                <a asp-controller="Login" asp-action="Index" class="btn btn-modern-login">
                                     Iniciar sesión
                                 </a>
                             </li>
@@ -79,8 +163,8 @@
                         {
                             @if (usuario != null)
                             {
-                                <li class="nav-item ms-2">
-                                    <a asp-controller="Home" asp-action="RegistrarNegocio" class="btn btn-orange">
+                                <li class="nav-item">
+                                    <a asp-controller="Home" asp-action="RegistrarNegocio" class="btn btn-modern-orange">
                                         Registrar negocio
                                     </a>
                                 </li>
@@ -88,55 +172,53 @@
 
                             @if (rol == "MODERADOR")
                             {
-                                <li class="nav-item ms-2">
-                                    <a asp-controller="Home" asp-action="Moderacion" class="btn" style="background-color: #a04028; color: white;">
+                                <li class="nav-item">
+                                    <a asp-controller="Home" asp-action="Moderacion" class="btn rounded-pill fw-bold px-4" style="background-color: #27272a; color: white; border: 2px solid #27272a;">
                                         Manager
                                     </a>
                                 </li>
                             }
 
-                            <li class="nav-item dropdown">
+                            <li class="nav-item dropdown ms-lg-2">
 
-                                <a class="nav-link p-0" href="#" role="button" data-bs-toggle="dropdown">
+                                <a class="nav-link p-0 dropdown-toggle-hide" href="#" role="button" data-bs-toggle="dropdown">
                                     @if (!string.IsNullOrEmpty(Context.Session.GetString("Foto")))
                                     {
-                                        <img src="@Context.Session.GetString("Foto")" class="avatar-img" referrerpolicy="no-referrer"  />
+                                        <img src="@Context.Session.GetString("Foto")" class="avatar-img shadow-sm hover:ring-4 ring-orange-100 transition-all" style="width: 42px; height: 42px;" referrerpolicy="no-referrer"  />
                                     }
                                     else
                                     {
-                                        <div class="avatar-circle">
-                                            @usuario.Substring(0,1).ToUpper()
+                                        <div class="avatar-circle shadow-sm hover:ring-4 ring-orange-100 transition-all" style="width: 42px; height: 42px;">
+                                            @nombreMostrar.Substring(0,1).ToUpper()
                                         </div>
                                     }
-                                    
-
                                 </a>
 
-                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
-
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-modern mt-3">
                                     <li>
-                                        <a class="dropdown-item" asp-controller="Home" asp-action="Perfil">
-                                            👤 Perfil
+                                        <div class="px-3 py-2 border-bottom mb-2 text-center">
+                                            <p class="mb-0 fw-bold text-gray-800">Hola, @nombreMostrar</p>
+                                            <small class="text-gray-400">@rol</small>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item flex items-center gap-2" asp-controller="Home" asp-action="Perfil">
+                                            <i class="fas fa-user-circle text-gray-400"></i> Mi Perfil
                                         </a>
                                     </li>
 
-                                    <li><hr class="dropdown-divider"></li>
-
                                     <li>
-                                        <a class="dropdown-item text-danger"
+                                        <a class="dropdown-item text-danger flex items-center gap-2 mt-1"
                                         asp-controller="Login"
                                         asp-action="Logout"
                                         onclick="sessionStorage.removeItem('bienvenidaMostrada')">
-                                            🚪 Cerrar sesión
+                                            <i class="fas fa-sign-out-alt"></i> Cerrar sesión
                                         </a>
                                     </li>
 
                                 </ul>
                             </li>
-
                         }
-
-                        
 
                     </ul>
 
@@ -148,28 +230,25 @@
         @RenderBody()
     </main>
 
-    <footer class="footer-custom">
-        <div class="container-fluid px-5">
-
-            <div class="row align-items-center text-center text-md-start">
-
+    <footer class="mt-auto py-12" style="background: linear-gradient(to right, #ff6b00, #ff8c33);">
+        <div class="container mx-auto px-6 max-w-7xl">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6 text-white">
                 <!-- IZQUIERDA -->
-                <div class="col-md-6 mb-3 mb-md-0">
-                    <p class="mb-0 fw-semibold">© 2026 Pin</p>
-                    <small class="text-muted">Todos los derechos reservados.</small>
+                <div class="text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-2 mb-2">
+                        <i class="fas fa-map-marker-alt text-2xl"></i>
+                        <span class="font-extrabold text-2xl tracking-tight">PIN</span>
+                    </div>
+                    <p class="text-orange-100 text-sm opacity-90">© 2026 Todos los derechos reservados.</p>
                 </div>
 
                 <!-- DERECHA -->
-                <div class="col-md-6 text-md-end">
-                    <div class="footer-links">
-                        <a asp-controller="Home" asp-action="Nosotros">Nosotros</a>
-                        <a asp-controller="Home" asp-action="Privacidad">Privacidad</a>
-                        <a asp-controller="Home" asp-action="Contacto">Contacto</a>
-                    </div>
+                <div class="flex flex-wrap justify-center items-center gap-6 text-sm font-medium">
+                    <a asp-controller="Home" asp-action="Nosotros" class="text-white hover:text-orange-200 transition-colors hover:underline underline-offset-4">Nosotros</a>
+                    <a asp-controller="Home" asp-action="Privacidad" class="text-white hover:text-orange-200 transition-colors hover:underline underline-offset-4">Privacidad</a>
+                    <a asp-controller="Home" asp-action="Contacto" class="text-white hover:text-orange-200 transition-colors hover:underline underline-offset-4">Contacto</a>
                 </div>
-
             </div>
-
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -179,13 +258,15 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            var usuario = '@Context.Session.GetString("Usuario")';
+            var usuarioEmail = '@Context.Session.GetString("Usuario")';
+            var nombreReal = '@Context.Session.GetString("Nombre")';
+            var nombreAMostrar = nombreReal ? nombreReal : (usuarioEmail ? usuarioEmail.split('@@')[0] : '');
 
             // bandera para evitar que salga siempre
-            if (usuario && sessionStorage.getItem("bienvenidaMostrada") !== "true") {
+            if (usuarioEmail && sessionStorage.getItem("bienvenidaMostrada") !== "true") {
 
                 document.getElementById("welcomeText").innerText =
-                    "Hola, " + usuario;
+                    "Hola, " + nombreAMostrar;
 
                 var modal = new bootstrap.Modal(document.getElementById('welcomeModal'));
                 modal.show();

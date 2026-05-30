@@ -1,0 +1,72 @@
+@model IEnumerable<PinAppdePromo.Models.BusinessSchedule>
+
+<section class="business-hours-section mb-5">
+    <h3 class="mb-3">
+        <i class="bi bi-clock"></i> Horarios de Atención
+    </h3>
+    
+    @if (Model?.Any() == true)
+    {
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Día</th>
+                        <th>Hora de Apertura</th>
+                        <th>Hora de Cierre</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var schedule in Model.OrderBy(s => GetDayOrder(s.DayOfWeek)))
+                    {
+                        <tr>
+                            <td class="fw-semibold">@TranslateDayOfWeek(schedule.DayOfWeek)</td>
+                            <td>@schedule.OpenTime.ToString("HH:mm")</td>
+                            <td>@schedule.CloseTime.ToString("HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No hay horarios registrados
+        </div>
+    }
+</section>
+
+@functions {
+    // Función para ordenar días de la semana
+    private int GetDayOrder(string dayOfWeek)
+    {
+        return dayOfWeek switch
+        {
+            "Monday" => 1,
+            "Tuesday" => 2,
+            "Wednesday" => 3,
+            "Thursday" => 4,
+            "Friday" => 5,
+            "Saturday" => 6,
+            "Sunday" => 7,
+            _ => 8
+        };
+    }
+
+    // Función para traducir días al español
+    private string TranslateDayOfWeek(string dayOfWeek)
+    {
+        return dayOfWeek switch
+        {
+            "Monday" => "Lunes",
+            "Tuesday" => "Martes",
+            "Wednesday" => "Miércoles",
+            "Thursday" => "Jueves",
+            "Friday" => "Viernes",
+            "Saturday" => "Sábados",
+            "Sunday" => "Domingos",
+            _ => dayOfWeek
+        };
+    }
+}
