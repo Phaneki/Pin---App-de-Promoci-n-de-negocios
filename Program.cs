@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PinAppdePromo.Models;
 using PinAppdePromo.Services;
+using PinAppdePromo.ML;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 var builder = WebApplication.CreateBuilder(args);
@@ -70,6 +71,9 @@ builder.Services.AddHttpClient<NominatimService>()
         client.Timeout = TimeSpan.FromSeconds(10);
     });
 builder.Services.AddScoped<NominatimService>();
+
+// 5. Registrar servicios de Machine Learning
+builder.Services.AddMachineLearningServices();
 
 var app = builder.Build();
 

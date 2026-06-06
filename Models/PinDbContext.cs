@@ -18,6 +18,7 @@ namespace PinAppdePromo.Models
         public DbSet<StaffLog> StaffLogs { get; set; }
         public DbSet<BusinessReport> BusinessReports { get; set; }
         public DbSet<BusinessMetric> BusinessMetrics { get; set; }
+        public DbSet<BusquedaUsuario> BusquedasUsuario { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

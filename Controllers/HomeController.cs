@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PinAppdePromo.Models;
 using PinAppdePromo.Services;
+using PinAppdePromo.ML;
 using System.Dynamic;
 
 namespace PinAppdePromo.Controllers
@@ -12,12 +13,14 @@ namespace PinAppdePromo.Controllers
         private readonly AppDbContext _context;
         private readonly PinDbContext _pinContext;
         private readonly OverpassService _overpassService;
+        private readonly RecommendationAnalysisService _recommendationAnalysisService;
 
-        public HomeController(AppDbContext context, PinDbContext pinContext, OverpassService overpassService)
+        public HomeController(AppDbContext context, PinDbContext pinContext, OverpassService overpassService, RecommendationAnalysisService recommendationAnalysisService)
         {
             _context = context;
             _pinContext = pinContext;
             _overpassService = overpassService;
+            _recommendationAnalysisService = recommendationAnalysisService;
         }
 
         public async Task<IActionResult> Index()
@@ -73,6 +76,31 @@ namespace PinAppdePromo.Controllers
                 .Distinct()
                 .OrderBy(d => d)
                 .ToList();
+
+            // Generar recomendaciones personalizadas si el usuario está autenticado
+            var email = HttpContext.Session.GetString("Usuario");
+            if (!string.IsNullOrEmpty(email))
+            {
+                var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (pinUser != null)
+                {
+                    var historial = await _pinContext.BusquedasUsuario.Where(b => b.UsuarioId == pinUser.UserId).ToListAsync();
+
+                    // Mapear negocios a DTOs para el servicio de recomendación
+                    var negociosDto = negocios.Select(b => new ML.NegocioDTO
+                    {
+                        Id = b.BusinessId,
+                        Nombre = b.TradeName ?? string.Empty,
+                        Categoria = b.Category?.Name ?? string.Empty,
+                        Direccion = b.Address ?? string.Empty,
+                        Calificacion = b.Reviews != null && b.Reviews.Any() ? b.Reviews.Average(r => r.Rating) : 0,
+                        ImagenUrl = b.Images?.FirstOrDefault()?.ImageUrl
+                    }).ToList();
+
+                    var recomendaciones = _recommendationAnalysisService.GetPersonalizedRecommendations(pinUser.UserId, historial, negociosDto, 10);
+                    ViewBag.Recomendaciones = recomendaciones;
+                }
+            }
 
             return View(negocios);
         }
