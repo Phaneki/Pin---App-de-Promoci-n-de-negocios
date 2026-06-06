@@ -5,10 +5,10 @@ namespace PinAppdePromo.ML;
 /// </summary>
 public class RecomendacionInput
 {
-    public float UsuarioId { get; set; }
-    public float NegocioId { get; set; }
-    public float CategoriaHash { get; set; }
-    public float ZonaHash { get; set; }
+    public string UsuarioId { get; set; } = string.Empty;
+    public string NegocioId { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public string Zona { get; set; } = string.Empty;
     public float FrecuenciaCategoria { get; set; }
     public float FrecuenciaZona { get; set; }
     public float CalificacionPromedio { get; set; }
@@ -20,6 +20,8 @@ public class RecomendacionInput
 public class RecomendacionOutput
 {
     public float Score { get; set; }
+    public float Probability { get; set; }
+    public bool PredictedLabel { get; set; }
 }
 
 /// <summary>
@@ -27,10 +29,10 @@ public class RecomendacionOutput
 /// </summary>
 public class RecomendacionTraining
 {
-    public float UsuarioId { get; set; }
-    public float NegocioId { get; set; }
-    public float CategoriaHash { get; set; }
-    public float ZonaHash { get; set; }
+    public string UsuarioId { get; set; } = string.Empty;
+    public string NegocioId { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public string Zona { get; set; } = string.Empty;
     public float FrecuenciaCategoria { get; set; }
     public float FrecuenciaZona { get; set; }
     public float CalificacionPromedio { get; set; }

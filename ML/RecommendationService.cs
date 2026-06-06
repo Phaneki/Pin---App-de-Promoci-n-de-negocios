@@ -33,8 +33,7 @@ public class RecommendationService
                 using (var stream = new FileStream(_modelPath, FileMode.Open, FileAccess.Read))
                 {
                     _trainedModel = _mlContext.Model.Load(stream, out _);
-                    var inputSchema = Microsoft.ML.Data.SchemaDefinition.Create(typeof(RecomendacionInput));
-                    _predictionEngine = _mlContext.Model.CreatePredictionEngine<RecomendacionInput, RecomendacionOutput>(_trainedModel, inputSchema, null, true);
+                    _predictionEngine = _mlContext.Model.CreatePredictionEngine<RecomendacionInput, RecomendacionOutput>(_trainedModel, ignoreMissingColumns: true);
                 }
             }
             catch
@@ -57,28 +56,31 @@ public class RecommendationService
         // Crear datos semilla para evitar que el entrenamiento falle con 0 filas
         var seedData = new List<RecomendacionTraining>
         {
-            new RecomendacionTraining { UsuarioId = 1, NegocioId = 1, CategoriaHash = HashString("Restaurantes"), ZonaHash = HashString("Centro"), FrecuenciaCategoria = 3, FrecuenciaZona = 5, CalificacionPromedio = 4.5f, Label = true },
-            new RecomendacionTraining { UsuarioId = 1, NegocioId = 2, CategoriaHash = HashString("Cines"), ZonaHash = HashString("Centro"), FrecuenciaCategoria = 1, FrecuenciaZona = 2, CalificacionPromedio = 3.0f, Label = false },
-            new RecomendacionTraining { UsuarioId = 2, NegocioId = 3, CategoriaHash = HashString("Restaurantes"), ZonaHash = HashString("Miraflores"), FrecuenciaCategoria = 2, FrecuenciaZona = 4, CalificacionPromedio = 4.0f, Label = true },
-            new RecomendacionTraining { UsuarioId = 2, NegocioId = 4, CategoriaHash = HashString("Tecnología"), ZonaHash = HashString("San Isidro"), FrecuenciaCategoria = 1, FrecuenciaZona = 1, CalificacionPromedio = 2.5f, Label = false },
-            new RecomendacionTraining { UsuarioId = 3, NegocioId = 5, CategoriaHash = HashString("Salud"), ZonaHash = HashString("Surco"), FrecuenciaCategoria = 1, FrecuenciaZona = 1, CalificacionPromedio = 5.0f, Label = true }
+            new RecomendacionTraining { UsuarioId = "1", NegocioId = "1", Categoria = "Restaurantes", Zona = "Centro", FrecuenciaCategoria = 3, FrecuenciaZona = 5, CalificacionPromedio = 4.5f, Label = true },
+            new RecomendacionTraining { UsuarioId = "1", NegocioId = "2", Categoria = "Cines", Zona = "Centro", FrecuenciaCategoria = 1, FrecuenciaZona = 2, CalificacionPromedio = 3.0f, Label = false },
+            new RecomendacionTraining { UsuarioId = "2", NegocioId = "3", Categoria = "Restaurantes", Zona = "Miraflores", FrecuenciaCategoria = 2, FrecuenciaZona = 4, CalificacionPromedio = 4.0f, Label = true },
+            new RecomendacionTraining { UsuarioId = "2", NegocioId = "4", Categoria = "Tecnología", Zona = "San Isidro", FrecuenciaCategoria = 1, FrecuenciaZona = 1, CalificacionPromedio = 2.5f, Label = false },
+            new RecomendacionTraining { UsuarioId = "3", NegocioId = "5", Categoria = "Salud", Zona = "Surco", FrecuenciaCategoria = 1, FrecuenciaZona = 1, CalificacionPromedio = 5.0f, Label = true }
         };
 
         var dataView = _mlContext.Data.LoadFromEnumerable(seedData);
 
-        var pipeline = _mlContext.Transforms.Concatenate("Features",
-                nameof(RecomendacionTraining.UsuarioId),
-                nameof(RecomendacionTraining.NegocioId),
-                nameof(RecomendacionTraining.CategoriaHash),
-                nameof(RecomendacionTraining.ZonaHash),
+        var pipeline = _mlContext.Transforms.Categorical.OneHotEncoding(new[] {
+                new InputOutputColumnPair("UsuarioIdEncoded", nameof(RecomendacionTraining.UsuarioId)),
+                new InputOutputColumnPair("NegocioIdEncoded", nameof(RecomendacionTraining.NegocioId)),
+                new InputOutputColumnPair("CategoriaEncoded", nameof(RecomendacionTraining.Categoria)),
+                new InputOutputColumnPair("ZonaEncoded", nameof(RecomendacionTraining.Zona))
+            })
+            .Append(_mlContext.Transforms.Concatenate("Features",
+                "UsuarioIdEncoded", "NegocioIdEncoded", "CategoriaEncoded", "ZonaEncoded",
                 nameof(RecomendacionTraining.FrecuenciaCategoria),
                 nameof(RecomendacionTraining.FrecuenciaZona),
-                nameof(RecomendacionTraining.CalificacionPromedio))
+                nameof(RecomendacionTraining.CalificacionPromedio)))
+            .Append(_mlContext.Transforms.NormalizeMinMax("Features"))
             .Append(_mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(labelColumnName: "Label", featureColumnName: "Features"));
 
         _trainedModel = pipeline.Fit(dataView);
-        var inputSchema = Microsoft.ML.Data.SchemaDefinition.Create(typeof(RecomendacionInput));
-        _predictionEngine = _mlContext.Model.CreatePredictionEngine<RecomendacionInput, RecomendacionOutput>(_trainedModel, inputSchema, null, true);
+        _predictionEngine = _mlContext.Model.CreatePredictionEngine<RecomendacionInput, RecomendacionOutput>(_trainedModel, ignoreMissingColumns: true);
         SaveModel();
     }
 
@@ -100,19 +102,22 @@ public class RecommendationService
         }
         var dataView = _mlContext.Data.LoadFromEnumerable(trainingData);
 
-        var pipeline = _mlContext.Transforms.Concatenate("Features",
-                nameof(RecomendacionTraining.UsuarioId),
-                nameof(RecomendacionTraining.NegocioId),
-                nameof(RecomendacionTraining.CategoriaHash),
-                nameof(RecomendacionTraining.ZonaHash),
+        var pipeline = _mlContext.Transforms.Categorical.OneHotEncoding(new[] {
+                new InputOutputColumnPair("UsuarioIdEncoded", nameof(RecomendacionTraining.UsuarioId)),
+                new InputOutputColumnPair("NegocioIdEncoded", nameof(RecomendacionTraining.NegocioId)),
+                new InputOutputColumnPair("CategoriaEncoded", nameof(RecomendacionTraining.Categoria)),
+                new InputOutputColumnPair("ZonaEncoded", nameof(RecomendacionTraining.Zona))
+            })
+            .Append(_mlContext.Transforms.Concatenate("Features",
+                "UsuarioIdEncoded", "NegocioIdEncoded", "CategoriaEncoded", "ZonaEncoded",
                 nameof(RecomendacionTraining.FrecuenciaCategoria),
                 nameof(RecomendacionTraining.FrecuenciaZona),
-                nameof(RecomendacionTraining.CalificacionPromedio))
+                nameof(RecomendacionTraining.CalificacionPromedio)))
+            .Append(_mlContext.Transforms.NormalizeMinMax("Features"))
             .Append(_mlContext.BinaryClassification.Trainers.SdcaLogisticRegression(labelColumnName: "Label", featureColumnName: "Features"));
 
         _trainedModel = pipeline.Fit(dataView);
-        var inputSchema = Microsoft.ML.Data.SchemaDefinition.Create(typeof(RecomendacionInput));
-        _predictionEngine = _mlContext.Model.CreatePredictionEngine<RecomendacionInput, RecomendacionOutput>(_trainedModel, inputSchema, null, true);
+        _predictionEngine = _mlContext.Model.CreatePredictionEngine<RecomendacionInput, RecomendacionOutput>(_trainedModel, ignoreMissingColumns: true);
         SaveModel();
     }
 
@@ -130,17 +135,17 @@ public class RecommendationService
 
         var input = new RecomendacionInput
         {
-            UsuarioId = usuarioId,
-            NegocioId = negocioId,
-            CategoriaHash = HashString(categoria),
-            ZonaHash = HashString(zona),
+            UsuarioId = usuarioId.ToString(),
+            NegocioId = negocioId.ToString(),
+            Categoria = categoria ?? string.Empty,
+            Zona = zona ?? string.Empty,
             FrecuenciaCategoria = frecuenciasCategorias.ContainsKey(categoria) ? frecuenciasCategorias[categoria] : 0,
             FrecuenciaZona = frecuenciasZonas.ContainsKey(zona) ? frecuenciasZonas[zona] : 0,
             CalificacionPromedio = (float)calificacionPromedio
         };
 
         var prediction = _predictionEngine.Predict(input);
-        return Math.Max(0, Math.Min(1, prediction.Score)); // Normalizar entre 0 y 1
+        return prediction.Probability;
     }
 
     /// <summary>
@@ -179,12 +184,12 @@ public class RecommendationService
 
                 trainingData.Add(new RecomendacionTraining
                 {
-                    UsuarioId = usuarioId,
-                    NegocioId = busqueda.NegocioId,
-                    CategoriaHash = HashString(busqueda.Categoria),
-                    ZonaHash = HashString(busqueda.Zona),
-                    FrecuenciaCategoria = frecuenciasCategorias[busqueda.Categoria],
-                    FrecuenciaZona = frecuenciasZonas[busqueda.Zona],
+                    UsuarioId = usuarioId.ToString(),
+                    NegocioId = busqueda.NegocioId.ToString(),
+                    Categoria = busqueda.Categoria ?? string.Empty,
+                    Zona = busqueda.Zona ?? string.Empty,
+                    FrecuenciaCategoria = frecuenciasCategorias.ContainsKey(busqueda.Categoria) ? frecuenciasCategorias[busqueda.Categoria] : 0,
+                    FrecuenciaZona = frecuenciasZonas.ContainsKey(busqueda.Zona) ? frecuenciasZonas[busqueda.Zona] : 0,
                     CalificacionPromedio = (float)calificacionPromedio,
                     Label = label
                 });
@@ -192,17 +197,6 @@ public class RecommendationService
         }
 
         return trainingData;
-    }
-
-    /// <summary>
-    /// Convierte un string a un hash numérico para ML.NET
-    /// </summary>
-    private float HashString(string value)
-    {
-        if (string.IsNullOrEmpty(value))
-            return 0f;
-
-        return Math.Abs(value.GetHashCode() % 10000) / 10000f;
     }
 
     /// <summary>
