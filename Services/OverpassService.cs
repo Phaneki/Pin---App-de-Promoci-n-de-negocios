@@ -279,11 +279,18 @@ namespace PinAppdePromo.Services
         /// </summary>
         private string GetBusinessImageUrl(Dictionary<string, string> tags, string name)
         {
-            var amenity = GetTagValue(tags, "amenity", "shop", "leisure", "tourism");
-            var query = string.IsNullOrEmpty(amenity) ? "business" : amenity;
+            // 1. Intentar obtener una foto REAL si OpenStreetMap la tiene registrada
+            var realImage = GetTagValue(tags, "image", "image:url", "contact:image", "contact:instagram", "contact:facebook");
+            if (!string.IsNullOrEmpty(realImage) && realImage.StartsWith("http"))
+            {
+                return realImage;
+            }
 
-            // Usamos imágenes de Unsplash Source (gratuito)
-            return $"https://source.unsplash.com/800x600/?{query},{Uri.EscapeDataString(name)}";
+            // 2. Si no tiene foto real, generamos un placeholder atractivo con su nombre
+            var shortName = string.IsNullOrEmpty(name) ? "Negocio" : (name.Length > 20 ? name.Substring(0, 20) : name);
+            // Reemplazamos los espacios por + para la URL de placehold.co
+            var textUrl = Uri.EscapeDataString(shortName);
+            return $"https://placehold.co/600x400/ff6b00/ffffff?text={textUrl}";
         }
 
         /// <summary>

@@ -1,8 +1,19 @@
 @model PinAppdePromo.Models.Business
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = Model.TradeName;
-    var coverImage = Model.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/1920x1080/333/fff?text=Showroom";
+    var rawCover = Model.Images?.FirstOrDefault()?.ImageUrl?.Trim();
+    var coverImage = "linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)";
+    if (!string.IsNullOrEmpty(rawCover)) {
+        if (rawCover.StartsWith("~/")) {
+            coverImage = Url.Content(rawCover);
+        } else if (!rawCover.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawCover.StartsWith("/") && !rawCover.StartsWith("data:image")) {
+            coverImage = "/images/businesses/" + rawCover;
+        } else {
+            coverImage = rawCover;
+        }
+    }
 
     // Uso de dynamic para prevenir errores si aún no agregas 'Services' o 'Products' a tu modelo Business
     dynamic dynModel = Model;
@@ -13,10 +24,8 @@
 
     var lat = Model.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
     var lng = Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    var googleMapsApiKey = Configuration["GoogleMaps:ApiKey"] ?? "";
 }
-
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 
 <!-- Hero Section -->
 <section class="hero-section position-relative d-flex align-items-center" style="background: url('@Url.Content(coverImage)'); background-size: cover; background-position: center;">
@@ -54,10 +63,9 @@
                     <div class="mb-2">
                         <i class="bi bi-telephone me-2"></i>@(string.IsNullOrEmpty(Model.ContactPhone) ? "Sin teléfono" : Model.ContactPhone)
                     </div>
-                    <div class="mb-3">
-                        <i class="bi bi-clock me-2"></i>Consultar horarios
-                    </div>
-                    <div id="businessMap" class="bg-light border rounded" style="height: 180px; z-index: 1;"></div>
+                    <!-- Horarios dinámicos cargados con JavaScript -->
+                    <div id="businessHoursContainer" class="mt-3"></div>
+                    <div id="businessMap" class="bg-light border rounded mt-3" style="height: 180px; z-index: 1;"></div>
                 </div>
             </div>
         </aside>
@@ -90,7 +98,68 @@
                 </div>
             </section>
 
-            <!-- Productos Destacados -->
+            <!-- Horarios de Atención -->
+            <section class="mb-5">
+                <div id="scheduleContainer">
+                    <div class="text-center">
+                        <div class="spinner-border spinner-border-sm text-muted" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="text-muted mt-2">Cargando horarios...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Galería de Fotos -->
+            @if (Model.Images?.Any() == true)
+            {
+                <section class="mb-5">
+                    <h2 class="mb-3">
+                        <i class="bi bi-images"></i> Galería
+                    </h2>
+                    <div id="businessGalleryCarousel" class="carousel slide shadow-lg" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-3">
+                            @for (int i = 0; i < Model.Images.Count; i++)
+                            {
+                                <div class="carousel-item @(i == 0 ? "active" : "")">
+                                    @{
+                                        var rawGalUrl = Model.Images.ElementAt(i).ImageUrl?.Trim();
+                                        var galUrl = rawGalUrl;
+                                        if (!string.IsNullOrEmpty(rawGalUrl)) {
+                                            if (rawGalUrl.StartsWith("~/")) {
+                                                galUrl = Url.Content(rawGalUrl);
+                                            } else if (!rawGalUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawGalUrl.StartsWith("/") && !rawGalUrl.StartsWith("data:image")) {
+                                                galUrl = "/images/businesses/" + rawGalUrl;
+                                            }
+                                        }
+                                    }
+                                    <img src="@galUrl" class="d-block w-100" alt="@Model.TradeName" style="height: 400px; object-fit: cover;">
+                                </div>
+                            }
+                        </div>
+
+                        @if (Model.Images.Count > 1)
+                        {
+                            <button class="carousel-control-prev" type="button" data-bs-target="#businessGalleryCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Anterior</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#businessGalleryCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Siguiente</span>
+                            </button>
+
+                            <!-- Indicadores -->
+                            <div class="carousel-indicators">
+                                @for (int i = 0; i < Model.Images.Count; i++)
+                                {
+                                    <button type="button" data-bs-target="#businessGalleryCarousel" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-label="Foto @(i + 1)"></button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
             <section class="mb-5">
                 <h2 class="mb-3">Productos Destacados</h2>
                 <div class="row">
@@ -239,8 +308,8 @@
 </div>
 
 @section Scripts {
-    <!-- Leaflet JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <!-- Google Maps JS -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=@googleMapsApiKey&callback=initBusinessMap" async defer></script>
 
     <script>
         // Serializamos dinámicamente las reseñas que vienen de tu Base de Datos
@@ -537,26 +606,144 @@
             sortReviews.value = sortReviewsModal.value;
             sortAndRender();
         });
-
         document.addEventListener('DOMContentLoaded', () => {
             loadReviews();
             setActiveStars(5);
+            // Cargar horarios dinámicos
+            loadBusinessHours(@Model.BusinessId);
+        });
 
-            // Inicializar el mapa del negocio
+        // Callback global para Google Maps
+        window.initBusinessMap = function() {
             const mapLat = @lat;
             const mapLng = @lng;
             const mapContainer = document.getElementById('businessMap');
             
             if (mapLat !== 0 && mapLng !== 0) {
-                const map = L.map('businessMap').setView([mapLat, mapLng], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
-                L.marker([mapLat, mapLng]).addTo(map)
-                    .bindPopup('<b>@Model.TradeName</b><br>@Model.Address');
+                const position = { lat: parseFloat(mapLat), lng: parseFloat(mapLng) };
+                const map = new google.maps.Map(mapContainer, {
+                    center: position,
+                    zoom: 15,
+                    disableDefaultUI: true // Interfaz limpia
+                });
+                
+                new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: '@Html.Raw(Model.TradeName)'
+                });
             } else {
                 mapContainer.innerHTML = '<div class="h-100 d-flex align-items-center justify-content-center text-muted small"><i class="bi bi-geo-alt-fill me-2"></i>Ubicación en mapa no disponible</div>';
             }
-        });
+        };
+
+        function loadBusinessHours(businessId) {
+            fetch(`/api/businesshours/status/${businessId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('businessHoursContainer');
+                    if (!container) return;
+
+                    let badgeHtml = '';
+                    if (data.isOpen) {
+                        const warningClass = data.minutesUntilClose <= 30 ? 'alert-warning' : 'alert-success';
+                        const warningText = data.minutesUntilClose <= 30 ? 
+                            `<br><small class="text-warning"><i class="bi bi-exclamation-triangle"></i> ⚠️ Cierra en ${data.minutesUntilClose} minutos</small>` : 
+                            '';
+                        
+                        badgeHtml = `
+                            <div class="alert ${warningClass} d-flex align-items-center" role="alert">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <div>
+                                    <strong>Abierto ahora</strong>
+                                    <br>
+                                    <small class="text-muted">Cierra a las ${data.closeTime}</small>
+                                    ${warningText}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        const opensAtText = data.opensAt ? 
+                            new Date(data.opensAt).toLocaleString('es-ES', { weekday: 'long', hour: '2-digit', minute: '2-digit' }) :
+                            'Horario no disponible';
+                        
+                        badgeHtml = `
+                            <div class="alert alert-danger d-flex align-items-center" role="alert">
+                                <i class="bi bi-x-circle-fill me-2"></i>
+                                <div>
+                                    <strong>Cerrado ahora</strong>
+                                    <br>
+                                    <small class="text-muted">Abre ${opensAtText}</small>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    container.innerHTML = badgeHtml;
+                })
+                .catch(error => console.error('Error loading business hours:', error));
+
+            // Cargar tabla de horarios semanales
+            fetch(`/api/businesshours/week/${businessId}`)
+                .then(response => response.json())
+                .then(schedules => {
+                    const scheduleContainer = document.getElementById('scheduleContainer');
+                    if (!scheduleContainer || schedules.length === 0) return;
+
+                    const dayNames = {
+                        'Monday': 'Lunes',
+                        'Tuesday': 'Martes',
+                        'Wednesday': 'Miércoles',
+                        'Thursday': 'Jueves',
+                        'Friday': 'Viernes',
+                        'Saturday': 'Sábados',
+                        'Sunday': 'Domingos'
+                    };
+
+                    const dayOrder = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 7 };
+                    schedules.sort((a, b) => (dayOrder[a.dayOfWeek] || 8) - (dayOrder[b.dayOfWeek] || 8));
+
+                    let html = `
+                        <h3 class="mb-3"><i class="bi bi-clock"></i> Horarios de Atención</h3>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Día</th>
+                                        <th>Apertura</th>
+                                        <th>Cierre</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    schedules.forEach(schedule => {
+                        const openTime = schedule.openTime.substring(0, 5); // HH:mm
+                        const closeTime = schedule.closeTime.substring(0, 5);
+                        const dayName = dayNames[schedule.dayOfWeek] || schedule.dayOfWeek;
+                        html += `
+                            <tr>
+                                <td class="fw-semibold">${dayName}</td>
+                                <td>${openTime}</td>
+                                <td>${closeTime}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+
+                    scheduleContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading schedules:', error);
+                    const scheduleContainer = document.getElementById('scheduleContainer');
+                    if (scheduleContainer) {
+                        scheduleContainer.innerHTML = '<div class="alert alert-info"><i class="bi bi-info-circle"></i> No hay horarios registrados</div>';
+                    }
+                });
+        }
     </script>
 }

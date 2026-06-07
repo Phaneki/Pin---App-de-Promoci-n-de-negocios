@@ -14,13 +14,15 @@ namespace PinAppdePromo.Controllers
         private readonly PinDbContext _pinContext;
         private readonly OverpassService _overpassService;
         private readonly RecommendationAnalysisService _recommendationAnalysisService;
+        private readonly IPhotoService _photoService;
 
-        public HomeController(AppDbContext context, PinDbContext pinContext, OverpassService overpassService, RecommendationAnalysisService recommendationAnalysisService)
+        public HomeController(AppDbContext context, PinDbContext pinContext, OverpassService overpassService, RecommendationAnalysisService recommendationAnalysisService, IPhotoService photoService)
         {
             _context = context;
             _pinContext = pinContext;
             _overpassService = overpassService;
             _recommendationAnalysisService = recommendationAnalysisService;
+            _photoService = photoService;
         }
 
         public async Task<IActionResult> Index()
@@ -34,11 +36,39 @@ namespace PinAppdePromo.Controllers
                 .ThenByDescending(b => b.CreatedAt)
                 .Take(8)
                 .ToListAsync();
+
+            var resenasRecientes = await _pinContext.Reviews
+                .Include(r => r.User)
+                .Include(r => r.Business)
+                .Where(r => r.Rating >= 4 && r.Comment != null && r.Comment != "")
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(5)
+                .ToListAsync();
+
+            ViewBag.ResenasRecientes = resenasRecientes;
+
             return View(negocios);
         }
 
-        public async Task<IActionResult> Explorar(string busqueda, string distrito, List<int> categorias, string orden)
+        [HttpGet]
+        public IActionResult DebugImages()
         {
+            var data = _pinContext.Businesses
+                .Include(b => b.Images)
+                .Select(b => new { 
+                    b.BusinessId, 
+                    b.TradeName, 
+                    ImageCount = b.Images.Count, 
+                    Images = b.Images.Select(i => i.ImageUrl).ToList() 
+                })
+                .ToList();
+            return Json(data);
+        }
+
+        public async Task<IActionResult> Explorar(string busqueda, string distrito, List<int> categorias, string orden, int page = 1)
+        {
+            const int pageSize = 10;
+            
             var query = _pinContext.Businesses
                 .Include(b => b.Category)
                 .Include(b => b.Images)
@@ -60,22 +90,44 @@ namespace PinAppdePromo.Controllers
                 _ => query.OrderByDescending(b => b.Status == "Promoted" ? 1 : 0)
             };
 
-            var negocios = await query.ToListAsync();
+            // Obtener total antes de paginar
+            int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // Validar página
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            // Aplicar paginación
+            int skip = (page - 1) * pageSize;
+            var negocios = await query.Skip(skip).Take(pageSize).ToListAsync();
+
             ViewBag.Categorias = await _pinContext.Categories.ToListAsync();
             ViewBag.CategoriasSeleccionadas = categorias ?? new List<int>();
             ViewBag.OrdenActual = orden;
             ViewBag.DistritoActual = distrito;
+            ViewBag.BusquedaActual = busqueda;
 
             var todosNegocios = await _pinContext.Businesses
                 .Where(b => b.Status == "Approved" || b.Status == "Promoted")
                 .Select(b => b.Address)
                 .ToListAsync();
-            ViewBag.Distritos = todosNegocios
-                .Where(a => !string.IsNullOrEmpty(a))
-                .Select(a => a.Split(',').Last().Trim())
-                .Distinct()
-                .OrderBy(d => d)
-                .ToList();
+            var distritosLima = new List<string> {
+                "Ancón", "Ate", "Barranco", "Breña", "Carabayllo", "Chaclacayo", "Chorrillos", "Cieneguilla", 
+                "Comas", "El Agustino", "Independencia", "Jesús María", "La Molina", "La Victoria", "Lince", 
+                "Los Olivos", "Lurigancho", "Lurín", "Magdalena del Mar", "Miraflores", "Pachacámac", "Pucusana", 
+                "Pueblo Libre", "Puente Piedra", "Punta Hermosa", "Punta Negra", "Rímac", "San Bartolo", 
+                "San Borja", "San Isidro", "San Juan de Lurigancho", "San Juan de Miraflores", "San Luis", 
+                "San Martín de Porres", "San Miguel", "Santa Anita", "Santa María del Mar", "Santa Rosa", 
+                "Santiago de Surco", "Surco", "Surquillo", "Villa El Salvador", "Villa María del Triunfo",
+                "Cercado de Lima", "Lima", "Callao", "Bellavista", "Carmen de la Legua", "La Perla", "La Punta", "Ventanilla", "Mi Perú"
+            };
+
+            // Paginación
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
 
             // Generar recomendaciones personalizadas si el usuario está autenticado
             var email = HttpContext.Session.GetString("Usuario");
@@ -147,21 +199,34 @@ namespace PinAppdePromo.Controllers
                 await _pinContext.SaveChangesAsync();
                 if (!string.IsNullOrEmpty(ImageUrlLink))
                 {
-                    _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = ImageUrlLink });
-                    await _pinContext.SaveChangesAsync();
+                    var secureUrl = await _photoService.SubirImagenPorUrlAsync(ImageUrlLink);
+                    if (!string.IsNullOrEmpty(secureUrl))
+                    {
+                        _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = secureUrl });
+                        await _pinContext.SaveChangesAsync();
+                    }
                 }
                 if (Imagenes != null && Imagenes.Count > 0)
                 {
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "businesses");
+                    if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
                     foreach (var img in Imagenes)
-                        _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = $"/images/temp_{Guid.NewGuid()}_{img.FileName}" });
+                    {
+                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(img.FileName);
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                        using (var fileStream = new FileStream(filePath, FileMode.Create)) { await img.CopyToAsync(fileStream); }
+                        _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = $"/images/businesses/{uniqueFileName}" });
+                    }
                     await _pinContext.SaveChangesAsync();
                 }
+                TempData["Exito"] = "¡Tu negocio se ha registrado con éxito! Un moderador lo revisará pronto para publicarlo en la plataforma.";
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                var innerMsg = ex.InnerException?.Message ?? "Sin inner exception";
-                return Content($"ERROR: {ex.Message}\n\nINNER: {innerMsg}\n\nSTACK: {ex.StackTrace}", "text/plain");
+                TempData["Error"] = "Ocurrió un error al registrar tu negocio. Inténtalo de nuevo.";
+                return RedirectToAction("RegistrarNegocio");
             }
         }
 
@@ -249,13 +314,15 @@ namespace PinAppdePromo.Controllers
             if (email == null) return RedirectToAction("Index", "Login");
             if (fotoPerfil != null && fotoPerfil.Length > 0)
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "profiles");
-                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-                var uniqueFileName = Guid.NewGuid().ToString() + "_" + fotoPerfil.FileName;
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create)) { await fotoPerfil.CopyToAsync(fileStream); }
-                var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
-                if (user != null) { user.FotoUrl = "/images/profiles/" + uniqueFileName; await _context.SaveChangesAsync(); HttpContext.Session.SetString("Foto", user.FotoUrl); }
+                var url = await _photoService.SubirImagenAsync(fotoPerfil);
+                if (!string.IsNullOrEmpty(url))
+                {
+                    var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
+                    if (user != null) { user.FotoUrl = url; await _context.SaveChangesAsync(); HttpContext.Session.SetString("Foto", user.FotoUrl); }
+                    
+                    var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                    if (pinUser != null) { pinUser.ProfilePic = url; await _pinContext.SaveChangesAsync(); }
+                }
             }
             return RedirectToAction("AjustesCuenta");
         }
@@ -338,6 +405,69 @@ namespace PinAppdePromo.Controllers
             }
             if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
             return RedirectToAction("Moderacion");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditarNegocioModerador(int id)
+        {
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol != "MODERADOR") return RedirectToAction("Index", "Home");
+
+            var negocio = await _pinContext.Businesses.FindAsync(id);
+            if (negocio == null) return NotFound();
+
+            ViewBag.Categorias = await _pinContext.Categories.ToListAsync();
+            return View(negocio);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditarNegocioModerador(int BusinessId, string TradeName, string Description, string Address, string ContactPhone, int CategoryId, decimal Latitude, decimal Longitude, IFormFile NuevaImagen, string NuevaImagenUrl)
+        {
+            var rol = HttpContext.Session.GetString("Rol");
+            if (rol != "MODERADOR") return Unauthorized();
+
+            var negocio = await _pinContext.Businesses.FindAsync(BusinessId);
+            if (negocio != null)
+            {
+                negocio.TradeName = TradeName;
+                negocio.Description = Description;
+                negocio.Address = Address;
+                negocio.ContactPhone = ContactPhone;
+                negocio.CategoryId = CategoryId;
+                negocio.Latitude = Latitude;
+                negocio.Longitude = Longitude;
+
+                // Handle Photo Update
+                string newImageUrl = null;
+                if (!string.IsNullOrEmpty(NuevaImagenUrl))
+                {
+                    newImageUrl = await _photoService.SubirImagenPorUrlAsync(NuevaImagenUrl);
+                }
+                else if (NuevaImagen != null && NuevaImagen.Length > 0)
+                {
+                    newImageUrl = await _photoService.SubirImagenAsync(NuevaImagen);
+                }
+
+                if (!string.IsNullOrEmpty(newImageUrl))
+                {
+                    // Remove existing images
+                    var existingImages = _pinContext.BusinessImages.Where(bi => bi.BusinessId == BusinessId);
+                    _pinContext.BusinessImages.RemoveRange(existingImages);
+                    // Add new image
+                    _pinContext.BusinessImages.Add(new BusinessImage { BusinessId = BusinessId, ImageUrl = newImageUrl });
+                }
+
+                var staffEmail = HttpContext.Session.GetString("Usuario");
+                var staff = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == staffEmail);
+                if (staff != null) 
+                { 
+                    _pinContext.Add(new StaffLog { StaffId = staff.UserId, Action = $"Editó información del negocio '{TradeName}'", ExecutedAt = DateTime.UtcNow }); 
+                }
+                
+                await _pinContext.SaveChangesAsync();
+                TempData["ExitoEdicion"] = $"El negocio '{TradeName}' fue editado correctamente.";
+            }
+            return RedirectToAction("NegociosAdmin");
         }
 
         public async Task<IActionResult> CategoriasAdmin(string busqueda, int pagina = 1)
@@ -524,6 +654,7 @@ namespace PinAppdePromo.Controllers
 
         public async Task<IActionResult> GenerarDatosDePrueba()
         {
+// ... existing code ...
             if (!await _context.Usuarios.AnyAsync(u => u.Correo == "lucia@gmail.com"))
             {
                 _context.Usuarios.AddRange(
@@ -549,18 +680,34 @@ namespace PinAppdePromo.Controllers
             var catRestaurantes = await _pinContext.Categories.FirstOrDefaultAsync(c => c.Name == "Restaurantes");
             var catTecnologia = await _pinContext.Categories.FirstOrDefaultAsync(c => c.Name == "Tecnología");
             var catServicios = await _pinContext.Categories.FirstOrDefaultAsync(c => c.Name == "Servicios Automotrices");
-            if (!await _pinContext.Businesses.AnyAsync(b => b.TradeName == "Cevichería Punto Azul"))
+            
+            var b1 = await _pinContext.Businesses.FirstOrDefaultAsync(b => b.TradeName == "Cevichería Punto Azul");
+            var b2 = await _pinContext.Businesses.FirstOrDefaultAsync(b => b.TradeName == "TechCenter Lima");
+            var b3 = await _pinContext.Businesses.FirstOrDefaultAsync(b => b.TradeName == "Taller FastFix");
+
+            if (b1 == null)
             {
-                var b1 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catRestaurantes!.CategoryId, TradeName = "Cevichería Punto Azul", Description = "Los mejores pescados y mariscos frescos del día.", Address = "Calle San Martín 595, Miraflores", Latitude = (decimal)-12.1245, Longitude = (decimal)-77.0250, ContactPhone = "987654321", Status = "Promoted", CreatedAt = DateTime.UtcNow };
-                var b2 = new Business { OwnerId = pinUserCarlos!.UserId, CategoryId = catTecnologia!.CategoryId, TradeName = "TechCenter Lima", Description = "Venta de laptops y accesorios gamer.", Address = "Av. Arenales 1234, San Isidro", Latitude = (decimal)-12.0833, Longitude = (decimal)-77.0355, ContactPhone = "999888777", Status = "Approved", CreatedAt = DateTime.UtcNow };
-                var b3 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catServicios!.CategoryId, TradeName = "Taller FastFix", Description = "Mantenimiento y pintura automotriz.", Address = "Av. Santiago de Surco 456, Surco", Latitude = (decimal)-12.1388, Longitude = (decimal)-76.9989, ContactPhone = "912345678", Status = "Approved", CreatedAt = DateTime.UtcNow };
+                b1 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catRestaurantes!.CategoryId, TradeName = "Cevichería Punto Azul", Description = "Los mejores pescados y mariscos frescos del día.", Address = "Calle San Martín 595, Miraflores", Latitude = (decimal)-12.1245, Longitude = (decimal)-77.0250, ContactPhone = "987654321", Status = "Promoted", CreatedAt = DateTime.UtcNow };
+                b2 = new Business { OwnerId = pinUserCarlos!.UserId, CategoryId = catTecnologia!.CategoryId, TradeName = "TechCenter Lima", Description = "Venta de laptops y accesorios gamer.", Address = "Av. Arenales 1234, San Isidro", Latitude = (decimal)-12.0833, Longitude = (decimal)-77.0355, ContactPhone = "999888777", Status = "Approved", CreatedAt = DateTime.UtcNow };
+                b3 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catServicios!.CategoryId, TradeName = "Taller FastFix", Description = "Mantenimiento y pintura automotriz.", Address = "Av. Santiago de Surco 456, Surco", Latitude = (decimal)-12.1388, Longitude = (decimal)-76.9989, ContactPhone = "912345678", Status = "Approved", CreatedAt = DateTime.UtcNow };
                 _pinContext.Businesses.AddRange(b1, b2, b3);
                 await _pinContext.SaveChangesAsync();
-                _pinContext.BusinessImages.AddRange(new BusinessImage { BusinessId = b1.BusinessId, ImageUrl = "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=800&q=80" }, new BusinessImage { BusinessId = b2.BusinessId, ImageUrl = "https://images.unsplash.com/photo-1531297172869-c7d6b8b82922?w=800&q=80" }, new BusinessImage { BusinessId = b3.BusinessId, ImageUrl = "https://images.unsplash.com/photo-1613214149922-f1809c99b414?w=800&q=80" });
-                _pinContext.Reviews.AddRange(new Review { BusinessId = b1.BusinessId, UserId = pinUserCarlos.UserId, Rating = 5, Comment = "¡Excelente!", CreatedAt = DateTime.UtcNow.AddDays(-2) }, new Review { BusinessId = b1.BusinessId, UserId = pinUserLucia.UserId, Rating = 4, Comment = "Muy bueno", CreatedAt = DateTime.UtcNow.AddDays(-1) }, new Review { BusinessId = b2.BusinessId, UserId = pinUserLucia.UserId, Rating = 5, Comment = "Buen servicio", CreatedAt = DateTime.UtcNow });
-                await _pinContext.SaveChangesAsync();
             }
-            return Content("¡ÉXITO! Base de datos poblada.");
+
+            // NO agregar imágenes ficticias - los dueños subirán sus propias imágenes reales
+            
+            // Asegurar que tengan reseñas
+            if (!await _pinContext.Reviews.AnyAsync(r => r.BusinessId == b1.BusinessId))
+            {
+                _pinContext.Reviews.AddRange(new Review { BusinessId = b1.BusinessId, UserId = pinUserCarlos!.UserId, Rating = 5, Comment = "¡Excelente!", CreatedAt = DateTime.UtcNow.AddDays(-2) }, new Review { BusinessId = b1.BusinessId, UserId = pinUserLucia!.UserId, Rating = 4, Comment = "Muy bueno", CreatedAt = DateTime.UtcNow.AddDays(-1) });
+            }
+            if (!await _pinContext.Reviews.AnyAsync(r => r.BusinessId == b2.BusinessId))
+            {
+                _pinContext.Reviews.Add(new Review { BusinessId = b2.BusinessId, UserId = pinUserLucia!.UserId, Rating = 5, Comment = "Buen servicio", CreatedAt = DateTime.UtcNow });
+            }
+
+            await _pinContext.SaveChangesAsync();
+            return Content("¡ÉXITO! Base de datos poblada con imágenes y reseñas aseguradas.");
         }
     }
 }

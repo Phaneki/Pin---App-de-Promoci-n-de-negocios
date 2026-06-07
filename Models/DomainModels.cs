@@ -22,6 +22,7 @@ namespace PinAppdePromo.Models
         public string ProfilePic { get; set; }
         public int RoleId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsPremium { get; set; } = false;
 
         public Role Role { get; set; }
         public ICollection<Business> OwnedBusinesses { get; set; }

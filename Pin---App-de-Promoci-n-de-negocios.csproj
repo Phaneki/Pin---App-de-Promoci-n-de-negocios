@@ -6,9 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>PinAppdePromo</RootNamespace>
     <UserSecretsId>b7da6de8-add7-4e22-922d-53957e6478de</UserSecretsId>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CloudinaryDotNet" Version="1.29.1" />
     <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5">

@@ -1,0 +1,38 @@
+@model PinAppdePromo.Services.BusinessHoursStatus
+
+<div class="business-hours-badge mb-3">
+    @if (Model?.IsOpen == true)
+    {
+        <div class="alert alert-success d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <div>
+                <strong>Abierto ahora</strong>
+                <br>
+                <small class="text-muted">Cierra a las @Model.CloseTime?.ToString("HH:mm")</small>
+                @if (Model.MinutesUntilClose <= 30 && Model.MinutesUntilClose > 0)
+                {
+                    <br>
+                    <small class="text-warning"><i class="bi bi-exclamation-triangle"></i> ⚠️ Cierra en @Model.MinutesUntilClose minutos</small>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <i class="bi bi-x-circle-fill me-2"></i>
+            <div>
+                <strong>Cerrado ahora</strong>
+                <br>
+                @if (Model?.OpensAt.HasValue == true)
+                {
+                    <small class="text-muted">Abre @Model.OpensAt.Value.ToString("dddd HH:mm")</small>
+                }
+                else
+                {
+                    <small class="text-muted">Horario no disponible</small>
+                }
+            </div>
+        </div>
+    }
+</div>

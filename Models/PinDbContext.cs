@@ -12,6 +12,7 @@ namespace PinAppdePromo.Models
         public DbSet<Category> Categories { get; set; }
         public DbSet<Business> Businesses { get; set; }
         public DbSet<BusinessImage> BusinessImages { get; set; }
+        public DbSet<BusinessSchedule> BusinessSchedules { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<ReviewImage> ReviewImages { get; set; }
         public DbSet<Favorite> Favorites { get; set; }

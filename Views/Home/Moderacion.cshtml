@@ -217,7 +217,13 @@
                                                 <td class='px-6 py-4'>
                                                     <div class='flex items-center gap-3'>
                                                         <div class='h-12 w-12 overflow-hidden rounded-2xl bg-slate-100'>
-                                                            <img src='@(denuncia.Business?.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/48")' alt='Miniatura' class='h-full w-full object-cover' />
+                                                            @{
+                                                                var rawImg = denuncia.Business?.Images?.FirstOrDefault()?.ImageUrl?.Trim();
+                                                                var imgUrl = string.IsNullOrEmpty(rawImg) ? "https://via.placeholder.com/48" : 
+                                                                             (rawImg.StartsWith("~/") ? Url.Content(rawImg) : 
+                                                                             (!rawImg.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawImg.StartsWith("/") && !rawImg.StartsWith("data:image") ? "/images/businesses/" + rawImg : rawImg));
+                                                            }
+                                                            <img src='@imgUrl' alt='Miniatura' class='h-full w-full object-cover' />
                                                         </div>
                                                         <div>
                                                             <p class='font-semibold text-slate-900'>@(denuncia.Business?.TradeName ?? "Desconocido")</p>
