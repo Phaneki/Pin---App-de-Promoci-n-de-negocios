@@ -222,16 +222,30 @@
             <!-- Línea conectora (solo visible en desktop) -->
             <div class="hidden md:block absolute top-12 left-[15%] right-[15%] h-0.5 bg-gradient-to-r from-orange-100 via-orange-300 to-orange-100 -z-10"></div>
 
-            <!-- Paso 1 -->
-            <div class="flex flex-col items-center">
-                <div class="w-24 h-24 bg-white rounded-full shadow-[0_10px_30px_rgba(255,107,0,0.15)] flex items-center justify-center mb-6 relative group transition-transform hover:-translate-y-2">
-                    <div class="absolute inset-0 rounded-full border-2 border-orange-200 scale-110 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300"></div>
-                    <svg class="w-10 h-10 text-main-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <div class="absolute -top-2 -right-2 w-8 h-8 bg-gray-900 text-white rounded-full font-bold flex items-center justify-center text-sm shadow-md">1</div>
-                </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Explora tu zona</h3>
-                <p class="text-gray-500">Encuentra negocios, servicios y restaurantes cerca de ti fácilmente.</p>
-            </div>
+                        @{
+                            var rawImgUrl = negocio.Images?.FirstOrDefault()?.ImageUrl?.Trim();
+                            var displayImg = rawImgUrl;
+                            if (!string.IsNullOrEmpty(rawImgUrl)) {
+                                if (rawImgUrl.StartsWith("~/")) {
+                                    displayImg = Url.Content(rawImgUrl);
+                                } else if (!rawImgUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawImgUrl.StartsWith("/") && !rawImgUrl.StartsWith("data:image")) {
+                                    displayImg = "/images/businesses/" + rawImgUrl;
+                                }
+                            }
+                        }
+                        @if (!string.IsNullOrEmpty(displayImg))
+                        {
+                            <img src="@displayImg" class="business-img" alt="@negocio.TradeName" />
+                        }
+                        else
+                        {
+                            <div style="height: 200px; width: 100%; background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%); display: flex; align-items: center; justify-content: center;">
+                                <div class="text-center">
+                                    <i class="bi bi-image" style="font-size: 48px; color: #ccc; display: block; margin-bottom: 8px;"></i>
+                                    <small style="color: #999;">Sin imagen</small>
+                                </div>
+                            </div>
+                        }
 
             <!-- Paso 2 -->
             <div class="flex flex-col items-center">

@@ -95,7 +95,13 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="business-card">
                         <div class="card-image-container">
-                            <img src="@(fav.Business?.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/500x300")" alt="Negocio" class="card-image">
+                            @{
+                                var rawImg = fav.Business?.Images?.FirstOrDefault()?.ImageUrl?.Trim();
+                                var imgUrl = string.IsNullOrEmpty(rawImg) ? "https://via.placeholder.com/500x300" : 
+                                             (rawImg.StartsWith("~/") ? Url.Content(rawImg) : 
+                                             (!rawImg.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawImg.StartsWith("/") && !rawImg.StartsWith("data:image") ? "/images/businesses/" + rawImg : rawImg));
+                            }
+                            <img src="@imgUrl" alt="Negocio" class="card-image">
                             <span class="category-badge">@(fav.Business?.Category?.Name ?? "General")</span>
                             <button class="favorite-heart active" onclick="this.classList.toggle('active')">
                                 <i class="fas fa-heart"></i>
