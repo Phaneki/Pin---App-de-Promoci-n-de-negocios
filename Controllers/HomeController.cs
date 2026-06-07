@@ -122,6 +122,8 @@ namespace PinAppdePromo.Controllers
                 "Santiago de Surco", "Surco", "Surquillo", "Villa El Salvador", "Villa María del Triunfo",
                 "Cercado de Lima", "Lima", "Callao", "Bellavista", "Carmen de la Legua", "La Perla", "La Punta", "Ventanilla", "Mi Perú"
             };
+            
+            ViewBag.Distritos = distritosLima.OrderBy(d => d).ToList();
 
             // Paginación
             ViewBag.CurrentPage = page;
