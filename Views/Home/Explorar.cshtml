@@ -56,6 +56,60 @@
         </aside>
 
         <main class="col-md-9">
+            <!-- SECCIÓN RECOMENDADOS (ML) -->
+            @if (ViewBag.Recomendaciones != null && ((IEnumerable<PinAppdePromo.ML.NegocioRecomendadoDTO>)ViewBag.Recomendaciones).Any())
+            {
+                <div class="mb-5">
+                    <div class="d-flex align-items-center mb-3">
+                        <h4 class="fw-bold mb-0" style="color: var(--main-orange);">Recomendado para ti ✨</h4>
+                        <span class="badge bg-warning text-dark ms-2 shadow-sm rounded-pill"><i class="bi bi-lightning-fill text-warning-emphasis"></i> Inteligencia Artificial</span>
+                    </div>
+                    <div class="row flex-nowrap overflow-auto pb-3" style="scrollbar-width: thin;">
+                        @foreach (var item in (IEnumerable<PinAppdePromo.ML.NegocioRecomendadoDTO>)ViewBag.Recomendaciones)
+                        {
+                            var rec = item.NegocioDTO;
+                            <div class="col-10 col-sm-6 col-md-5 col-lg-4">
+                                <a href="/Home/InfNegocio/@rec.Id" class="text-decoration-none text-dark">
+                                    <div class="card h-100 border-0 shadow-sm transition-transform hover-transform" style="border-radius: 16px; overflow: hidden; border-left: 4px solid var(--main-orange) !important;">
+                                        <!-- Imagen o Placeholder -->
+                                        <div style="height: 140px; background-color: #f8f9fa;" class="position-relative">
+                                            @if (!string.IsNullOrEmpty(rec.ImagenUrl))
+                                            {
+                                                var imgUrl = rec.ImagenUrl;
+                                                if (!imgUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !imgUrl.StartsWith("/") && !imgUrl.StartsWith("data:image"))
+                                                {
+                                                    imgUrl = "/images/businesses/" + imgUrl;
+                                                }
+                                                <img src="@imgUrl" class="w-100 h-100" style="object-fit: cover;" alt="@rec.Nombre" />
+                                            }
+                                            else
+                                            {
+                                                <div class="d-flex align-items-center justify-content-center h-100 w-100" style="background: linear-gradient(135deg, #fce0ce 0%, #fdebd0 100%);">
+                                                    <i class="bi bi-shop text-muted" style="font-size: 2rem; opacity: 0.5;"></i>
+                                                </div>
+                                            }
+                                            <div class="position-absolute bottom-0 start-0 w-100 px-2 py-1" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                                                <span class="badge bg-dark mb-1 text-uppercase" style="font-size: 0.65rem;">@rec.Categoria</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card-body p-3">
+                                            <h6 class="fw-bold text-truncate mb-1">@rec.Nombre</h6>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="small text-muted"><i class="bi bi-geo-alt"></i> @(string.IsNullOrEmpty(rec.Direccion) ? "Local" : rec.Direccion)</span>
+                                                <span class="badge bg-light text-dark border"><i class="bi bi-star-fill text-warning"></i> @rec.Calificacion.ToString("0.0")</span>
+                                            </div>
+                                            <!-- Razón por ML -->
+                                            <p class="small mb-0 text-muted fst-italic" style="font-size: 0.75rem;"><i class="bi bi-info-circle text-info"></i> @item.Razon</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <p class="text-muted mb-0">Mostrando <span class="fw-bold text-dark">@Model.Count() negocios</span> de <span class="fw-bold text-dark">@ViewBag.TotalItems</span> en total</p>
                 <div class="d-flex align-items-center">
