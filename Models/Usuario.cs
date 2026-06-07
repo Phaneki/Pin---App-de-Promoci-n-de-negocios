@@ -11,5 +11,6 @@ namespace PinAppdePromo.Models
         public string TipoAuth { get; set; } = "LOCAL"; // "LOCAL" o "GOOGLE"
         public string? Ubicacion { get; set; }
         public string? Bio { get; set; }
+        public bool IsPremium { get; set; } = false;
     }
 }
