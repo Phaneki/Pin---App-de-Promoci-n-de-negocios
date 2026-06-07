@@ -222,31 +222,6 @@
             <!-- Línea conectora (solo visible en desktop) -->
             <div class="hidden md:block absolute top-12 left-[15%] right-[15%] h-0.5 bg-gradient-to-r from-orange-100 via-orange-300 to-orange-100 -z-10"></div>
 
-                        @{
-                            var rawImgUrl = negocio.Images?.FirstOrDefault()?.ImageUrl?.Trim();
-                            var displayImg = rawImgUrl;
-                            if (!string.IsNullOrEmpty(rawImgUrl)) {
-                                if (rawImgUrl.StartsWith("~/")) {
-                                    displayImg = Url.Content(rawImgUrl);
-                                } else if (!rawImgUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawImgUrl.StartsWith("/") && !rawImgUrl.StartsWith("data:image")) {
-                                    displayImg = "/images/businesses/" + rawImgUrl;
-                                }
-                            }
-                        }
-                        @if (!string.IsNullOrEmpty(displayImg))
-                        {
-                            <img src="@displayImg" class="business-img" alt="@negocio.TradeName" />
-                        }
-                        else
-                        {
-                            <div style="height: 200px; width: 100%; background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%); display: flex; align-items: center; justify-content: center;">
-                                <div class="text-center">
-                                    <i class="bi bi-image" style="font-size: 48px; color: #ccc; display: block; margin-bottom: 8px;"></i>
-                                    <small style="color: #999;">Sin imagen</small>
-                                </div>
-                            </div>
-                        }
-
             <!-- Paso 2 -->
             <div class="flex flex-col items-center">
                 <div class="w-24 h-24 bg-white rounded-full shadow-[0_10px_30px_rgba(255,107,0,0.15)] flex items-center justify-center mb-6 relative group transition-transform hover:-translate-y-2">

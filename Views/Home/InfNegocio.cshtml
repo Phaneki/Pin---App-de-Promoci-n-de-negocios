@@ -24,6 +24,7 @@
 
     var lat = Model.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
     var lng = Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    var googleMapsApiKey = Configuration["GoogleMaps:ApiKey"] ?? "";
 }
 
 <!-- Hero Section -->
