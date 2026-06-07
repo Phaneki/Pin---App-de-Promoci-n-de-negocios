@@ -44,10 +44,15 @@
                     <div class="business-card">
 
                         @{
-                            var imgUrl = negocio.Images?.FirstOrDefault()?.ImageUrl;
-                            var displayImg = !string.IsNullOrEmpty(imgUrl) && (imgUrl.StartsWith("http") || imgUrl.StartsWith("/"))
-                                ? imgUrl
-                                : (!string.IsNullOrEmpty(imgUrl) ? "/images/businesses/" + imgUrl : null);
+                            var rawImgUrl = negocio.Images?.FirstOrDefault()?.ImageUrl?.Trim();
+                            var displayImg = rawImgUrl;
+                            if (!string.IsNullOrEmpty(rawImgUrl)) {
+                                if (rawImgUrl.StartsWith("~/")) {
+                                    displayImg = Url.Content(rawImgUrl);
+                                } else if (!rawImgUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawImgUrl.StartsWith("/") && !rawImgUrl.StartsWith("data:image")) {
+                                    displayImg = "/images/businesses/" + rawImgUrl;
+                                }
+                            }
                         }
                         @if (!string.IsNullOrEmpty(displayImg))
                         {

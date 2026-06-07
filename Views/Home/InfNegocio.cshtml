@@ -2,10 +2,17 @@
 
 @{
     ViewData["Title"] = Model.TradeName;
-    var rawCover = Model.Images?.FirstOrDefault()?.ImageUrl;
-    var coverImage = string.IsNullOrEmpty(rawCover)
-        ? "linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)" 
-        : (!rawCover.StartsWith("http") && !rawCover.StartsWith("/") ? "/images/businesses/" + rawCover : rawCover);
+    var rawCover = Model.Images?.FirstOrDefault()?.ImageUrl?.Trim();
+    var coverImage = "linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)";
+    if (!string.IsNullOrEmpty(rawCover)) {
+        if (rawCover.StartsWith("~/")) {
+            coverImage = Url.Content(rawCover);
+        } else if (!rawCover.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawCover.StartsWith("/") && !rawCover.StartsWith("data:image")) {
+            coverImage = "/images/businesses/" + rawCover;
+        } else {
+            coverImage = rawCover;
+        }
+    }
 
     // Uso de dynamic para prevenir errores si aún no agregas 'Services' o 'Products' a tu modelo Business
     dynamic dynModel = Model;
@@ -116,7 +123,18 @@
                             @for (int i = 0; i < Model.Images.Count; i++)
                             {
                                 <div class="carousel-item @(i == 0 ? "active" : "")">
-                                    <img src="@Model.Images.ElementAt(i).ImageUrl" class="d-block w-100" alt="@Model.TradeName" style="height: 400px; object-fit: cover;">
+                                    @{
+                                        var rawGalUrl = Model.Images.ElementAt(i).ImageUrl?.Trim();
+                                        var galUrl = rawGalUrl;
+                                        if (!string.IsNullOrEmpty(rawGalUrl)) {
+                                            if (rawGalUrl.StartsWith("~/")) {
+                                                galUrl = Url.Content(rawGalUrl);
+                                            } else if (!rawGalUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawGalUrl.StartsWith("/") && !rawGalUrl.StartsWith("data:image")) {
+                                                galUrl = "/images/businesses/" + rawGalUrl;
+                                            }
+                                        }
+                                    }
+                                    <img src="@galUrl" class="d-block w-100" alt="@Model.TradeName" style="height: 400px; object-fit: cover;">
                                 </div>
                             }
                         </div>

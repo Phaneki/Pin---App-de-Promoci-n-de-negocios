@@ -76,10 +76,15 @@
                             <div class="position-relative" style="height: 200px;">
                                 @if (negocio.Images != null && negocio.Images.Any())
                                 {
-                                    var rawUrl = negocio.Images.First().ImageUrl;
-                                    var imgUrl = !rawUrl.StartsWith("http") && !rawUrl.StartsWith("/") 
-                                        ? "/images/businesses/" + rawUrl 
-                                        : rawUrl;
+                                    var rawUrl = negocio.Images.First().ImageUrl?.Trim();
+                                    var imgUrl = rawUrl;
+                                    if (!string.IsNullOrEmpty(rawUrl)) {
+                                        if (rawUrl.StartsWith("~/")) {
+                                            imgUrl = Url.Content(rawUrl);
+                                        } else if (!rawUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawUrl.StartsWith("/") && !rawUrl.StartsWith("data:image")) {
+                                            imgUrl = "/images/businesses/" + rawUrl;
+                                        }
+                                    }
                                         
                                     <img src="@imgUrl" class="card-img-top" alt="@negocio.TradeName" style="height: 200px; object-fit: cover; width: 100%;" />
                                 }
