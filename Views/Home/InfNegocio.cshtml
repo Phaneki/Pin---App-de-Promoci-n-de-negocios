@@ -687,7 +687,11 @@
                 .then(response => response.json())
                 .then(schedules => {
                     const scheduleContainer = document.getElementById('scheduleContainer');
-                    if (!scheduleContainer || schedules.length === 0) return;
+                    if (!scheduleContainer) return;
+                    if (schedules.length === 0) {
+                        scheduleContainer.innerHTML = '<div class="alert alert-light text-center border text-muted"><i class="bi bi-calendar-x me-2"></i> Aún no se han registrado horarios de atención.</div>';
+                        return;
+                    }
 
                     const dayNames = {
                         'Monday': 'Lunes',
