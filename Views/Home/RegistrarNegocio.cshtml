@@ -6,174 +6,394 @@
 @model PinAppdePromo.Models.Business
 
 @section Styles {
-    <!-- Nuestro CSS personalizado -->
-    <link rel="stylesheet" href="~/css/registrar-negocio.css" asp-append-version="true" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .text-orange { color: #ff6b2c; }
+
+        .register-header {
+            background: linear-gradient(135deg, #ff6b2c 0%, #ff8a50 100%);
+            padding: 4rem 0;
+            color: white;
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0 0 40px 40px;
+            box-shadow: 0 10px 30px rgba(255, 107, 44, 0.2);
+        }
+
+        .register-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+        }
+
+        .register-header::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+        }
+
+        .register-header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .register-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .premium-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.04);
+            margin-bottom: 2.5rem;
+            background: #ffffff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+
+        .premium-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        }
+
+        .card-header-custom {
+            background: transparent;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .card-header-custom h3 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: #2b2b2b;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .icon-circle {
+            width: 45px;
+            height: 45px;
+            background: #fff2eb;
+            color: #ff6b2c;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .card-body-custom {
+            padding: 2.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            background-color: #f8fafc;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #ff6b2c;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 107, 44, 0.1);
+        }
+
+        .map-container {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+
+        .drag-drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            background-color: #f8fafc;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .drag-drop-zone:hover {
+            border-color: #ff6b2c;
+            background-color: #fff2eb;
+        }
+
+        .drag-drop-icon {
+            font-size: 3rem;
+            color: #ff6b2c;
+            margin-bottom: 1rem;
+        }
+
+        .time-input-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .time-input-group span {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .btn-submit-premium {
+            background: linear-gradient(135deg, #ff6b2c 0%, #e85a1f 100%);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            padding: 1.2rem;
+            border-radius: 16px;
+            border: none;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(255, 107, 44, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-submit-premium:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 107, 44, 0.4);
+            color: white;
+        }
+
+        .form-check-input:checked {
+            background-color: #ff6b2c;
+            border-color: #ff6b2c;
+        }
+    </style>
 }
 
-<div class="container py-5">
+<div class="register-header">
+    <div class="container">
+        <h1 class="mb-3">Registra tu negocio en PIN</h1>
+        <p>Llega a miles de clientes locales y haz crecer tus ventas hoy mismo. Completar este formulario te tomará menos de 5 minutos.</p>
+    </div>
+</div>
 
+<div class="container pb-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-
-            <div class="text-center mb-5">
-                <h1 class="main-title">Registra tu negocio y llega a más clientes</h1>
-                <p class="text-muted mt-3 fs-5">
-                    Completa la información básica para que nuestra comunidad pueda encontrarte
-                </p>
-            </div>
+        <div class="col-lg-9">
 
             @if (TempData["Error"] != null)
             {
-                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-                    <i class="fas fa-exclamation-triangle me-2"></i> @TempData["Error"]
+                <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
 
             <form asp-action="CrearNegocio" asp-controller="Home" method="post" enctype="multipart/form-data" id="formRegistroNegocio">
-            <!-- Información básica -->
-            <div class="card mb-4">
-                <div class="card-body p-5">
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Nombre del Negocio</label>
-                        <input type="text" class="form-control" name="TradeName" placeholder="Ej. El Bodegón del Sur" required>
+                
+                <!-- 1. Información Básica -->
+                <div class="premium-card">
+                    <div class="card-header-custom">
+                        <div class="icon-circle"><i class="bi bi-shop"></i></div>
+                        <h3>1. Información Básica</h3>
                     </div>
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Descripción corta</label>
-                        <textarea class="form-control" name="Description" rows="3" placeholder="Cuéntanos qué hace especial a tu negocio..." required></textarea>
-                    </div>
-                    <div>
-                        <label class="form-label fw-semibold">Categoría</label>
-                        <select class="form-select" name="CategoryId">
-                            @if (ViewBag.Categorias != null)
-                            {
-                                foreach (var cat in ViewBag.Categorias)
-                                {
-                                    <option value="@cat.CategoryId">@cat.Name</option>
-                                }
-                            }
-                            else
-                            {
-                                <option value="1">General</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mt-4">
-                        <label class="form-label fw-semibold">RUC</label>
-                        <input type="text" class="form-control" name="RUC" placeholder="Ej. 20512345678" maxlength="11">
-                    </div>
-                    <div class="mt-4">
-                        <label class="form-label fw-semibold">Teléfono de contacto</label>
-                        <input type="tel" class="form-control" name="ContactPhone" placeholder="Ej. 987654321">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ubicación -->
-            <div class="card mb-4">
-                <div class="card-body p-5">
-                    <p class="section-label">Ubicación</p>
-                    <div class="mt-3">
-                        <label class="form-label fw-semibold">Dirección exacta</label>
-                        <input type="text" class="form-control" id="addressInput" name="Address" placeholder="Calle, número, distrito..." required>
-                    </div>
-                    <div class="mt-4 border rounded-4 overflow-hidden">
-                        <div id="map"></div>
-                    </div>
-                    <input type="hidden" id="latitude" name="Latitude" />
-                    <input type="hidden" id="longitude" name="Longitude" />
-                </div>
-            </div>
-
-            <!-- Imágenes del Negocio -->
-            <div class="card mb-4">
-                <div class="card-body p-5">
-                    <p class="section-label">Imágenes del Negocio</p>
-                    
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Opción 1: Ingresa el link de una imagen de internet</label>
-                        <input type="url" class="form-control" name="ImageUrlLink" placeholder="Ej. https://images.unsplash.com/photo-...">
-                        <small class="text-muted">Si ingresas un link, ayudarás a que la app sea mucho más rápida y liviana.</small>
-                    </div>
-                    
-                    <div class="text-center mb-3 text-muted fw-bold">Ó</div>
-                    
-                    <label class="form-label fw-semibold">Opción 2: Sube un archivo desde tu computadora</label>
-                    <div class="border border-dashed rounded-4 p-5 text-center mt-2" style="background: #f8fafc;">
-                        <div class="mx-auto mb-3" style="width: 60px; height: 60px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            📸
+                    <div class="card-body-custom row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre del Negocio *</label>
+                            <input type="text" class="form-control" name="TradeName" placeholder="Ej. El Bodegón del Sur" required>
                         </div>
-                        <p class="fw-medium">Arrastra tus fotos aquí</p>
-                        <small class="text-muted">O haz clic para seleccionar archivos (JPG, PNG hasta 10MB)</small>
-                        <input type="file" name="Imagenes" multiple class="form-control mt-3" accept="image/*" />
+                        <div class="col-md-6">
+                            <label class="form-label">Categoría *</label>
+                            <select class="form-select" name="CategoryId">
+                                @if (ViewBag.Categorias != null)
+                                {
+                                    foreach (var cat in ViewBag.Categorias)
+                                    {
+                                        <option value="@cat.CategoryId">@cat.Name</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option value="1">General</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Descripción corta *</label>
+                            <textarea class="form-control" name="Description" rows="3" placeholder="Cuéntanos qué hace especial a tu negocio..." required></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">RUC (Opcional)</label>
+                            <input type="text" class="form-control" name="RUC" placeholder="Ej. 20512345678" maxlength="11">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono de contacto *</label>
+                            <input type="tel" class="form-control" name="ContactPhone" placeholder="Ej. 987654321" required>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Horarios de Atención -->
-            <div class="card mb-5">
-                <div class="card-body p-5">
-                    <p class="section-label">Horarios de Atención</p>
-                    <div class="row g-3 mt-2">
+                <!-- 2. Ubicación -->
+                <div class="premium-card">
+                    <div class="card-header-custom">
+                        <div class="icon-circle"><i class="bi bi-geo-alt-fill"></i></div>
+                        <h3>2. ¿Dónde estás ubicado?</h3>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="mb-4">
+                            <label class="form-label">Dirección exacta *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 rounded-start-4"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 rounded-end-4 ps-0" id="addressInput" name="Address" placeholder="Busca tu calle, avenida o distrito..." required>
+                            </div>
+                            <small class="text-muted mt-2 d-block"><i class="bi bi-info-circle me-1"></i> También puedes arrastrar el marcador rojo en el mapa para ajustar la ubicación exacta.</small>
+                        </div>
+                        <div class="map-container">
+                            <div id="map"></div>
+                        </div>
+                        <input type="hidden" id="latitude" name="Latitude" />
+                        <input type="hidden" id="longitude" name="Longitude" />
+                    </div>
+                </div>
+
+                <!-- 3. Imágenes -->
+                <div class="premium-card">
+                    <div class="card-header-custom">
+                        <div class="icon-circle"><i class="bi bi-images"></i></div>
+                        <h3>3. Atrae con fotos</h3>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label class="form-label">Opción 1: Usa una foto de internet (Recomendado para rapidez)</label>
+                                <input type="url" class="form-control" name="ImageUrlLink" placeholder="Pega aquí el enlace de tu foto (Ej. https://misitio.com/foto.jpg)">
+                            </div>
+                            
+                            <div class="col-12 text-center position-relative my-2">
+                                <hr class="text-muted">
+                                <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted fw-bold">O TAMBIÉN</span>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label class="form-label">Opción 2: Sube tus propias fotos</label>
+                                <div class="drag-drop-zone position-relative">
+                                    <div class="drag-drop-icon"><i class="bi bi-cloud-arrow-up-fill"></i></div>
+                                    <h5 class="fw-bold mb-1">Haz clic o arrastra fotos aquí</h5>
+                                    <p class="text-muted mb-0 small">Máximo 10MB por archivo (Formatos: JPG, PNG)</p>
+                                    <!-- Input file invisible que cubre toda la zona -->
+                                    <input type="file" name="Imagenes" multiple class="position-absolute top-0 start-0 w-100 h-100" style="opacity: 0; cursor: pointer;" accept="image/*" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Horarios -->
+                <div class="premium-card">
+                    <div class="card-header-custom">
+                        <div class="icon-circle"><i class="bi bi-clock-fill"></i></div>
+                        <h3>4. Horarios de Atención</h3>
+                    </div>
+                    <div class="card-body-custom row g-4">
                         <!-- Lunes a Viernes -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">LUNES - VIERNES</label>
+                            <label class="form-label text-orange"><i class="bi bi-calendar2-week me-2"></i>LUNES A VIERNES</label>
                             <div class="time-input-group">
-                                <input type="time" class="form-control" id="lv_inicio" value="09:00">
-                                <span>hasta</span>
-                                <input type="time" class="form-control" id="lv_fin" value="18:00">
+                                <input type="time" class="form-control border-0 bg-transparent p-0 shadow-none" id="lv_inicio" value="09:00">
+                                <span>a</span>
+                                <input type="time" class="form-control border-0 bg-transparent p-0 shadow-none" id="lv_fin" value="18:00">
                             </div>
                         </div>
 
                         <!-- Sábados -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">SÁBADOS</label>
+                            <label class="form-label text-orange"><i class="bi bi-calendar2-event me-2"></i>SÁBADOS</label>
                             <div class="time-input-group">
-                                <input type="time" class="form-control" id="s_inicio" value="10:00">
-                                <span>hasta</span>
-                                <input type="time" class="form-control" id="s_fin" value="14:00">
+                                <input type="time" class="form-control border-0 bg-transparent p-0 shadow-none" id="s_inicio" value="10:00">
+                                <span>a</span>
+                                <input type="time" class="form-control border-0 bg-transparent p-0 shadow-none" id="s_fin" value="14:00">
                             </div>
                         </div>
 
                         <!-- Domingos -->
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">DOMINGOS</label>
-                            <div class="d-flex gap-3">
-                                <div class="form-check">
+                        <div class="col-12 mt-4">
+                            <label class="form-label text-orange"><i class="bi bi-calendar2-x me-2"></i>DOMINGOS Y FERIADOS</label>
+                            <div class="d-flex flex-wrap gap-4 mt-2">
+                                <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="domingo" id="domingo_cerrado" checked>
-                                    <label class="form-check-label" for="domingo_cerrado">
-                                        Cerrado
-                                    </label>
+                                    <label class="form-check-label fw-medium" for="domingo_cerrado">Cerrado</label>
                                 </div>
-                                <div class="form-check">
+                                <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="domingo" id="domingo_abierto">
-                                    <label class="form-check-label" for="domingo_abierto">
-                                        Abierto
-                                    </label>
+                                    <label class="form-check-label fw-medium" for="domingo_abierto">Abierto</label>
                                 </div>
                             </div>
-                            <div class="time-input-group mt-3" id="domingo_horarios" style="display:none;">
-                                <input type="time" class="form-control" id="d_inicio" value="10:00">
-                                <span>hasta</span>
-                                <input type="time" class="form-control" id="d_fin" value="18:00">
+                            <div class="time-input-group mt-3" id="domingo_horarios" style="display:none; max-width: 50%;">
+                                <input type="time" class="form-control border-0 bg-transparent p-0 shadow-none" id="d_inicio" value="10:00">
+                                <span>a</span>
+                                <input type="time" class="form-control border-0 bg-transparent p-0 shadow-none" id="d_fin" value="18:00">
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Botón Enviar -->
-            <div class="d-grid">
-                <button type="submit" class="btn btn-enviar btn-lg">
-                    ➜ Enviar para aprobación
-                </button>
-            </div>
+                <!-- Submit -->
+                <div class="text-center mt-5 mb-5">
+                    <button type="submit" class="btn btn-submit-premium">
+                        Publicar mi negocio ahora <i class="bi bi-rocket-takeoff-fill ms-2"></i>
+                    </button>
+                    <p class="text-muted small mt-3">Al registrar tu negocio, aceptas nuestros <a href="#" class="text-orange text-decoration-none fw-bold">Términos y Condiciones</a>.</p>
+                </div>
+
             </form>
-
-            <p class="text-center text-muted small mt-4">
-                AL ENVIAR, ACEPTAS NUESTROS TÉRMINOS Y CONDICIONES DE SERVICIO.
-            </p>
-
         </div>
     </div>
 </div>
@@ -187,63 +407,58 @@
     let geocoder;
     const defaultLocation = { lat: -12.0464, lng: -77.0428 }; // Lima, Perú
 
-    // Inicializar el mapa
-    function initMap() {
-        geocoder = new google.maps.Geocoder();
-        
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: defaultLocation,
-            zoom: 13,
-            mapTypeControl: false,
-            streetViewControl: false
-        });
-
-        // Crear marcador arrastrable
-        marker = new google.maps.Marker({
-            position: defaultLocation,
-            map: map,
-            draggable: true,
-            title: 'Ubica tu negocio aquí'
-        });
-
-        // Evento al arrastrar el marcador
-        marker.addListener('dragend', function() {
-            const position = marker.getPosition();
-            updateCoordinates(position.lat(), position.lng());
-            geocodePosition(position);
-        });
-
-        // Evento al hacer clic en el mapa
-        map.addListener('click', function(event) {
-            marker.setPosition(event.latLng);
-            updateCoordinates(event.latLng.lat(), event.latLng.lng());
-            geocodePosition(event.latLng);
-        });
-
-        // Configurar Autocompletado para el input de dirección
-        const addressInput = document.getElementById('addressInput');
-        // Prevenir envío del formulario al presionar Enter en el autocompletado
-        addressInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-            }
-        });
-
-        const autocomplete = new google.maps.places.Autocomplete(addressInput);
-        autocomplete.bindTo('bounds', map);
-
-        autocomplete.addListener('place_changed', function() {
-            const place = autocomplete.getPlace();
-            if (!place.geometry || !place.geometry.location) {
-                return;
-            }
+    window.initMap = function() {
+        try {
+            geocoder = new google.maps.Geocoder();
             
-            map.setCenter(place.geometry.location);
-            map.setZoom(16);
-            marker.setPosition(place.geometry.location);
-            updateCoordinates(place.geometry.location.lat(), place.geometry.location.lng());
-        });
-    }
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: defaultLocation,
+                zoom: 13,
+                mapTypeControl: false,
+                streetViewControl: false
+            });
+
+            marker = new google.maps.Marker({
+                position: defaultLocation,
+                map: map,
+                draggable: true,
+                title: 'Ubica tu negocio aquí'
+            });
+
+            marker.addListener('dragend', function() {
+                const position = marker.getPosition();
+                updateCoordinates(position.lat(), position.lng());
+                geocodePosition(position);
+            });
+
+            map.addListener('click', function(event) {
+                marker.setPosition(event.latLng);
+                updateCoordinates(event.latLng.lat(), event.latLng.lng());
+                geocodePosition(event.latLng);
+            });
+
+            const addressInput = document.getElementById('addressInput');
+            addressInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') e.preventDefault();
+            });
+
+            const autocomplete = new google.maps.places.Autocomplete(addressInput);
+            autocomplete.bindTo('bounds', map);
+
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                if (!place.geometry || !place.geometry.location) return;
+                
+                map.setCenter(place.geometry.location);
+                map.setZoom(16);
+                marker.setPosition(place.geometry.location);
+                updateCoordinates(place.geometry.location.lat(), place.geometry.location.lng());
+            });
+        } catch (error) {
+            document.getElementById('map').innerHTML = '<div style="padding: 20px; color: red; font-weight: bold;">Error al cargar el mapa: ' + error.message + '</div>';
+            console.error("Error en initMap:", error);
+        }
+    };
 
     function updateCoordinates(lat, lng) {
         document.getElementById('latitude').value = lat;
@@ -258,15 +473,13 @@
         });
     }
 
-    // Validar antes de enviar el formulario real
     document.getElementById('formRegistroNegocio').addEventListener('submit', function(e) {
         if (!document.getElementById('latitude').value || !document.getElementById('longitude').value) {
-            e.preventDefault(); // Evita que el form se envíe vacío
+            e.preventDefault();
             alert('Por favor, selecciona una ubicación exacta en el mapa.');
         }
     });
 
-    // Toggle de horarios de domingo
     document.getElementById('domingo_abierto')?.addEventListener('change', function() {
         document.getElementById('domingo_horarios').style.display = 'flex';
     });
@@ -274,6 +487,4 @@
     document.getElementById('domingo_cerrado')?.addEventListener('change', function() {
         document.getElementById('domingo_horarios').style.display = 'none';
     });
-
-    // Ya no usamos DOMContentLoaded para initMap porque lo maneja el callback de Google Maps
 </script>
