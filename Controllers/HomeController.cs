@@ -232,23 +232,40 @@ namespace PinAppdePromo.Controllers
             }
         }
 
+        [HttpGet]
         public async Task<IActionResult> Moderacion()
         {
             var rol = HttpContext.Session.GetString("Rol");
             if (rol != "MODERADOR") return RedirectToAction("Index", "Home");
+
+            // Sync profile picture to PinDbContext
+            var email = HttpContext.Session.GetString("Usuario");
+            var foto = HttpContext.Session.GetString("Foto");
+            if (!string.IsNullOrEmpty(email))
+            {
+                var currentUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (currentUser != null && !string.IsNullOrEmpty(foto) && currentUser.ProfilePic != foto)
+                {
+                    currentUser.ProfilePic = foto;
+                    await _pinContext.SaveChangesAsync();
+                }
+            }
+
             var totalResueltos = await _pinContext.Businesses.CountAsync(b => b.Status == "Approved" || b.Status == "Rejected");
             var totalRechazados = await _pinContext.Businesses.CountAsync(b => b.Status == "Rejected");
             double tasaCalculada = totalResueltos > 0 ? ((double)totalRechazados / totalResueltos) * 100 : 0;
             var nuevasSolicitudesHoy = await _pinContext.Businesses.CountAsync(b => b.Status == "Pending" && b.CreatedAt.Date == DateTime.UtcNow.Date);
             ViewBag.NuevasSolicitudesHoy = nuevasSolicitudesHoy;
+
             var model = new ModeracionViewModel
             {
                 SolicitudesPendientes = await _pinContext.Businesses.CountAsync(b => b.Status == "Pending"),
                 NegociosAprobadosHoy = await _pinContext.Businesses.CountAsync(b => b.Status == "Approved" && b.CreatedAt.Date == DateTime.UtcNow.Date),
                 TasaRechazo = tasaCalculada,
                 DenunciasPendientes = await _pinContext.BusinessReports.Include(r => r.Business).ThenInclude(b => b.Category).Include(r => r.Business).ThenInclude(b => b.Images).Where(r => r.ReportStatus == "Open").ToListAsync(),
-                ActividadReciente = await _pinContext.StaffLogs.Include(l => l.Staff).OrderByDescending(l => l.ExecutedAt).Take(4).ToListAsync()
+                ActividadReciente = await _pinContext.StaffLogs.Include(l => l.Staff).OrderByDescending(l => l.ExecutedAt).Take(6).ToListAsync()
             };
+            
             ViewBag.NegociosPendientes = await _pinContext.Businesses.Include(b => b.Category).Where(b => b.Status == "Pending").ToListAsync();
             return View(model);
         }

@@ -105,16 +105,13 @@
                         <input type="text" name="busqueda" value="@ViewBag.Busqueda" placeholder="Buscar por nombre de negocio o dirección..." class="w-full bg-transparent outline-none text-sm" />
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto">
-                        <select name="filtroEstado" class="w-full sm:w-auto border border-slate-300 rounded-xl px-4 py-2 text-sm outline-none focus:border-[#ff6b00] bg-slate-50" onchange="this.form.submit()">
+                        <select name="filtroEstado" class="w-full sm:w-auto border border-slate-300 rounded-xl px-4 py-2 text-sm font-medium text-slate-700 outline-none focus:border-[#ff6b2c] bg-white shadow-sm cursor-pointer" onchange="this.form.submit()">
                             <option value="TODOS">Todos los estados</option>
                             <option value="Pending" selected="@(ViewBag.FiltroEstado == "Pending")">Pendientes de Aprobación</option>
                             <option value="Approved" selected="@(ViewBag.FiltroEstado == "Approved")">Aprobados / Activos</option>
                             <option value="Promoted" selected="@(ViewBag.FiltroEstado == "Promoted")">Promocionados</option>
                             <option value="Rejected" selected="@(ViewBag.FiltroEstado == "Rejected")">Rechazados / Suspendidos</option>
                         </select>
-                        <button type="submit" class="inline-flex items-center justify-center gap-2 bg-[#ff6b00] text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-[#e66000] transition shadow-sm">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
                     </div>
                 </form>
 
@@ -248,7 +245,7 @@
                                 }
 
                                 @for (int i = startPage; i <= endPage; i++) {
-                                    <a href="?busqueda=@ViewBag.Busqueda&filtroEstado=@ViewBag.FiltroEstado&pagina=@i" class='rounded-lg border @(i == ViewBag.PaginaActual ? "border-[#ff6b00] bg-[#ff6b00] text-white" : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50") px-3 py-1.5 text-sm font-medium shadow-sm transition'>@i</a>
+                                    <a href="?busqueda=@ViewBag.Busqueda&filtroEstado=@ViewBag.FiltroEstado&pagina=@i" class='rounded-lg border px-3 py-1.5 text-sm font-medium shadow-sm transition @(i == ViewBag.PaginaActual ? "" : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50")' @(i == ViewBag.PaginaActual ? "style=background-color:#ff6b2c;border-color:#ff6b2c;color:white;" : "")>@i</a>
                                 }
 
                                 @if (endPage < totalPages)
