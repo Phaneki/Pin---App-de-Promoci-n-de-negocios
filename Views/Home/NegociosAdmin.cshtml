@@ -5,7 +5,26 @@
 }
 @model IEnumerable<PinAppdePromo.Models.Business>
 @section Styles {
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/moderacion.css" asp-append-version="true" />
+    <style>
+        header, footer { display: none !important; }
+        .admin-main-content {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f8f9fa !important;
+            background-image: radial-gradient(circle at top right, rgba(255,107,44,0.05), transparent 400px);
+            min-height: 100vh;
+        }
+        @@media (min-width: 1024px) { .admin-main-content { margin-left: 18rem !important; } }
+        .premium-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            padding: 1.25rem 2rem; position: sticky; top: 0; z-index: 40;
+        }
+        .search-bar { background: #f1f5f9; border: 1px solid #e2e8f0; transition: all 0.3s ease; border-radius: 100px; }
+        .search-bar:focus-within { background: white; border-color: #ff6b2c; box-shadow: 0 0 0 4px rgba(255,107,44,0.15); }
+    </style>
 }
 
 <div class='min-h-screen text-slate-900'>
@@ -14,29 +33,61 @@
         <partial name="_ModeracionSidebar" />
         
         <main class='flex-1 admin-main-content'>
-            <div class='admin-header px-6 py-5 shadow-sm'>
-                <div class='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
-                    <h1 class="text-2xl font-bold text-slate-800">Gestión de Negocios</h1>
-                    <div class='flex flex-wrap items-center gap-3 text-sm text-slate-600'>
-                        <div class='flex items-center gap-3 rounded-full bg-white px-4 py-3 shadow-sm'>
-                            @{
-                                var adminName = Context.Session.GetString("Nombre") ?? "Admin";
-                                var adminInitials = adminName.Length >= 2 ? adminName.Substring(0, 2).ToUpper() : "AD";
-                            }
-                            <span class='inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#ff6b00]/10 text-[#ff6b00]'>@adminInitials</span>
-                            <div>
-                                <p class='font-semibold text-slate-900'>@adminName</p>
-                                <p class='text-xs text-slate-500'>Moderador principal</p>
-                            </div>
+            <!-- Header -->
+            <div class='premium-header'>
+                <div class='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between w-full'>
+                    <form method="get" action="/Home/NegociosAdmin" class='search-bar flex w-full max-w-md items-center gap-3 px-5 py-2.5 m-0'>
+                        <i class='fas fa-search text-slate-400'></i>
+                        <input type='search' name='busqueda' placeholder='Buscar negocio, usuario o reporte...' class='w-full bg-transparent text-sm font-medium text-slate-700 outline-none placeholder-slate-400' />
+                    </form>
+                    <div class='flex flex-wrap items-center gap-4 text-sm'>
+                        <a href='/' class='font-bold text-white transition-transform hover:scale-105 flex items-center gap-2 px-4 py-2 rounded-full shadow-sm' style="background: linear-gradient(135deg, #ff6b2c, #ff8a50);">
+                            <i class='fas fa-arrow-left'></i> Volver a la App
+                        </a>
+                        <a href='#' class='font-semibold text-slate-500 hover:text-[#ff6b2c] transition-colors hidden sm:block'>Documentación</a>
+                        
+                        <!-- Perfil Dropdown -->
+                        <div class="dropdown">
+                            <button class='flex items-center gap-3 rounded-full bg-white px-2 py-1.5 shadow-sm border border-slate-200 pr-4 cursor-pointer transition hover:border-[#ff6b2c]' data-bs-toggle="dropdown" aria-expanded="false" style="outline: none;">
+                                @{
+                                    var adminName = Context.Session.GetString("Nombre") ?? "Admin";
+                                    var adminInitials = adminName.Length >= 2 ? adminName.Substring(0, 2).ToUpper() : "AD";
+                                    var fotoPerfil = Context.Session.GetString("Foto");
+                                }
+                                @if (!string.IsNullOrEmpty(fotoPerfil))
+                                {
+                                    <img src="@fotoPerfil" alt="Perfil" class="h-9 w-9 rounded-full object-cover shadow-sm border border-slate-100" referrerpolicy="no-referrer" />
+                                }
+                                else
+                                {
+                                    <span class='inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#ff6b2c] to-[#ff8a50] text-white font-bold shadow-sm'>@adminInitials</span>
+                                }
+                                <div class="text-left hidden sm:block">
+                                    <p class='font-bold text-slate-900 leading-tight'>@adminName</p>
+                                    <p class='text-[10px] uppercase tracking-wider font-bold text-[#ff6b2c] mt-0.5'>Moderador</p>
+                                </div>
+                                <i class="fas fa-chevron-down text-slate-400 ml-1 text-xs hidden sm:block"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 py-2" style="min-width: 200px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1);">
+                                <li>
+                                    <div class="px-4 py-2 border-b border-slate-100 mb-2">
+                                        <p class="text-sm font-bold text-slate-900 truncate">Hola, @adminName</p>
+                                        <p class="text-xs text-slate-500 truncate">@Context.Session.GetString("Usuario")</p>
+                                    </div>
+                                </li>
+                                <li><a class="dropdown-item py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#ff6b2c]" href="/Home/Perfil"><i class="fas fa-user w-5 text-slate-400 text-center"></i> Mi Perfil</a></li>
+                                <li><hr class="dropdown-divider border-slate-100 my-2"></li>
+                                <li><a class="dropdown-item py-2 text-sm font-bold text-red-600 hover:bg-red-50" href="/Login/Logout"><i class="fas fa-sign-out-alt w-5 text-center"></i> Cerrar Sesión</a></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <section class='p-6 max-w-6xl mx-auto'>
-                <div class="mb-6">
-                    <h2 class="text-lg font-bold text-slate-800">Directorio de Negocios</h2>
-                    <p class="text-sm text-slate-500 mt-1">Supervisa, aprueba y administra los establecimientos registrados en la plataforma.</p>
+            <section class='p-8 max-w-7xl mx-auto'>
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Gestión de Negocios</h1>
+                    <p class="text-slate-500 mt-2 text-lg">Supervisa, aprueba y administra los establecimientos registrados en la plataforma.</p>
                 </div>
                 
                 @if (TempData["ExitoEdicion"] != null)
@@ -167,15 +218,48 @@
                     <!-- PAGINACIÓN -->
                     @if (ViewBag.TotalNegocios > 0)
                     {
-                        <div class='border-t border-slate-200 bg-slate-50/50 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                        <div class='border-t border-slate-200 bg-slate-50/50 p-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                             <p class='text-sm text-slate-500 font-medium'>Mostrando @Model.Count() de @ViewBag.TotalNegocios negocios</p>
-                            <div class='flex items-center gap-2'>
+                            <div class='flex flex-wrap items-center justify-center gap-2'>
                                 @if (ViewBag.PaginaActual > 1) {
                                     <a href="?busqueda=@ViewBag.Busqueda&filtroEstado=@ViewBag.FiltroEstado&pagina=@(ViewBag.PaginaActual - 1)" class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50'>Anterior</a>
                                 }
-                                @for (int i = 1; i <= ViewBag.TotalPaginas; i++) {
+                                
+                                @{
+                                    int totalPages = ViewBag.TotalPaginas;
+                                    int currentPage = ViewBag.PaginaActual;
+                                    int maxPagesToShow = 5;
+                                    int startPage = Math.Max(1, currentPage - maxPagesToShow / 2);
+                                    int endPage = Math.Min(totalPages, startPage + maxPagesToShow - 1);
+
+                                    if (endPage - startPage + 1 < maxPagesToShow)
+                                    {
+                                        startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+                                    }
+                                }
+
+                                @if (startPage > 1)
+                                {
+                                    <a href="?busqueda=@ViewBag.Busqueda&filtroEstado=@ViewBag.FiltroEstado&pagina=1" class='rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 px-3 py-1.5 text-sm font-medium shadow-sm transition'>1</a>
+                                    @if (startPage > 2)
+                                    {
+                                        <span class='px-2 text-slate-400'>...</span>
+                                    }
+                                }
+
+                                @for (int i = startPage; i <= endPage; i++) {
                                     <a href="?busqueda=@ViewBag.Busqueda&filtroEstado=@ViewBag.FiltroEstado&pagina=@i" class='rounded-lg border @(i == ViewBag.PaginaActual ? "border-[#ff6b00] bg-[#ff6b00] text-white" : "border-slate-300 bg-white text-slate-600 hover:bg-slate-50") px-3 py-1.5 text-sm font-medium shadow-sm transition'>@i</a>
                                 }
+
+                                @if (endPage < totalPages)
+                                {
+                                    @if (endPage < totalPages - 1)
+                                    {
+                                        <span class='px-2 text-slate-400'>...</span>
+                                    }
+                                    <a href="?busqueda=@ViewBag.Busqueda&filtroEstado=@ViewBag.FiltroEstado&pagina=@totalPages" class='rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 px-3 py-1.5 text-sm font-medium shadow-sm transition'>@totalPages</a>
+                                }
+
                                 @if (ViewBag.PaginaActual < ViewBag.TotalPaginas) {
                                     <a href="?busqueda=@ViewBag.Busqueda&filtroEstado=@ViewBag.FiltroEstado&pagina=@(ViewBag.PaginaActual + 1)" class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:bg-slate-50'>Siguiente</a>
                                 }
