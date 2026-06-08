@@ -101,6 +101,10 @@
                 z-index: 10;
             }
         }
+        /* Fix Tailwind conflict with Bootstrap's collapse */
+        .navbar-collapse.collapse {
+            visibility: visible !important;
+        }
     </style>
     @RenderSection("Styles", required: false)
 </head>
