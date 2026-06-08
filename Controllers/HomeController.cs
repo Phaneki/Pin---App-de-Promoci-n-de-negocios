@@ -432,7 +432,9 @@ namespace PinAppdePromo.Controllers
             var rol = HttpContext.Session.GetString("Rol");
             if (rol != "MODERADOR") return RedirectToAction("Index", "Home");
 
-            var negocio = await _pinContext.Businesses.FindAsync(id);
+            var negocio = await _pinContext.Businesses
+                .Include(b => b.Schedules)
+                .FirstOrDefaultAsync(b => b.BusinessId == id);
             if (negocio == null) return NotFound();
 
             ViewBag.Categorias = await _pinContext.Categories.ToListAsync();
@@ -440,12 +442,12 @@ namespace PinAppdePromo.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditarNegocioModerador(int BusinessId, string TradeName, string Description, string Address, string ContactPhone, int CategoryId, decimal Latitude, decimal Longitude, IFormFile NuevaImagen, string NuevaImagenUrl)
+        public async Task<IActionResult> EditarNegocioModerador(int BusinessId, string TradeName, string Description, string Address, string ContactPhone, int CategoryId, decimal Latitude, decimal Longitude, IFormFile NuevaImagen, string NuevaImagenUrl, string RUC, string lv_inicio, string lv_fin, string s_inicio, string s_fin, string d_inicio, string d_fin, string domingo)
         {
             var rol = HttpContext.Session.GetString("Rol");
             if (rol != "MODERADOR") return Unauthorized();
 
-            var negocio = await _pinContext.Businesses.FindAsync(BusinessId);
+            var negocio = await _pinContext.Businesses.Include(b => b.Schedules).FirstOrDefaultAsync(b => b.BusinessId == BusinessId);
             if (negocio != null)
             {
                 negocio.TradeName = TradeName;
@@ -455,6 +457,24 @@ namespace PinAppdePromo.Controllers
                 negocio.CategoryId = CategoryId;
                 negocio.Latitude = Latitude;
                 negocio.Longitude = Longitude;
+                negocio.RUC = RUC ?? "";
+
+                // Actualizar Horarios
+                var oldSchedules = await _pinContext.BusinessSchedules.Where(s => s.BusinessId == BusinessId).ToListAsync();
+                _pinContext.BusinessSchedules.RemoveRange(oldSchedules);
+
+                if (!string.IsNullOrEmpty(lv_inicio) && !string.IsNullOrEmpty(lv_fin))
+                {
+                    _pinContext.BusinessSchedules.Add(new BusinessSchedule { BusinessId = BusinessId, DayOfWeek = "Lunes-Viernes", OpenTime = TimeSpan.Parse(lv_inicio), CloseTime = TimeSpan.Parse(lv_fin) });
+                }
+                if (!string.IsNullOrEmpty(s_inicio) && !string.IsNullOrEmpty(s_fin))
+                {
+                    _pinContext.BusinessSchedules.Add(new BusinessSchedule { BusinessId = BusinessId, DayOfWeek = "Sábados", OpenTime = TimeSpan.Parse(s_inicio), CloseTime = TimeSpan.Parse(s_fin) });
+                }
+                if (domingo == "abierto" && !string.IsNullOrEmpty(d_inicio) && !string.IsNullOrEmpty(d_fin))
+                {
+                    _pinContext.BusinessSchedules.Add(new BusinessSchedule { BusinessId = BusinessId, DayOfWeek = "Domingos", OpenTime = TimeSpan.Parse(d_inicio), CloseTime = TimeSpan.Parse(d_fin) });
+                }
 
                 // Handle Photo Update
                 string newImageUrl = null;
