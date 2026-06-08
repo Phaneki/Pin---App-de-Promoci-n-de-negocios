@@ -37,12 +37,25 @@ if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientS
 }
 
 // 📌 Leer cadena de conexión desde variable de entorno (Render) o appsettings
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+var connectionString = databaseUrl ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrEmpty(connectionString))
 {
     throw new InvalidOperationException("No se encontró DATABASE_URL ni ConnectionString en configuración");
+}
+
+// 🔄 Convertir formato postgresql:// a formato Npgsql si es necesario
+if (databaseUrl?.StartsWith("postgresql://") == true)
+{
+    var uri = new Uri(databaseUrl);
+    var username = uri.UserInfo.Split(':')[0];
+    var password = uri.UserInfo.Split(':')[1];
+    var host = uri.Host;
+    var port = uri.Port > 0 ? uri.Port : 5432;
+    var database = uri.AbsolutePath.TrimStart('/');
+
+    connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password};SslMode=Require;";
 }
 
 builder.Services.AddDbContext<AppDbContext>(options => {
