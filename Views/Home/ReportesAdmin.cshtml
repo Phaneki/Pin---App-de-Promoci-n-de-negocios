@@ -6,6 +6,16 @@
 @model IEnumerable<PinAppdePromo.Models.BusinessReport>
 @section Styles {
     <link rel="stylesheet" href="~/css/moderacion.css" asp-append-version="true" />
+    <style>
+        .premium-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            padding: 1.25rem 2rem; position: sticky; top: 0; z-index: 40;
+        }
+        .search-bar { background: #f1f5f9; border: 1px solid #e2e8f0; transition: all 0.3s ease; border-radius: 100px; }
+        .search-bar:focus-within { background: white; border-color: #ff6b2c; box-shadow: 0 0 0 4px rgba(255,107,44,0.15); }
+    </style>
 }
 
 <div class='min-h-screen text-slate-900'>
@@ -14,47 +24,69 @@
         <partial name="_ModeracionSidebar" />
         
         <main class='flex-1 admin-main-content'>
-            <div class='admin-header px-6 py-5 shadow-sm'>
-                <div class='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
-                    <h1 class="text-2xl font-bold text-slate-800">Gestión de Reportes</h1>
-                    <div class='flex flex-wrap items-center gap-3 text-sm text-slate-600'>
-                        <div class='flex items-center gap-3 rounded-full bg-white px-4 py-3 shadow-sm'>
-                            @{
-                                var adminName = Context.Session.GetString("Nombre") ?? "Admin";
-                                var adminInitials = adminName.Length >= 2 ? adminName.Substring(0, 2).ToUpper() : "AD";
-                            }
-                            <span class='inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#ff6b00]/10 text-[#ff6b00]'>@adminInitials</span>
-                            <div>
-                                <p class='font-semibold text-slate-900'>@adminName</p>
-                                <p class='text-xs text-slate-500'>Moderador principal</p>
-                            </div>
+            <!-- Header -->
+            <div class='premium-header'>
+                <div class='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between w-full'>
+                    <form method="get" action="/Home/NegociosAdmin" class='search-bar flex w-full max-w-md items-center gap-3 px-5 py-2.5 m-0'>
+                        <i class='fas fa-search text-slate-400'></i>
+                        <input type='search' name='busqueda' placeholder='Buscar negocio, usuario o reporte...' class='w-full bg-transparent text-sm font-medium text-slate-700 outline-none placeholder-slate-400' />
+                    </form>
+                    <div class='flex flex-wrap items-center gap-4 text-sm'>
+                        <a href='/' class='font-bold text-white transition-transform hover:scale-105 flex items-center gap-2 px-4 py-2 rounded-full shadow-sm' style="background: linear-gradient(135deg, #ff6b2c, #ff8a50);">
+                            <i class='fas fa-arrow-left'></i> Volver a la App
+                        </a>
+                        
+                        <!-- Perfil Dropdown -->
+                        <div class="dropdown">
+                            <button class='flex items-center gap-3 rounded-full bg-white px-2 py-1.5 shadow-sm border border-slate-200 pr-4 cursor-pointer transition hover:border-[#ff6b2c]' data-bs-toggle="dropdown" aria-expanded="false" style="outline: none;">
+                                @{
+                                    var adminName = Context.Session.GetString("Nombre") ?? "Admin";
+                                    var adminInitials = adminName.Length >= 2 ? adminName.Substring(0, 2).ToUpper() : "AD";
+                                    var adminFoto = Context.Session.GetString("Foto");
+                                }
+                                @if (!string.IsNullOrEmpty(adminFoto))
+                                {
+                                    <img src="@adminFoto" alt="Perfil" class="h-9 w-9 rounded-full object-cover shadow-sm border border-slate-100" referrerpolicy="no-referrer" />
+                                }
+                                else
+                                {
+                                    <span class='inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#ff6b2c] to-[#ff8a50] text-white font-bold shadow-sm'>@adminInitials</span>
+                                }
+                                <div class="text-left hidden sm:block">
+                                    <p class='font-bold text-slate-900 leading-tight'>@adminName</p>
+                                    <p class='text-[10px] uppercase tracking-wider font-bold text-[#ff6b2c] mt-0.5'>Moderador</p>
+                                </div>
+                                <i class="fas fa-chevron-down text-slate-400 ml-1 text-xs hidden sm:block"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end mt-3 border-0 shadow-xl rounded-2xl overflow-hidden min-w-[200px]" style="animation: dropdownFade 0.2s ease-out forwards;">
+                                <li><a class="dropdown-item py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#ff6b2c] transition" href="/Home/Perfil"><i class="fas fa-user-circle w-5 text-center text-slate-400"></i> Mi Perfil</a></li>
+                                <li><hr class="dropdown-divider my-0 border-slate-100"></li>
+                                <li><a class="dropdown-item py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition" href="/Login/Logout"><i class="fas fa-sign-out-alt w-5 text-center"></i> Cerrar Sesión</a></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
 
             <section class='p-6 max-w-6xl mx-auto'>
-                <div class="mb-6">
-                    <h2 class="text-lg font-bold text-slate-800">Bandeja de Denuncias</h2>
-                    <p class="text-sm text-slate-500 mt-1">Revisa las denuncias de la comunidad. Puedes sancionar los negocios infractores o descartar reportes falsos.</p>
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Gestión de Reportes</h1>
+                    <p class="text-slate-500 mt-2 text-lg">Revisa las denuncias de la comunidad. Puedes sancionar los negocios infractores o descartar reportes falsos.</p>
                 </div>
 
                 <!-- BARRA DE BÚSQUEDA Y FILTROS -->
                 <form method="get" asp-action="ReportesAdmin" class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                    <div class="flex flex-1 items-center gap-3 w-full sm:max-w-md border border-slate-300 rounded-xl px-4 py-2 focus-within:border-[#ff6b00] focus-within:ring-1 focus-within:ring-[#ff6b00] transition bg-slate-50">
+                    <div class="flex flex-1 items-center gap-3 w-full sm:max-w-md border border-slate-300 rounded-xl px-4 py-2 focus-within:border-[#ff6b2c] focus-within:ring-1 focus-within:ring-[#ff6b2c] transition bg-slate-50">
                         <i class="fas fa-search text-slate-400"></i>
-                        <input type="text" name="busqueda" value="@ViewBag.Busqueda" placeholder="Buscar negocio denunciado..." class="w-full bg-transparent outline-none text-sm" />
+                        <input type="text" name="busqueda" value="@ViewBag.Busqueda" placeholder="Buscar negocio denunciado..." class="w-full bg-transparent outline-none text-sm text-slate-700" />
                     </div>
                     <div class="flex items-center gap-3 w-full sm:w-auto">
-                        <select name="filtroEstado" class="w-full sm:w-auto border border-slate-300 rounded-xl px-4 py-2 text-sm outline-none focus:border-[#ff6b00] bg-slate-50" onchange="this.form.submit()">
+                        <select name="filtroEstado" class="w-full sm:w-auto border border-slate-300 rounded-xl px-4 py-2 text-sm font-medium text-slate-700 outline-none focus:border-[#ff6b2c] bg-white shadow-sm cursor-pointer" onchange="this.form.submit()">
                             <option value="TODOS">Todos los estados</option>
                             <option value="Open" selected="@(ViewBag.FiltroEstado == "Open")">Abiertos (Pendientes)</option>
                             <option value="Resolved" selected="@(ViewBag.FiltroEstado == "Resolved")">Resueltos (Sancionados)</option>
                             <option value="Closed" selected="@(ViewBag.FiltroEstado == "Closed")">Cerrados (Descartados)</option>
                         </select>
-                        <button type="submit" class="inline-flex items-center justify-center gap-2 bg-[#ff6b00] text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-[#e66000] transition shadow-sm">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
                     </div>
                 </form>
 
