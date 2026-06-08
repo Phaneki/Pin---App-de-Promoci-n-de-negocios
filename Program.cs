@@ -80,6 +80,9 @@ builder.Services.AddMachineLearningServices();
 // 6. Registrar BusinessHoursService
 builder.Services.AddScoped<IBusinessHoursService, BusinessHoursService>();
 
+// 7. Registrar Semantic Kernel Service
+builder.Services.AddScoped<ISemanticKernelService, SemanticKernelService>();
+
 var app = builder.Build();
 
 // Ejecutar migraciones automáticamente
