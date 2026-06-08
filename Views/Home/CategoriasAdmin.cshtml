@@ -51,11 +51,11 @@
                                 @{
                                     var adminName = Context.Session.GetString("Nombre") ?? "Admin";
                                     var adminInitials = adminName.Length >= 2 ? adminName.Substring(0, 2).ToUpper() : "AD";
-                                    var fotoPerfil = Context.Session.GetString("Foto");
+                                    var adminFoto = Context.Session.GetString("Foto");
                                 }
-                                @if (!string.IsNullOrEmpty(fotoPerfil))
+                                @if (!string.IsNullOrEmpty(adminFoto))
                                 {
-                                    <img src="@fotoPerfil" alt="Perfil" class="h-9 w-9 rounded-full object-cover shadow-sm border border-slate-100" referrerpolicy="no-referrer" />
+                                    <img src="@adminFoto" alt="Perfil" class="h-9 w-9 rounded-full object-cover shadow-sm border border-slate-100" referrerpolicy="no-referrer" />
                                 }
                                 else
                                 {

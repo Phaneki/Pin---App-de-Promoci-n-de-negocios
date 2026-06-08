@@ -31,24 +31,10 @@
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(229, 231, 235, 0.5);
-            padding: 1.25rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 40;
+            padding: 1.25rem 2rem; position: sticky; top: 0; z-index: 40;
         }
-
-        .search-bar {
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
-            border-radius: 100px;
-        }
-
-        .search-bar:focus-within {
-            background: white;
-            border-color: #ff6b2c;
-            box-shadow: 0 0 0 4px rgba(255,107,44,0.15);
-        }
+        .search-bar { background: #f1f5f9; border: 1px solid #e2e8f0; transition: all 0.3s ease; border-radius: 100px; }
+        .search-bar:focus-within { background: white; border-color: #ff6b2c; box-shadow: 0 0 0 4px rgba(255,107,44,0.15); }
 
         .kpi-card {
             background: white;
@@ -221,7 +207,6 @@
                         <a href='/' class='font-bold text-white transition-transform hover:scale-105 flex items-center gap-2 px-4 py-2 rounded-full shadow-sm' style="background: linear-gradient(135deg, #ff6b2c, #ff8a50);">
                             <i class='fas fa-arrow-left'></i> Volver a la App
                         </a>
-                        <a href='#' class='font-semibold text-slate-500 hover:text-[#ff6b2c] transition-colors hidden sm:block'>Documentación</a>
                         
                         <!-- Perfil Dropdown -->
                         <div class="dropdown">
@@ -229,11 +214,11 @@
                                 @{
                                     var adminName = Context.Session.GetString("Nombre") ?? "Admin";
                                     var adminInitials = adminName.Length >= 2 ? adminName.Substring(0, 2).ToUpper() : "AD";
-                                    var fotoPerfil = Context.Session.GetString("Foto");
+                                    var adminFoto = Context.Session.GetString("Foto");
                                 }
-                                @if (!string.IsNullOrEmpty(fotoPerfil))
+                                @if (!string.IsNullOrEmpty(adminFoto))
                                 {
-                                    <img src="@fotoPerfil" alt="Perfil" class="h-9 w-9 rounded-full object-cover shadow-sm border border-slate-100" referrerpolicy="no-referrer" />
+                                    <img src="@adminFoto" alt="Perfil" class="h-9 w-9 rounded-full object-cover shadow-sm border border-slate-100" referrerpolicy="no-referrer" />
                                 }
                                 else
                                 {
