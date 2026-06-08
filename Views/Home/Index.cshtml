@@ -6,26 +6,26 @@
 @section Styles {
     <style>
         /* Custom Colors para Tailwind 2.2 CDN */
-        .text-main-orange { color: #ff6b00 !important; }
-        .bg-main-orange { background-color: #ff6b00 !important; }
-        .bg-orange-light { background-color: #fff0e6 !important; }
-        .border-main-orange { border-color: #ff6b00 !important; }
-        .hover-text-main-orange:hover { color: #ff6b00 !important; }
+        .text-main-orange { color: #ff6b2c !important; }
+        .bg-main-orange { background-color: #ff6b2c !important; }
+        .bg-orange-light { background-color: #fff7ed !important; }
+        .border-main-orange { border-color: #ff6b2c !important; }
+        .hover-text-main-orange:hover { color: #ff6b2c !important; }
         
         .gradient-orange {
-            background: linear-gradient(to right, #ff6b00, #ff8c33) !important;
+            background: linear-gradient(135deg, #ff6b2c, #ff8a50) !important;
         }
         .text-gradient {
-            color: #ff6b00; /* Fallback safe */
-            background: -webkit-linear-gradient(#ff6b00, #ff8c33);
+            color: #ff6b2c; /* Fallback safe */
+            background: -webkit-linear-gradient(135deg, #ff6b2c, #ff8a50);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .shadow-orange {
-            box-shadow: 0 8px 20px rgba(255, 107, 0, 0.3) !important;
+            box-shadow: 0 10px 25px -5px rgba(255, 107, 44, 0.4) !important;
         }
         .hover-shadow-orange:hover {
-            box-shadow: 0 12px 25px rgba(255, 107, 0, 0.4) !important;
+            box-shadow: 0 20px 35px -5px rgba(255, 107, 44, 0.5) !important;
         }
 
         /* Glassmorphism y utilidades */
@@ -36,11 +36,14 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
         }
         .glass-input-container {
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
         }
         .glass-input-container:focus-within {
-            border-color: #ff6b00;
+            background: white;
+            border-color: #ff6b2c;
+            box-shadow: 0 0 0 4px rgba(255,107,44,0.15);
         }
 
         .blob-bg {
@@ -51,7 +54,7 @@
         }
 
         .blob-orange {
-            background: rgba(255, 107, 0, 0.25);
+            background: rgba(255, 107, 44, 0.15);
             width: 500px;
             height: 500px;
             border-radius: 50%;
@@ -141,18 +144,18 @@
     
     <!-- Burbujas de colores flotantes de fondo -->
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob"></div>
-        <div class="absolute top-[20%] right-[-10%] w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
-        <div class="absolute bottom-[-20%] left-[20%] w-[30rem] h-[30rem] bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000"></div>
+        <div class="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-[#ff6b2c] rounded-full mix-blend-multiply filter blur-[120px] opacity-20 animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-[35rem] h-[35rem] bg-amber-400 rounded-full mix-blend-multiply filter blur-[120px] opacity-20 animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-[45rem] h-[45rem] bg-rose-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-20 animate-blob animation-delay-4000"></div>
     </div>
 
     <div class="container mx-auto px-6 relative z-10 text-center flex flex-col items-center mt-10">
         
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-light text-main-orange font-bold text-xs uppercase tracking-wider mb-6">
-            <i class="fas fa-compass"></i> Descubre lo local
+        <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white shadow-sm border border-orange-100 text-[#ff6b2c] font-bold text-xs uppercase tracking-wider mb-8">
+            <i class="fas fa-compass text-[#ff8a50]"></i> Descubre lo local
         </div>
 
-        <h1 class="text-5xl md:text-7xl font-extrabold text-gray-800 leading-tight mb-6 tracking-tight max-w-4xl">
+        <h1 class="text-5xl md:text-7xl font-extrabold text-slate-800 leading-[1.1] mb-6 tracking-tight max-w-4xl">
             Descubre lo mejor <br class="hidden md:block" />
             de tu <span class="text-gradient">distrito</span>
         </h1>

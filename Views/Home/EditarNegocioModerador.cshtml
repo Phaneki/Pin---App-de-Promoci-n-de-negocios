@@ -68,7 +68,19 @@
                             </div>
                         </div>
 
-                        <!-- Dirección -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- RUC -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">RUC (Opcional)</label>
+                                <input type="text" asp-for="RUC" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm outline-none focus:border-[#ff6b00] focus:ring-1 focus:ring-[#ff6b00] transition bg-slate-50" placeholder="Ej. 20512345678" maxlength="11" />
+                            </div>
+
+                            <!-- Teléfono -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Teléfono de Contacto</label>
+                                <input type="tel" asp-for="ContactPhone" required class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm outline-none focus:border-[#ff6b00] focus:ring-1 focus:ring-[#ff6b00] transition bg-slate-50" />
+                            </div>
+                        </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Dirección Exacta</label>
                             <input type="text" asp-for="Address" id="addressInput" required class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm outline-none focus:border-[#ff6b00] focus:ring-1 focus:ring-[#ff6b00] transition bg-slate-50" />
@@ -77,16 +89,54 @@
                             <input type="hidden" id="longitude" asp-for="Longitude" />
                         </div>
 
-                        <!-- Teléfono -->
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Teléfono de Contacto</label>
-                            <input type="tel" asp-for="ContactPhone" required class="w-full md:w-1/2 border border-slate-300 rounded-xl px-4 py-2 text-sm outline-none focus:border-[#ff6b00] focus:ring-1 focus:ring-[#ff6b00] transition bg-slate-50" />
-                        </div>
-
                         <!-- Descripción -->
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Descripción del Negocio</label>
                             <textarea asp-for="Description" rows="4" class="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#ff6b00] focus:ring-1 focus:ring-[#ff6b00] transition bg-slate-50 resize-none"></textarea>
+                        </div>
+
+                        <!-- Horarios -->
+                        <div class="pt-4 border-t border-slate-100">
+                            <h3 class="text-base font-bold text-slate-800 mb-3">Horarios de Atención</h3>
+                            @{
+                                var lv = Model.Schedules?.FirstOrDefault(x => x.DayOfWeek == "Lunes-Viernes");
+                                var sab = Model.Schedules?.FirstOrDefault(x => x.DayOfWeek == "Sábados");
+                                var dom = Model.Schedules?.FirstOrDefault(x => x.DayOfWeek == "Domingos");
+                            }
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">Lunes a Viernes</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="time" name="lv_inicio" value="@(lv?.OpenTime.ToString(@"hh\:mm") ?? "09:00")" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+                                        <span class="text-slate-500">a</span>
+                                        <input type="time" name="lv_fin" value="@(lv?.CloseTime.ToString(@"hh\:mm") ?? "18:00")" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">Sábados</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="time" name="s_inicio" value="@(sab?.OpenTime.ToString(@"hh\:mm") ?? "10:00")" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+                                        <span class="text-slate-500">a</span>
+                                        <input type="time" name="s_fin" value="@(sab?.CloseTime.ToString(@"hh\:mm") ?? "14:00")" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+                                    </div>
+                                </div>
+                                <div class="col-span-1 md:col-span-2">
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Domingos y Feriados</label>
+                                    <div class="flex items-center gap-4 mb-2">
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="domingo" value="cerrado" @(dom == null ? "checked" : "") class="text-[#ff6b00] focus:ring-[#ff6b00]" onchange="document.getElementById('domingo_container').style.display='none'" /> <span class="text-sm">Cerrado</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="domingo" value="abierto" @(dom != null ? "checked" : "") class="text-[#ff6b00] focus:ring-[#ff6b00]" onchange="document.getElementById('domingo_container').style.display='flex'" /> <span class="text-sm">Abierto</span>
+                                        </label>
+                                    </div>
+                                    <div id="domingo_container" class="items-center gap-2 w-full md:w-1/2 mt-2" style="display: @(dom != null ? "flex" : "none")">
+                                        <input type="time" name="d_inicio" value="@(dom?.OpenTime.ToString(@"hh\:mm") ?? "10:00")" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+                                        <span class="text-slate-500">a</span>
+                                        <input type="time" name="d_fin" value="@(dom?.CloseTime.ToString(@"hh\:mm") ?? "18:00")" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Foto del Negocio -->

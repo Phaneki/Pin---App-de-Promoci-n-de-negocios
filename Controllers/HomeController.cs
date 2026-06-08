@@ -232,23 +232,40 @@ namespace PinAppdePromo.Controllers
             }
         }
 
+        [HttpGet]
         public async Task<IActionResult> Moderacion()
         {
             var rol = HttpContext.Session.GetString("Rol");
             if (rol != "MODERADOR") return RedirectToAction("Index", "Home");
+
+            // Sync profile picture to PinDbContext
+            var email = HttpContext.Session.GetString("Usuario");
+            var foto = HttpContext.Session.GetString("Foto");
+            if (!string.IsNullOrEmpty(email))
+            {
+                var currentUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (currentUser != null && !string.IsNullOrEmpty(foto) && currentUser.ProfilePic != foto)
+                {
+                    currentUser.ProfilePic = foto;
+                    await _pinContext.SaveChangesAsync();
+                }
+            }
+
             var totalResueltos = await _pinContext.Businesses.CountAsync(b => b.Status == "Approved" || b.Status == "Rejected");
             var totalRechazados = await _pinContext.Businesses.CountAsync(b => b.Status == "Rejected");
             double tasaCalculada = totalResueltos > 0 ? ((double)totalRechazados / totalResueltos) * 100 : 0;
             var nuevasSolicitudesHoy = await _pinContext.Businesses.CountAsync(b => b.Status == "Pending" && b.CreatedAt.Date == DateTime.UtcNow.Date);
             ViewBag.NuevasSolicitudesHoy = nuevasSolicitudesHoy;
+
             var model = new ModeracionViewModel
             {
                 SolicitudesPendientes = await _pinContext.Businesses.CountAsync(b => b.Status == "Pending"),
                 NegociosAprobadosHoy = await _pinContext.Businesses.CountAsync(b => b.Status == "Approved" && b.CreatedAt.Date == DateTime.UtcNow.Date),
                 TasaRechazo = tasaCalculada,
                 DenunciasPendientes = await _pinContext.BusinessReports.Include(r => r.Business).ThenInclude(b => b.Category).Include(r => r.Business).ThenInclude(b => b.Images).Where(r => r.ReportStatus == "Open").ToListAsync(),
-                ActividadReciente = await _pinContext.StaffLogs.Include(l => l.Staff).OrderByDescending(l => l.ExecutedAt).Take(4).ToListAsync()
+                ActividadReciente = await _pinContext.StaffLogs.Include(l => l.Staff).OrderByDescending(l => l.ExecutedAt).Take(6).ToListAsync()
             };
+            
             ViewBag.NegociosPendientes = await _pinContext.Businesses.Include(b => b.Category).Where(b => b.Status == "Pending").ToListAsync();
             return View(model);
         }
@@ -415,7 +432,9 @@ namespace PinAppdePromo.Controllers
             var rol = HttpContext.Session.GetString("Rol");
             if (rol != "MODERADOR") return RedirectToAction("Index", "Home");
 
-            var negocio = await _pinContext.Businesses.FindAsync(id);
+            var negocio = await _pinContext.Businesses
+                .Include(b => b.Schedules)
+                .FirstOrDefaultAsync(b => b.BusinessId == id);
             if (negocio == null) return NotFound();
 
             ViewBag.Categorias = await _pinContext.Categories.ToListAsync();
@@ -423,12 +442,12 @@ namespace PinAppdePromo.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditarNegocioModerador(int BusinessId, string TradeName, string Description, string Address, string ContactPhone, int CategoryId, decimal Latitude, decimal Longitude, IFormFile NuevaImagen, string NuevaImagenUrl)
+        public async Task<IActionResult> EditarNegocioModerador(int BusinessId, string TradeName, string Description, string Address, string ContactPhone, int CategoryId, decimal Latitude, decimal Longitude, IFormFile NuevaImagen, string NuevaImagenUrl, string RUC, string lv_inicio, string lv_fin, string s_inicio, string s_fin, string d_inicio, string d_fin, string domingo)
         {
             var rol = HttpContext.Session.GetString("Rol");
             if (rol != "MODERADOR") return Unauthorized();
 
-            var negocio = await _pinContext.Businesses.FindAsync(BusinessId);
+            var negocio = await _pinContext.Businesses.Include(b => b.Schedules).FirstOrDefaultAsync(b => b.BusinessId == BusinessId);
             if (negocio != null)
             {
                 negocio.TradeName = TradeName;
@@ -438,6 +457,24 @@ namespace PinAppdePromo.Controllers
                 negocio.CategoryId = CategoryId;
                 negocio.Latitude = Latitude;
                 negocio.Longitude = Longitude;
+                negocio.RUC = RUC ?? "";
+
+                // Actualizar Horarios
+                var oldSchedules = await _pinContext.BusinessSchedules.Where(s => s.BusinessId == BusinessId).ToListAsync();
+                _pinContext.BusinessSchedules.RemoveRange(oldSchedules);
+
+                if (!string.IsNullOrEmpty(lv_inicio) && !string.IsNullOrEmpty(lv_fin))
+                {
+                    _pinContext.BusinessSchedules.Add(new BusinessSchedule { BusinessId = BusinessId, DayOfWeek = "Lunes-Viernes", OpenTime = TimeSpan.Parse(lv_inicio), CloseTime = TimeSpan.Parse(lv_fin) });
+                }
+                if (!string.IsNullOrEmpty(s_inicio) && !string.IsNullOrEmpty(s_fin))
+                {
+                    _pinContext.BusinessSchedules.Add(new BusinessSchedule { BusinessId = BusinessId, DayOfWeek = "Sábados", OpenTime = TimeSpan.Parse(s_inicio), CloseTime = TimeSpan.Parse(s_fin) });
+                }
+                if (domingo == "abierto" && !string.IsNullOrEmpty(d_inicio) && !string.IsNullOrEmpty(d_fin))
+                {
+                    _pinContext.BusinessSchedules.Add(new BusinessSchedule { BusinessId = BusinessId, DayOfWeek = "Domingos", OpenTime = TimeSpan.Parse(d_inicio), CloseTime = TimeSpan.Parse(d_fin) });
+                }
 
                 // Handle Photo Update
                 string newImageUrl = null;
