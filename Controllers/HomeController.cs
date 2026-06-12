@@ -145,8 +145,16 @@ namespace PinAppdePromo.Controllers
                 {
                     var historial = await _pinContext.BusquedasUsuario.Where(b => b.UsuarioId == pinUser.UserId).ToListAsync();
 
-                    // Mapear negocios a DTOs para el servicio de recomendación
-                    var negociosDto = negocios.Select(b => new ML.NegocioDTO
+                    // Obtener todos los negocios activos para la recomendación global
+                    var todosLosNegocios = await _pinContext.Businesses
+                        .Include(b => b.Category)
+                        .Include(b => b.Images)
+                        .Include(b => b.Reviews)
+                        .Where(b => b.Status == "Approved" || b.Status == "Promoted")
+                        .ToListAsync();
+
+                    // Mapear TODOS los negocios a DTOs para el servicio de recomendación
+                    var negociosDto = todosLosNegocios.Select(b => new ML.NegocioDTO
                     {
                         Id = b.BusinessId,
                         Nombre = b.TradeName ?? string.Empty,
