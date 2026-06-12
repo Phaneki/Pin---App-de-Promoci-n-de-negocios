@@ -25,6 +25,11 @@ namespace PinAppdePromo.Controllers
             _photoService = photoService;
         }
 
+        public IActionResult Beneficios()
+        {
+            return View();
+        }
+
         public async Task<IActionResult> Index()
         {
             var negocios = await _pinContext.Businesses
