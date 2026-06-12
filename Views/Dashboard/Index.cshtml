@@ -1,0 +1,163 @@
+@model List<PinAppdePromo.Models.Business>
+@{
+    ViewData["Title"] = "Panel de Estadísticas Premium";
+}
+
+<div class="container py-5">
+    <!-- ENCABEZADO -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <span class="badge mb-2 px-3 py-2" style="background-color: #ff6b00; color: white; font-size: 14px;">
+                <i class="fas fa-crown me-2"></i> Centro de Control Premium
+            </span>
+            <h2 class="fw-bold text-dark mt-2">Gestiona tu Negocio</h2>
+            @if (Model != null && Model.Any())
+            {
+                <p class="text-muted" style="font-size: 1.1rem;">
+                    Negocios activos: <strong class="text-dark">@string.Join(", ", Model.Select(m => m.TradeName))</strong>
+                </p>
+            }
+            else
+            {
+                <p class="text-muted text-warning">Aún no tienes negocios registrados o aprobados.</p>
+            }
+        </div>
+        <div>
+            <a href="/Home/Perfil" class="btn btn-outline-dark px-4 py-2" style="border-radius: 12px; font-weight: 600;">
+                <i class="fas fa-arrow-left me-2"></i> Volver al Perfil
+            </a>
+        </div>
+    </div>
+
+    <!-- SECCIÓN: ESTADÍSTICAS DEL NEGOCIO -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0"><i class="fas fa-chart-pie text-muted me-2"></i> Tráfico (Últimos 30 días)</h4>
+        @if (ViewBag.TotalVistas == 0 && ViewBag.TotalClics == 0)
+        {
+            <span class="badge bg-danger px-3 py-2 rounded-pill">Aún no hay visitas suficientes</span>
+        }
+        else
+        {
+            <span class="badge bg-success px-3 py-2 rounded-pill">Datos actualizados</span>
+        }
+    </div>
+
+    <!-- KPIs SUMMARY CARDS -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 rounded-4" style="background: linear-gradient(135deg, #1a1a1a, #2c2c2c); color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-white-50 mb-1 small text-uppercase fw-bold">Impresiones</p>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalVistas</h3>
+                    </div>
+                    <div class="p-3 bg-dark rounded-circle text-primary">
+                        <i class="fas fa-eye fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 rounded-4" style="background: linear-gradient(135deg, #1a1a1a, #2c2c2c); color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-white-50 mb-1 small text-uppercase fw-bold">Clics en Perfil</p>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalClics</h3>
+                    </div>
+                    <div class="p-3 bg-dark rounded-circle text-success">
+                        <i class="fas fa-mouse-pointer fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 rounded-4" style="background: linear-gradient(135deg, #1a1a1a, #2c2c2c); color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-white-50 mb-1 small text-uppercase fw-bold">Tasa de Conversión</p>
+                        <h3 class="fw-bold mb-0">@ViewBag.CTR %</h3>
+                    </div>
+                    <div class="p-3 bg-dark rounded-circle" style="color: #ff6b00;">
+                        <i class="fas fa-chart-line fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm p-4 rounded-4" style="background: linear-gradient(135deg, #1a1a1a, #2c2c2c); color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-white-50 mb-1 small text-uppercase fw-bold">Favoritos</p>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalFavoritos</h3>
+                    </div>
+                    <div class="p-3 bg-dark rounded-circle text-danger">
+                        <i class="fas fa-heart fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRÁFICA PRINCIPAL -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm p-4 rounded-4">
+                <h5 class="fw-bold mb-4">Tráfico a lo largo del tiempo</h5>
+                <div style="height: 350px;">
+                    <canvas id="trafficChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Importar Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('trafficChart').getContext('2d');
+            
+            // Recuperar datos procesados desde el Backend
+            const labels = @Html.Raw(ViewBag.FechasGrafica ?? "[]");
+            const vistas = @Html.Raw(ViewBag.VistasGrafica ?? "[]");
+            const clics = @Html.Raw(ViewBag.ClicsGrafica ?? "[]");
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Impresiones (Vistas)',
+                            data: vistas,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4 // Hace las líneas curvas y modernas
+                        },
+                        {
+                            label: 'Clics (Interacciones)',
+                            data: clics,
+                            borderColor: '#ff6b00',
+                            backgroundColor: 'rgba(255, 107, 0, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                }
+            });
+        });
+    </script>
+}
