@@ -266,6 +266,33 @@ namespace PinAppdePromo.Controllers
                 }
             }
 
+            // 📞 Auto-sincronizar información adicional (teléfono, horarios, web) si faltan
+            bool needsInfo = string.IsNullOrEmpty(negocio.ContactPhone) || string.IsNullOrEmpty(negocio.Description) || (!negocio.Description.Contains("Horarios"));
+            if (needsInfo)
+            {
+                var info = await _googlePlacesService.GetBusinessInfoAsync(negocio.TradeName, negocio.Address);
+                if (info != null)
+                {
+                    bool infoUpdated = false;
+                    if (string.IsNullOrEmpty(negocio.ContactPhone) && !string.IsNullOrEmpty(info.PhoneNumber))
+                    {
+                        negocio.ContactPhone = info.PhoneNumber;
+                        infoUpdated = true;
+                    }
+                    if (!string.IsNullOrEmpty(info.Website) && (string.IsNullOrEmpty(negocio.Description) || !negocio.Description.Contains(info.Website)))
+                    {
+                        negocio.Description = string.IsNullOrEmpty(negocio.Description) ? $"Sitio web: {info.Website}" : $"{negocio.Description} | Sitio web: {info.Website}";
+                        infoUpdated = true;
+                    }
+                    if (!string.IsNullOrEmpty(info.OpeningHours) && (string.IsNullOrEmpty(negocio.Description) || !negocio.Description.Contains("Horarios")))
+                    {
+                        negocio.Description = string.IsNullOrEmpty(negocio.Description) ? $"Horarios: {info.OpeningHours}" : $"{negocio.Description} | Horarios: {info.OpeningHours}";
+                        infoUpdated = true;
+                    }
+                    if (infoUpdated) await _pinContext.SaveChangesAsync();
+                }
+            }
+
             return View(negocio);
         }
 

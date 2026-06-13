@@ -115,6 +115,63 @@ namespace PinAppdePromo.Controllers
         }
 
         /// <summary>
+        /// 📞 Sincroniza teléfono, web y horarios de los negocios desde Google Places
+        /// Endpoint: GET /api/businessimages/sync-info-all
+        /// </summary>
+        [HttpGet("sync-info-all")]
+        [HttpPost("sync-info-all")]
+        public async Task<IActionResult> SyncAllBusinessInfo()
+        {
+            try
+            {
+                _logger.LogInformation("ℹ️ Iniciando sincronización de información adicional...");
+
+                var businesses = await _context.Businesses
+                    .Where(b => string.IsNullOrEmpty(b.ContactPhone) || b.Description == null || !b.Description.Contains("Horarios"))
+                    .ToListAsync();
+
+                if (!businesses.Any())
+                    return Ok(new { message = "✅ Todos los negocios ya tienen su información al día." });
+
+                int successCount = 0;
+
+                foreach (var business in businesses)
+                {
+                    var info = await _googlePlacesService.GetBusinessInfoAsync(business.TradeName, business.Address);
+                    if (info != null)
+                    {
+                        bool updated = false;
+                        if (string.IsNullOrEmpty(business.ContactPhone) && !string.IsNullOrEmpty(info.PhoneNumber))
+                        {
+                            business.ContactPhone = info.PhoneNumber;
+                            updated = true;
+                        }
+                        if (!string.IsNullOrEmpty(info.Website) && (business.Description == null || !business.Description.Contains(info.Website)))
+                        {
+                            business.Description = string.IsNullOrEmpty(business.Description) ? $"Sitio web: {info.Website}" : $"{business.Description} | Sitio web: {info.Website}";
+                            updated = true;
+                        }
+                        if (!string.IsNullOrEmpty(info.OpeningHours) && (business.Description == null || !business.Description.Contains("Horarios")))
+                        {
+                            business.Description = string.IsNullOrEmpty(business.Description) ? $"Horarios: {info.OpeningHours}" : $"{business.Description} | Horarios: {info.OpeningHours}";
+                            updated = true;
+                        }
+
+                        if (updated) successCount++;
+                    }
+                }
+
+                if (successCount > 0) await _context.SaveChangesAsync();
+
+                return Ok(new { message = "✅ Sincronización de información completada", updated = successCount, total = businesses.Count });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 🔄 Sincroniza imagen de un negocio específico
         /// Endpoint: POST /api/businessimages/sync/{businessId}
         /// </summary>
