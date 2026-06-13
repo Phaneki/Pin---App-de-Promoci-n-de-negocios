@@ -29,6 +29,7 @@ namespace PinAppdePromo.Controllers
         /// 🔄 Sincroniza imágenes de todos los negocios sin fotos desde Google Places
         /// Endpoint: POST /api/businessimages/sync-all
         /// </summary>
+        [HttpGet("sync-all")]
         [HttpPost("sync-all")]
         public async Task<IActionResult> SyncAllBusinessImages()
         {
@@ -38,7 +39,8 @@ namespace PinAppdePromo.Controllers
 
                 // Obtener todos los negocios que NO tienen imágenes
                 var businessesWithoutImages = await _context.Businesses
-                    .Where(b => !b.Images.Any())
+                    .Include(b => b.Images)
+                    .Where(b => !b.Images.Any() || b.Images.Any(img => img.ImageUrl.Contains("ui-avatars.com")))
                     .ToListAsync();
 
                 if (!businessesWithoutImages.Any())
@@ -57,16 +59,29 @@ namespace PinAppdePromo.Controllers
 
                         if (!string.IsNullOrEmpty(photoUrl))
                         {
-                            // Crear nueva imagen en la base de datos
-                            var businessImage = new BusinessImage
-                            {
-                                BusinessId = business.BusinessId,
-                                ImageUrl = photoUrl
-                            };
+                            bool isRealImage = !photoUrl.Contains("ui-avatars.com");
+                            bool hasFallback = business.Images.Any(img => img.ImageUrl.Contains("ui-avatars.com"));
 
-                            _context.BusinessImages.Add(businessImage);
-                            successCount++;
-                            _logger.LogInformation($"✅ Imagen sincronizada para: {business.TradeName}");
+                            if (isRealImage)
+                            {
+                                if (hasFallback)
+                                {
+                                    var fallbacks = business.Images.Where(img => img.ImageUrl.Contains("ui-avatars.com")).ToList();
+                                    _context.BusinessImages.RemoveRange(fallbacks);
+                                }
+
+                                var businessImage = new BusinessImage { BusinessId = business.BusinessId, ImageUrl = photoUrl };
+                                _context.BusinessImages.Add(businessImage);
+                                successCount++;
+                                _logger.LogInformation($"✅ Imagen real sincronizada para: {business.TradeName}");
+                            }
+                            else if (!business.Images.Any())
+                            {
+                                var businessImage = new BusinessImage { BusinessId = business.BusinessId, ImageUrl = photoUrl };
+                                _context.BusinessImages.Add(businessImage);
+                                failureCount++;
+                                _logger.LogWarning($"⚠️ Fallback asignado temporalmente a: {business.TradeName}");
+                            }
                         }
                         else
                         {
@@ -103,6 +118,7 @@ namespace PinAppdePromo.Controllers
         /// 🔄 Sincroniza imagen de un negocio específico
         /// Endpoint: POST /api/businessimages/sync/{businessId}
         /// </summary>
+        [HttpGet("sync/{businessId:int}")]
         [HttpPost("sync/{businessId:int}")]
         public async Task<IActionResult> SyncBusinessImage(int businessId)
         {
