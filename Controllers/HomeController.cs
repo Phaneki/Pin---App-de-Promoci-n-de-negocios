@@ -43,15 +43,30 @@ namespace PinAppdePromo.Controllers
             bool hasNewImages = false;
             foreach (var negocio in negocios)
             {
-                if (!negocio.Images.Any())
+                bool needsImage = !negocio.Images.Any() || negocio.Images.Any(img => img.ImageUrl.Contains("ui-avatars.com"));
+                if (needsImage)
                 {
                     var photoUrl = await _googlePlacesService.GetBusinessPhotoUrlAsync(negocio.TradeName, negocio.Address);
                     if (!string.IsNullOrEmpty(photoUrl))
                     {
-                        var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
-                        _pinContext.BusinessImages.Add(nuevaImagen);
-                        negocio.Images.Add(nuevaImagen);
-                        hasNewImages = true;
+                        bool isRealImage = !photoUrl.Contains("ui-avatars.com");
+                        if (isRealImage)
+                        {
+                            var fallbacks = negocio.Images.Where(img => img.ImageUrl.Contains("ui-avatars.com")).ToList();
+                            if (fallbacks.Any()) { _pinContext.BusinessImages.RemoveRange(fallbacks); foreach(var f in fallbacks) negocio.Images.Remove(f); }
+                            
+                            var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
+                            _pinContext.BusinessImages.Add(nuevaImagen);
+                            negocio.Images.Add(nuevaImagen);
+                            hasNewImages = true;
+                        }
+                        else if (!negocio.Images.Any())
+                        {
+                            var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
+                            _pinContext.BusinessImages.Add(nuevaImagen);
+                            negocio.Images.Add(nuevaImagen);
+                            hasNewImages = true;
+                        }
                     }
                 }
             }
@@ -126,15 +141,30 @@ namespace PinAppdePromo.Controllers
             bool hasNewImages = false;
             foreach (var negocio in negocios)
             {
-                if (!negocio.Images.Any())
+                bool needsImage = !negocio.Images.Any() || negocio.Images.Any(img => img.ImageUrl.Contains("ui-avatars.com"));
+                if (needsImage)
                 {
                     var photoUrl = await _googlePlacesService.GetBusinessPhotoUrlAsync(negocio.TradeName, negocio.Address);
                     if (!string.IsNullOrEmpty(photoUrl))
                     {
-                        var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
-                        _pinContext.BusinessImages.Add(nuevaImagen);
-                        negocio.Images.Add(nuevaImagen);
-                        hasNewImages = true;
+                        bool isRealImage = !photoUrl.Contains("ui-avatars.com");
+                        if (isRealImage)
+                        {
+                            var fallbacks = negocio.Images.Where(img => img.ImageUrl.Contains("ui-avatars.com")).ToList();
+                            if (fallbacks.Any()) { _pinContext.BusinessImages.RemoveRange(fallbacks); foreach(var f in fallbacks) negocio.Images.Remove(f); }
+                            
+                            var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
+                            _pinContext.BusinessImages.Add(nuevaImagen);
+                            negocio.Images.Add(nuevaImagen);
+                            hasNewImages = true;
+                        }
+                        else if (!negocio.Images.Any())
+                        {
+                            var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
+                            _pinContext.BusinessImages.Add(nuevaImagen);
+                            negocio.Images.Add(nuevaImagen);
+                            hasNewImages = true;
+                        }
                     }
                 }
             }
@@ -208,16 +238,31 @@ namespace PinAppdePromo.Controllers
             if (negocio == null) return NotFound();
 
             // 📸 Auto-sincronizar imagen desde Google Places si el negocio no tiene ninguna
-            if (!negocio.Images.Any())
+            bool needsImage = !negocio.Images.Any() || negocio.Images.Any(img => img.ImageUrl.Contains("ui-avatars.com"));
+            if (needsImage)
             {
                 var photoUrl = await _googlePlacesService.GetBusinessPhotoUrlAsync(negocio.TradeName, negocio.Address);
                 
                 if (!string.IsNullOrEmpty(photoUrl))
                 {
-                    var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
-                    _pinContext.BusinessImages.Add(nuevaImagen);
-                    await _pinContext.SaveChangesAsync();
-                    negocio.Images.Add(nuevaImagen);
+                    bool isRealImage = !photoUrl.Contains("ui-avatars.com");
+                    if (isRealImage)
+                    {
+                        var fallbacks = negocio.Images.Where(img => img.ImageUrl.Contains("ui-avatars.com")).ToList();
+                        if (fallbacks.Any()) { _pinContext.BusinessImages.RemoveRange(fallbacks); foreach(var f in fallbacks) negocio.Images.Remove(f); }
+                        
+                        var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
+                        _pinContext.BusinessImages.Add(nuevaImagen);
+                        await _pinContext.SaveChangesAsync();
+                        negocio.Images.Add(nuevaImagen);
+                    }
+                    else if (!negocio.Images.Any())
+                    {
+                        var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
+                        _pinContext.BusinessImages.Add(nuevaImagen);
+                        await _pinContext.SaveChangesAsync();
+                        negocio.Images.Add(nuevaImagen);
+                    }
                 }
             }
 
