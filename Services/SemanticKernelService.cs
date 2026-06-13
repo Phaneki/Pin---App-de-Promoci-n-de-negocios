@@ -99,6 +99,13 @@ namespace PinAppdePromo.Services
             catch (System.Exception ex)
             {
                 if (ex.Message.Contains("API KEY NO ENCONTRADA")) return ex.Message;
+                
+                // Manejar error 503 de alta demanda de Google o 429 de límite de peticiones
+                if (ex.Message.Contains("503") || ex.Message.Contains("high demand") || ex.Message.Contains("UNAVAILABLE") || ex.Message.Contains("429"))
+                {
+                    return "🤖 ¡Hola! En este momento estoy atendiendo a muchos clientes y mis servidores están a máxima capacidad. Por favor, intenta preguntarme de nuevo en un par de minutos.";
+                }
+
                 return $"Ocurrió un error al conectar con Gemini: {ex.Message}";
             }
         }
