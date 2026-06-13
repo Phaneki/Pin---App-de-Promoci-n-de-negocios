@@ -2,33 +2,94 @@
     ViewData["Title"] = "Nosotros";
 }
 
-<div class="container py-5">
-    <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold text-orange">Sobre Nosotros</h1>
-        <p class="lead text-muted">Conectando negocios con personas, creando valor en cada interacción.</p>
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-r from-[#ff6b00] to-[#ff8c33] text-white py-24 overflow-hidden">
+    <div class="absolute inset-0 bg-black opacity-10"></div>
+    <div class="container relative z-10 mx-auto px-6 max-w-7xl text-center">
+        <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight mb-6 drop-shadow-md">Sobre Nosotros</h1>
+        <p class="text-xl md:text-2xl text-orange-100 font-medium max-w-3xl mx-auto leading-relaxed mb-0">
+            Conectando negocios con personas, creando valor en cada interacción.
+        </p>
     </div>
+    <!-- Decorative shapes -->
+    <div class="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-white opacity-10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl"></div>
+</div>
 
-    <div class="row align-items-center mb-5">
-        <div class="col-md-6">
-            <h2 class="fw-bold mb-3">Nuestra Misión</h2>
-            <p class="fs-5 text-secondary">
-                En PinApp, nuestra misión es democratizar la promoción de negocios locales, brindándoles herramientas de primer nivel para llegar a más clientes. Creemos en el poder del comercio local y en su impacto en la comunidad.
+<!-- Mission & Vision Section -->
+<div class="container mx-auto px-4 sm:px-6 max-w-6xl py-12 sm:py-16 -mt-16 sm:-mt-20 relative z-20">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Misión Card -->
+        <div class="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-8 sm:p-10 border border-gray-100 hover:-translate-y-2 transition-transform duration-300 group">
+            <div class="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-[#ff6b00] transition-all duration-300 shadow-sm">
+                <i class="fas fa-rocket text-3xl text-[#ff6b00] group-hover:text-white transition-colors"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Nuestra Misión</h2>
+            <p class="text-lg text-gray-600 leading-relaxed mb-0">
+                En <strong class="text-gray-800">PIN</strong>, nuestra misión es democratizar la promoción de negocios locales, brindándoles herramientas de primer nivel para llegar a más clientes. Creemos en el poder del comercio local y en su impacto vital en la comunidad.
             </p>
         </div>
-        <div class="col-md-6 text-center">
-            <i class="fas fa-rocket fa-5x" style="color: #ff6b00;"></i>
-        </div>
-    </div>
 
-    <div class="row align-items-center flex-md-row-reverse mb-5">
-        <div class="col-md-6">
-            <h2 class="fw-bold mb-3">Nuestra Visión</h2>
-            <p class="fs-5 text-secondary">
-                Ser la plataforma líder en el descubrimiento y promoción de negocios, donde cualquier usuario pueda encontrar exactamente lo que necesita de forma rápida, segura y confiable.
+        <!-- Visión Card -->
+        <div class="bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-8 sm:p-10 border border-gray-100 hover:-translate-y-2 transition-transform duration-300 group">
+            <div class="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-[#ff6b00] transition-all duration-300 shadow-sm">
+                <i class="fas fa-eye text-3xl text-[#ff6b00] group-hover:text-white transition-colors"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Nuestra Visión</h2>
+            <p class="text-lg text-gray-600 leading-relaxed mb-0">
+                Ser la plataforma líder en el descubrimiento y promoción de negocios, donde cualquier usuario pueda encontrar exactamente lo que necesita de forma rápida, segura y confiable, fomentando el crecimiento económico sostenible.
             </p>
         </div>
-        <div class="col-md-6 text-center">
-            <i class="fas fa-eye fa-5x" style="color: #ff6b00;"></i>
+
+    </div>
+</div>
+
+<!-- Values Section -->
+<div class="bg-gray-50 py-20 mt-4 rounded-t-[3rem] sm:rounded-t-[5rem]">
+    <div class="container mx-auto px-6 max-w-6xl">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">Nuestros Valores</h2>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto mb-0">Los pilares que sostienen nuestro compromiso con los negocios y los usuarios.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <!-- Valor 1 -->
+            <div class="text-center group">
+                <div class="w-20 h-20 mx-auto rounded-full bg-white shadow-md flex items-center justify-center mb-6 border border-gray-100 group-hover:border-orange-200 group-hover:shadow-lg transition-all duration-300">
+                    <i class="fas fa-handshake text-2xl text-[#ff6b00] group-hover:scale-110 transition-transform"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-3">Confianza</h3>
+                <p class="text-gray-600 mb-0">Construimos relaciones transparentes y duraderas entre negocios y consumidores.</p>
+            </div>
+            
+            <!-- Valor 2 -->
+            <div class="text-center group">
+                <div class="w-20 h-20 mx-auto rounded-full bg-white shadow-md flex items-center justify-center mb-6 border border-gray-100 group-hover:border-orange-200 group-hover:shadow-lg transition-all duration-300">
+                    <i class="fas fa-lightbulb text-2xl text-[#ff6b00] group-hover:scale-110 transition-transform"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-3">Innovación</h3>
+                <p class="text-gray-600 mb-0">Buscamos constantemente nuevas formas de mejorar la experiencia y el alcance digital.</p>
+            </div>
+
+            <!-- Valor 3 -->
+            <div class="text-center group">
+                <div class="w-20 h-20 mx-auto rounded-full bg-white shadow-md flex items-center justify-center mb-6 border border-gray-100 group-hover:border-orange-200 group-hover:shadow-lg transition-all duration-300">
+                    <i class="fas fa-users text-2xl text-[#ff6b00] group-hover:scale-110 transition-transform"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-3">Comunidad</h3>
+                <p class="text-gray-600 mb-0">Creemos que el éxito de uno es el éxito de todos. Fomentamos el apoyo mutuo local.</p>
+            </div>
         </div>
     </div>
+</div>
+
+<!-- Call to Action -->
+<div class="container mx-auto px-6 max-w-4xl py-20 text-center">
+    <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-6">¿Listo para hacer crecer tu negocio?</h2>
+    <p class="text-xl text-gray-600 mb-10">Únete a cientos de negocios que ya están conectando con nuevos clientes todos los días.</p>
+    <a asp-controller="Home" asp-action="RegistrarNegocio" class="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#ff6b00] to-[#ff8c33] text-white rounded-full font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 no-underline">
+        <i class="fas fa-plus-circle"></i>
+        Registrar mi negocio
+    </a>
 </div>

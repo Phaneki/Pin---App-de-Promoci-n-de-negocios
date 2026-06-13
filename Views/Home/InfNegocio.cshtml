@@ -267,48 +267,155 @@
     </div>
 </div>
 
+<style>
+    /* Estilos mejorados para el Modal de Reseñas */
+    #newReviewModal .modal-card {
+        border-radius: 1.5rem;
+        border: none;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        background: #fff;
+    }
+    #newReviewModal .modal-header {
+        background: linear-gradient(135deg, #fffcf7 0%, #fff5eb 100%);
+        border-bottom: 1px solid rgba(255,107,0,0.1);
+        padding: 1.5rem 2rem;
+    }
+    #newReviewModal .modal-body {
+        padding: 2rem;
+    }
+    .star-rating-container .star-btn {
+        background: transparent;
+        border: none;
+        font-size: 3rem;
+        color: #e5e7eb;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0;
+        margin: 0 0.25rem;
+    }
+    .star-rating-container .star-btn:hover {
+        transform: scale(1.15);
+    }
+    .star-rating-container .star-btn.active {
+        color: #ff6b00;
+        filter: drop-shadow(0 4px 6px rgba(255,107,0,0.3));
+    }
+    .review-textarea {
+        border-radius: 1rem;
+        border: 2px solid #f3f4f6;
+        padding: 1rem;
+        resize: none;
+        transition: all 0.3s ease;
+        background-color: #f9fafb;
+    }
+    .review-textarea:focus {
+        border-color: #ff6b00;
+        box-shadow: 0 0 0 4px rgba(255,107,0,0.1);
+        background-color: #fff;
+        outline: none;
+    }
+    .upload-dropzone-modern {
+        border: 2px dashed #e5e7eb;
+        border-radius: 1rem;
+        background-color: #f9fafb;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .upload-dropzone-modern:hover, .upload-dropzone-modern.active {
+        border-color: #ff6b00;
+        background-color: #fff5eb;
+    }
+    .upload-dropzone-modern i {
+        font-size: 2.5rem;
+        color: #ff6b00;
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease;
+    }
+    .upload-dropzone-modern:hover i {
+        transform: translateY(-5px);
+    }
+    .btn-publish {
+        background: linear-gradient(135deg, #ff6b00, #ff8c33);
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 2rem;
+        font-weight: 700;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255,107,0,0.2);
+    }
+    .btn-publish:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(255,107,0,0.3);
+        color: white;
+    }
+    .btn-cancel-modern {
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        color: #6b7280;
+        background: white;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+    }
+    .btn-cancel-modern:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+</style>
+
 <div id="newReviewModal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-card">
-        <div class="modal-header">
+    <div class="modal-card" style="max-width: 650px; width: 95%;">
+        <div class="modal-header d-flex justify-content-between align-items-center">
             <div>
-                <h4 class="mb-1">Publicar nueva reseña</h4>
-                <p class="text-muted mb-0">Califica tu experiencia y deja tu comentario en un popup rápido.</p>
+                <h4 class="mb-1 fw-bold text-dark">Cuéntanos tu experiencia</h4>
+                <p class="text-muted mb-0" style="font-size: 0.95rem;">Tu opinión es muy valiosa para nosotros y la comunidad.</p>
             </div>
-            <button id="closeReviewModal" class="modal-close" aria-label="Cerrar modal"><i class="fa-solid fa-xmark"></i></button>
+            <button id="closeReviewModal" class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 36px; height: 36px;" aria-label="Cerrar modal">
+                <i class="fa-solid fa-xmark text-muted"></i>
+            </button>
         </div>
         <div class="modal-body">
-            <form id="newReviewForm" asp-action="AgregarResena" asp-controller="Home" method="post" enctype="multipart/form-data" class="row g-3">
-                <!-- Campo oculto para enviar al backend a qué negocio pertenece la reseña -->
+            <form id="newReviewForm" asp-action="AgregarResena" asp-controller="Home" method="post" enctype="multipart/form-data" class="row g-4">
                 <input type="hidden" name="BusinessId" value="@Model.BusinessId" />
-                <div class="col-12">
-                    <label class="form-label">Calificación</label>
-                    <div class="d-flex gap-2" id="reviewStars">
+                
+                <div class="col-12 text-center mt-2">
+                    <label class="form-label fw-bold text-muted mb-3 text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">¿Cómo calificarías este negocio?</label>
+                    <div class="star-rating-container d-flex justify-content-center" id="reviewStars">
                         @for (var i = 1; i <= 5; i++)
                         {
-                            <button type="button" class="btn btn-outline-secondary star-btn" data-value="@i" aria-label="@i estrellas">
+                            <button type="button" class="star-btn" data-value="@i" aria-label="@i estrellas">
                                 <i class="fa-solid fa-star"></i>
                             </button>
                         }
                     </div>
                     <input type="hidden" id="reviewRating" name="Rating" value="5" />
                 </div>
+
                 <div class="col-12">
-                    <label class="form-label">Tu reseña</label>
-                    <textarea id="reviewComment" name="Comment" class="form-control" rows="4" placeholder="Comparte lo que más te gustó o lo que se puede mejorar..." required></textarea>
+                    <label class="form-label fw-bold text-dark mb-2">Detalles de tu reseña</label>
+                    <textarea id="reviewComment" name="Comment" class="form-control review-textarea" rows="4" placeholder="Ej. El servicio fue excelente, los precios justos y el ambiente muy agradable. ¡Lo recomiendo!" required></textarea>
                 </div>
+
                 <div class="col-12">
-                    <label class="form-label">Fotos (opcional)</label>
-                    <div id="dropZone" class="upload-dropzone">
-                        <input type="file" id="reviewPhoto" name="Images" accept="image/*" multiple class="form-control d-none" />
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <p class="mb-1 fw-semibold text-slate-900">Selecciona o arrastra tus fotos aquí</p>
-                        <p class="small text-slate-500">JPG, PNG. Hasta 5 archivos. Se mostrarán en miniaturas.</p>
+                    <label class="form-label fw-bold text-dark mb-2">Añadir fotos <span class="text-muted fw-normal">(Opcional)</span></label>
+                    <div id="dropZone" class="upload-dropzone-modern">
+                        <input type="file" id="reviewPhoto" name="Images" accept="image/*" multiple class="d-none" />
+                        <div class="d-flex flex-column align-items-center">
+                            <i class="fa-solid fa-camera-retro"></i>
+                            <h6 class="mb-1 fw-bold text-dark">Haz clic para subir fotos o arrástralas aquí</h6>
+                            <p class="small text-muted mb-0">Puedes subir hasta 5 imágenes (JPG, PNG)</p>
+                        </div>
                     </div>
-                    <div id="reviewPhotoPreview" class="review-photo-gallery"></div>
+                    <div id="reviewPhotoPreview" class="review-photo-gallery mt-3 d-flex gap-2 flex-wrap"></div>
                 </div>
-                <div class="col-12 d-flex justify-content-end gap-2">
-                    <button type="button" id="cancelReview" class="btn btn-outline-secondary">Cancelar</button>
-                    <button type="submit" class="btn btn-terracota fw-bold">Publicar reseña</button>
+
+                <div class="col-12 d-flex justify-content-end gap-3 mt-2 pt-4 border-top">
+                    <button type="button" id="cancelReview" class="btn-cancel-modern">Cancelar</button>
+                    <button type="submit" class="btn-publish">Publicar reseña <i class="fa-solid fa-paper-plane ms-1"></i></button>
                 </div>
             </form>
         </div>
@@ -357,27 +464,14 @@
             {
                 foreach (var r in Model.Reviews)
                 {
-                    dynamic dr = r;
-                    try {
-                        reviewsList.Add(new {
-                            id = dr.ReviewId,
-                            nombre = dr.User?.Nombre ?? dr.Usuario?.Nombre ?? "Cliente",
-                            calificacion = dr.Rating,
-                            comentario = dr.Comment,
-                            fecha = dr.CreatedAt,
-                            verificado = true
-                        });
-                    } catch {
-                        // Fallback en caso de que aún no tengas las propiedades completas creadas
-                        reviewsList.Add(new {
-                            id = r.GetHashCode(),
-                            nombre = "Cliente",
-                            calificacion = dr.Rating,
-                            comentario = "Reseña desde base de datos.",
-                            fecha = DateTime.Now,
-                            verificado = true
-                        });
-                    }
+                    reviewsList.Add(new {
+                        id = r.ReviewId,
+                        nombre = r.User?.FullName ?? "Cliente Anónimo",
+                        calificacion = r.Rating,
+                        comentario = r.Comment ?? "Sin comentarios",
+                        fecha = r.CreatedAt,
+                        verificado = true
+                    });
                 }
             }
             var jsonReviews = System.Text.Json.JsonSerializer.Serialize(reviewsList);
