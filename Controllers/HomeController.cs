@@ -30,6 +30,21 @@ namespace PinAppdePromo.Controllers
             return View();
         }
 
+        public IActionResult Privacidad()
+        {
+            return View();
+        }
+
+        public IActionResult Nosotros()
+        {
+            return View();
+        }
+
+        public IActionResult Contacto()
+        {
+            return View();
+        }
+
         public async Task<IActionResult> Index()
         {
             var negocios = await _pinContext.Businesses
