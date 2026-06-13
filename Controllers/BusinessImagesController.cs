@@ -29,6 +29,7 @@ namespace PinAppdePromo.Controllers
         /// 🔄 Sincroniza imágenes de todos los negocios sin fotos desde Google Places
         /// Endpoint: POST /api/businessimages/sync-all
         /// </summary>
+        [HttpGet("sync-all")]
         [HttpPost("sync-all")]
         public async Task<IActionResult> SyncAllBusinessImages()
         {
@@ -103,6 +104,7 @@ namespace PinAppdePromo.Controllers
         /// 🔄 Sincroniza imagen de un negocio específico
         /// Endpoint: POST /api/businessimages/sync/{businessId}
         /// </summary>
+        [HttpGet("sync/{businessId:int}")]
         [HttpPost("sync/{businessId:int}")]
         public async Task<IActionResult> SyncBusinessImage(int businessId)
         {

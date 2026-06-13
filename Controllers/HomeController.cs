@@ -39,6 +39,24 @@ namespace PinAppdePromo.Controllers
                 .Take(8)
                 .ToListAsync();
 
+            // 📸 Auto-sincronizar imágenes desde Google Places si faltan en la página de inicio
+            bool hasNewImages = false;
+            foreach (var negocio in negocios)
+            {
+                if (!negocio.Images.Any())
+                {
+                    var photoUrl = await _googlePlacesService.GetBusinessPhotoUrlAsync(negocio.TradeName, negocio.Address);
+                    if (!string.IsNullOrEmpty(photoUrl))
+                    {
+                        var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
+                        _pinContext.BusinessImages.Add(nuevaImagen);
+                        negocio.Images.Add(nuevaImagen);
+                        hasNewImages = true;
+                    }
+                }
+            }
+            if (hasNewImages) await _pinContext.SaveChangesAsync();
+
             var resenasRecientes = await _pinContext.Reviews
                 .Include(r => r.User)
                 .Include(r => r.Business)
@@ -103,6 +121,24 @@ namespace PinAppdePromo.Controllers
             // Aplicar paginación
             int skip = (page - 1) * pageSize;
             var negocios = await query.Skip(skip).Take(pageSize).ToListAsync();
+
+            // 📸 Auto-sincronizar imágenes desde Google Places para los negocios en la página actual
+            bool hasNewImages = false;
+            foreach (var negocio in negocios)
+            {
+                if (!negocio.Images.Any())
+                {
+                    var photoUrl = await _googlePlacesService.GetBusinessPhotoUrlAsync(negocio.TradeName, negocio.Address);
+                    if (!string.IsNullOrEmpty(photoUrl))
+                    {
+                        var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
+                        _pinContext.BusinessImages.Add(nuevaImagen);
+                        negocio.Images.Add(nuevaImagen);
+                        hasNewImages = true;
+                    }
+                }
+            }
+            if (hasNewImages) await _pinContext.SaveChangesAsync();
 
             ViewBag.Categorias = await _pinContext.Categories.ToListAsync();
             ViewBag.CategoriasSeleccionadas = categorias ?? new List<int>();
@@ -170,6 +206,21 @@ namespace PinAppdePromo.Controllers
                 .Include(b => b.Products)
                 .FirstOrDefaultAsync(n => n.BusinessId == id);
             if (negocio == null) return NotFound();
+
+            // 📸 Auto-sincronizar imagen desde Google Places si el negocio no tiene ninguna
+            if (!negocio.Images.Any())
+            {
+                var photoUrl = await _googlePlacesService.GetBusinessPhotoUrlAsync(negocio.TradeName, negocio.Address);
+                
+                if (!string.IsNullOrEmpty(photoUrl))
+                {
+                    var nuevaImagen = new BusinessImage { BusinessId = negocio.BusinessId, ImageUrl = photoUrl };
+                    _pinContext.BusinessImages.Add(nuevaImagen);
+                    await _pinContext.SaveChangesAsync();
+                    negocio.Images.Add(nuevaImagen);
+                }
+            }
+
             return View(negocio);
         }
 
