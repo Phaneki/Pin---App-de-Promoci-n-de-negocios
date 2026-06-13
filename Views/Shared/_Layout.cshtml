@@ -274,8 +274,8 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            var usuarioEmail = '@Context.Session.GetString("Usuario")';
-            var nombreReal = '@Context.Session.GetString("Nombre")';
+            var usuarioEmail = '@Html.Raw(Context.Session.GetString("Usuario"))';
+            var nombreReal = '@Html.Raw(Context.Session.GetString("Nombre"))';
             var nombreAMostrar = nombreReal ? nombreReal : (usuarioEmail ? usuarioEmail.split('@@')[0] : '');
 
             // bandera para evitar que salga siempre

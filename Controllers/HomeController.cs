@@ -49,6 +49,16 @@ namespace PinAppdePromo.Controllers
 
         public async Task<IActionResult> Index()
         {
+            var email = HttpContext.Session.GetString("Usuario");
+            if (!string.IsNullOrEmpty(email))
+            {
+                var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (pinUser != null)
+                {
+                    HttpContext.Session.SetString("IsPremium", pinUser.IsPremium ? "True" : "False");
+                }
+            }
+
             var negocios = await _pinContext.Businesses
                 .Include(b => b.Category)
                 .Include(b => b.Images)
