@@ -133,7 +133,12 @@
                                             }
                                         }
                                     }
-                                    <img src="@galUrl" class="d-block w-100" alt="@Model.TradeName" style="height: 400px; object-fit: cover;">
+                                    <img src="@galUrl" class="d-block w-100" alt="@Model.TradeName" style="height: 400px; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    <div class="align-items-center justify-content-center w-100 fallback-img" style="height: 400px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: none !important;">
+                                        <div class="text-center">
+                                            <i class="bi bi-image" style="font-size: 4rem; color: #adb5bd; margin-bottom: 8px; display: block;"></i>
+                                        </div>
+                                    </div>
                                 </div>
                             }
                         </div>

@@ -105,6 +105,9 @@ builder.Services.AddScoped<IBusinessHoursService, BusinessHoursService>();
 // 7. Registrar Semantic Kernel Service
 builder.Services.AddScoped<ISemanticKernelService, SemanticKernelService>();
 
+// 8. Registrar Google Places Service para obtener fotos de negocios
+builder.Services.AddScoped<IGooglePlacesService, GooglePlacesService>();
+
 var app = builder.Build();
 
 // Ejecutar migraciones automáticamente
@@ -256,6 +259,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles(); // 🔧 IMPORTANTE: Permite servir archivos estáticos (imágenes, CSS, JS) desde wwwroot
 app.UseRouting();
 
 app.UseAuthentication();

@@ -104,7 +104,10 @@
                                                 {
                                                     imgUrl = "/images/businesses/" + imgUrl;
                                                 }
-                                                <img src="@imgUrl" class="w-100 h-100" style="object-fit: cover;" alt="@rec.Nombre" />
+                                                <img src="@imgUrl" class="w-100 h-100" style="object-fit: cover;" alt="@rec.Nombre" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                                <div class="align-items-center justify-content-center h-100 w-100 fallback-img" style="background: linear-gradient(135deg, #fce0ce 0%, #fdebd0 100%); display: none !important;">
+                                                    <i class="bi bi-shop text-muted" style="font-size: 2rem; opacity: 0.5;"></i>
+                                                </div>
                                             }
                                             else
                                             {
@@ -164,7 +167,12 @@
                                         }
                                     }
                                         
-                                    <img src="@imgUrl" class="card-img-top w-100 h-100" alt="@negocio.TradeName" style="object-fit: cover;" />
+                                    <img src="@imgUrl" class="card-img-top w-100 h-100" alt="@negocio.TradeName" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    <div class="align-items-center justify-content-center h-100 w-100 fallback-img" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: none !important;">
+                                        <div class="text-center">
+                                            <i class="bi bi-shop" style="font-size: 3rem; color: #adb5bd; margin-bottom: 8px; display: block;"></i>
+                                        </div>
+                                    </div>
                                 }
                                 else
                                 {

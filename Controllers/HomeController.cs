@@ -15,14 +15,16 @@ namespace PinAppdePromo.Controllers
         private readonly OverpassService _overpassService;
         private readonly RecommendationAnalysisService _recommendationAnalysisService;
         private readonly IPhotoService _photoService;
+        private readonly IGooglePlacesService _googlePlacesService;
 
-        public HomeController(AppDbContext context, PinDbContext pinContext, OverpassService overpassService, RecommendationAnalysisService recommendationAnalysisService, IPhotoService photoService)
+        public HomeController(AppDbContext context, PinDbContext pinContext, OverpassService overpassService, RecommendationAnalysisService recommendationAnalysisService, IPhotoService photoService, IGooglePlacesService googlePlacesService)
         {
             _context = context;
             _pinContext = pinContext;
             _overpassService = overpassService;
             _recommendationAnalysisService = recommendationAnalysisService;
             _photoService = photoService;
+            _googlePlacesService = googlePlacesService;
         }
 
         public async Task<IActionResult> Index()
