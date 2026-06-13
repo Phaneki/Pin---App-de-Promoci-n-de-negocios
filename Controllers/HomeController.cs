@@ -193,6 +193,7 @@ namespace PinAppdePromo.Controllers
                 .Include(b => b.Category)
                 .Include(b => b.Images)
                 .Include(b => b.Reviews)
+                    .ThenInclude(r => r.User)
                 .Include(b => b.Products)
                 .FirstOrDefaultAsync(n => n.BusinessId == id);
             if (negocio == null) return NotFound();
@@ -776,5 +777,6 @@ namespace PinAppdePromo.Controllers
             await _pinContext.SaveChangesAsync();
             return Content("¡ÉXITO! Base de datos poblada con imágenes y reseñas aseguradas.");
         }
+
     }
 }

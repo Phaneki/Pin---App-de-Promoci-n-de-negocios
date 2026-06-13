@@ -459,27 +459,14 @@
             {
                 foreach (var r in Model.Reviews)
                 {
-                    dynamic dr = r;
-                    try {
-                        reviewsList.Add(new {
-                            id = dr.ReviewId,
-                            nombre = dr.User?.Nombre ?? dr.Usuario?.Nombre ?? "Cliente",
-                            calificacion = dr.Rating,
-                            comentario = dr.Comment,
-                            fecha = dr.CreatedAt,
-                            verificado = true
-                        });
-                    } catch {
-                        // Fallback en caso de que aún no tengas las propiedades completas creadas
-                        reviewsList.Add(new {
-                            id = r.GetHashCode(),
-                            nombre = "Cliente",
-                            calificacion = dr.Rating,
-                            comentario = "Reseña desde base de datos.",
-                            fecha = DateTime.Now,
-                            verificado = true
-                        });
-                    }
+                    reviewsList.Add(new {
+                        id = r.ReviewId,
+                        nombre = r.User?.FullName ?? "Cliente Anónimo",
+                        calificacion = r.Rating,
+                        comentario = r.Comment ?? "Sin comentarios",
+                        fecha = r.CreatedAt,
+                        verificado = true
+                    });
                 }
             }
             var jsonReviews = System.Text.Json.JsonSerializer.Serialize(reviewsList);
