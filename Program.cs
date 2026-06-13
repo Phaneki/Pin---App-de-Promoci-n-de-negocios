@@ -105,6 +105,9 @@ builder.Services.AddScoped<IBusinessHoursService, BusinessHoursService>();
 // 7. Registrar Semantic Kernel Service
 builder.Services.AddScoped<ISemanticKernelService, SemanticKernelService>();
 
+// 8. Registrar Google Places Service para obtener fotos de negocios
+builder.Services.AddScoped<IGooglePlacesService, GooglePlacesService>();
+
 var app = builder.Build();
 
 // Ejecutar migraciones automáticamente
@@ -169,10 +172,55 @@ using (var scope = app.Services.CreateScope())
 
     if (b1 == null && pinUserLucia != null && pinUserCarlos != null && catRestaurantes != null && catTecnologia != null && catServicios != null)
     {
-        b1 = new Business { OwnerId = pinUserLucia.UserId, CategoryId = catRestaurantes.CategoryId, TradeName = "Cevichería Punto Azul", Description = "Los mejores pescados y mariscos frescos del día.", Address = "Calle San Martín 595, Miraflores", Latitude = (decimal)-12.1245, Longitude = (decimal)-77.0250, ContactPhone = "987654321", Status = "Promoted", CreatedAt = DateTime.UtcNow };
-        b2 = new Business { OwnerId = pinUserCarlos.UserId, CategoryId = catTecnologia.CategoryId, TradeName = "TechCenter Lima", Description = "Venta de laptops y accesorios gamer.", Address = "Av. Arenales 1234, San Isidro", Latitude = (decimal)-12.0833, Longitude = (decimal)-77.0355, ContactPhone = "999888777", Status = "Approved", CreatedAt = DateTime.UtcNow };
-        b3 = new Business { OwnerId = pinUserLucia.UserId, CategoryId = catServicios.CategoryId, TradeName = "Taller FastFix", Description = "Mantenimiento y pintura automotriz.", Address = "Av. Santiago de Surco 456, Surco", Latitude = (decimal)-12.1388, Longitude = (decimal)-76.9989, ContactPhone = "912345678", Status = "Approved", CreatedAt = DateTime.UtcNow };
+        b1 = new Business { OwnerId = pinUserLucia.UserId, CategoryId = catRestaurantes.CategoryId, TradeName = "Cevichería Punto Azul", Description = "Los mejores pescados y mariscos frescos del día.", Address = "Calle San Martín 595, Miraflores", Latitude = (decimal)-12.1245, Longitude = (decimal)-77.0250, ContactPhone = "987654321", Status = "Promoted", CreatedAt = DateTime.UtcNow, RUC = "20000000001" };
+        b2 = new Business { OwnerId = pinUserCarlos.UserId, CategoryId = catTecnologia.CategoryId, TradeName = "TechCenter Lima", Description = "Venta de laptops y accesorios gamer.", Address = "Av. Arenales 1234, San Isidro", Latitude = (decimal)-12.0833, Longitude = (decimal)-77.0355, ContactPhone = "999888777", Status = "Approved", CreatedAt = DateTime.UtcNow, RUC = "20000000002" };
+        b3 = new Business { OwnerId = pinUserLucia.UserId, CategoryId = catServicios.CategoryId, TradeName = "Taller FastFix", Description = "Mantenimiento y pintura automotriz.", Address = "Av. Santiago de Surco 456, Surco", Latitude = (decimal)-12.1388, Longitude = (decimal)-76.9989, ContactPhone = "912345678", Status = "Approved", CreatedAt = DateTime.UtcNow, RUC = "20000000003" };
         pinContext.Businesses.AddRange(b1, b2, b3);
+        pinContext.SaveChanges();
+    }
+    
+    // --- SEEDING DE USUARIO PREMIUM Y SU NEGOCIO ---
+    if (!dbContext.Usuarios.Any(u => u.Correo == "premium@gmail.com"))
+    {
+        dbContext.Usuarios.Add(new Usuario { Nombre = "Dueño Premium", Correo = "premium@gmail.com", Password = "123", Rol = "DUEÑO", TipoAuth = "NORMAL", FotoUrl = "https://ui-avatars.com/api/?name=Dueno+Premium&background=ff6b00&color=fff", IsPremium = true });
+        dbContext.SaveChanges();
+    }
+
+    if (!pinContext.Users.Any(u => u.Email == "premium@gmail.com"))
+    {
+        var rolDueno = pinContext.Roles.FirstOrDefault(r => r.Name == "DUEÑO") ?? rol;
+        pinContext.Users.Add(new User { Email = "premium@gmail.com", FullName = "Dueño Premium", PasswordHash = "123", RoleId = rolDueno!.RoleId, IsPremium = true, ProfilePic = "https://ui-avatars.com/api/?name=Dueno+Premium&background=ff6b00&color=fff" });
+        pinContext.SaveChanges();
+    }
+
+    var pinUserPremium = pinContext.Users.FirstOrDefault(u => u.Email == "premium@gmail.com");
+    var catPremium = pinContext.Categories.FirstOrDefault(c => c.Name == "Salud y Belleza");
+    var bPremium = pinContext.Businesses.FirstOrDefault(b => b.TradeName == "Premium Spa & Wellness");
+
+    if (bPremium == null && pinUserPremium != null && catPremium != null)
+    {
+        bPremium = new Business { OwnerId = pinUserPremium.UserId, CategoryId = catPremium.CategoryId, TradeName = "Premium Spa & Wellness", Description = "Spa exclusivo con beneficios para clientes VIP.", Address = "Av. Primavera 123, Surco", Latitude = (decimal)-12.1023, Longitude = (decimal)-76.9845, ContactPhone = "999000111", Status = "Promoted", CreatedAt = DateTime.UtcNow, RUC = "20000000004" };
+        pinContext.Businesses.Add(bPremium);
+        pinContext.SaveChanges();
+    }
+
+    // Generar algunas interacciones falsas para que su Dashboard tenga datos
+    if (bPremium != null && !pinContext.BusquedasUsuario.Any(b => b.NegocioId == bPremium.BusinessId))
+    {
+        var random = new Random();
+        var tipos = new[] { 0, 0, 0, 0, 0, 1, 1, 1, 2 }; // Más vistas(0), algunos clics(1), pocos favoritos(2)
+        for (int i = 0; i < 60; i++)
+        {
+            pinContext.BusquedasUsuario.Add(new BusquedaUsuario 
+            { 
+                UsuarioId = pinUserPremium.UserId, 
+                NegocioId = bPremium.BusinessId, 
+                Categoria = catPremium.Name, 
+                Zona = "Surco", 
+                FechaBusqueda = DateTime.UtcNow.AddDays(-random.Next(0, 30)), 
+                TipoInteraccion = tipos[random.Next(tipos.Length)]
+            });
+        }
         pinContext.SaveChanges();
     }
 
@@ -211,6 +259,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles(); // 🔧 IMPORTANTE: Permite servir archivos estáticos (imágenes, CSS, JS) desde wwwroot
 app.UseRouting();
 
 app.UseAuthentication();

@@ -98,6 +98,17 @@ namespace PinAppdePromo.Controllers
                 if (pinUser != null)
                 {
                     pinUser.IsPremium = true;
+                    
+                    // Promover automáticamente los negocios del usuario
+                    var userBusinesses = await _pinContext.Businesses
+                        .Where(b => b.OwnerId == pinUser.UserId && b.Status == "Approved")
+                        .ToListAsync();
+                        
+                    foreach (var business in userBusinesses)
+                    {
+                        business.Status = "Promoted";
+                    }
+
                     await _pinContext.SaveChangesAsync();
                 }
                 
@@ -162,6 +173,17 @@ namespace PinAppdePromo.Controllers
                         if (pinUser != null)
                         {
                             pinUser.IsPremium = true;
+                            
+                            // Promover automáticamente los negocios del usuario
+                            var userBusinesses = await _pinContext.Businesses
+                                .Where(b => b.OwnerId == pinUser.UserId && b.Status == "Approved")
+                                .ToListAsync();
+                                
+                            foreach (var business in userBusinesses)
+                            {
+                                business.Status = "Promoted";
+                            }
+
                             await _pinContext.SaveChangesAsync();
                         }
                     }

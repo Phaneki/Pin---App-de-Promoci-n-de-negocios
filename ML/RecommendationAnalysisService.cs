@@ -44,9 +44,10 @@ public class RecommendationAnalysisService
         // Obtener zona más común
         var zonaMasComun = frecuenciasZonas.OrderByDescending(f => f.Value).FirstOrDefault().Key ?? string.Empty;
 
-        var calificacionPromedio = historialBusquedas
-            .Where(b => b.Calificacion.HasValue)
-            .Average(b => b.Calificacion ?? 0);
+        var busquedasConCalificacion = historialBusquedas.Where(b => b.Calificacion.HasValue).ToList();
+        var calificacionPromedio = busquedasConCalificacion.Any() 
+            ? busquedasConCalificacion.Average(b => b.Calificacion.Value) 
+            : 0f;
 
         // Generar recomendaciones
         var recomendaciones = negociosDisponibles
@@ -144,4 +145,3 @@ public class RecommendationAnalysisService
         return string.Join(" • ", razones);
     }
 }
-

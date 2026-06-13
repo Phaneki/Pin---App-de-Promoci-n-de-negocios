@@ -15,14 +15,16 @@ namespace PinAppdePromo.Controllers
         private readonly OverpassService _overpassService;
         private readonly RecommendationAnalysisService _recommendationAnalysisService;
         private readonly IPhotoService _photoService;
+        private readonly IGooglePlacesService _googlePlacesService;
 
-        public HomeController(AppDbContext context, PinDbContext pinContext, OverpassService overpassService, RecommendationAnalysisService recommendationAnalysisService, IPhotoService photoService)
+        public HomeController(AppDbContext context, PinDbContext pinContext, OverpassService overpassService, RecommendationAnalysisService recommendationAnalysisService, IPhotoService photoService, IGooglePlacesService googlePlacesService)
         {
             _context = context;
             _pinContext = pinContext;
             _overpassService = overpassService;
             _recommendationAnalysisService = recommendationAnalysisService;
             _photoService = photoService;
+            _googlePlacesService = googlePlacesService;
         }
 
         public IActionResult Beneficios()
@@ -288,6 +290,10 @@ namespace PinAppdePromo.Controllers
             var usuario = HttpContext.Session.GetString("Usuario");
             if (usuario == null) return RedirectToAction("Index", "Login");
             var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == usuario);
+            
+            var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == usuario);
+            if (pinUser != null) HttpContext.Session.SetString("IsPremium", pinUser.IsPremium ? "True" : "False");
+            
             dynamic model = new ExpandoObject();
             if (user != null)
             {
@@ -305,6 +311,10 @@ namespace PinAppdePromo.Controllers
             var usuario = HttpContext.Session.GetString("Usuario");
             if (usuario == null) return RedirectToAction("Index", "Login");
             var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == usuario);
+            
+            var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == usuario);
+            if (pinUser != null) HttpContext.Session.SetString("IsPremium", pinUser.IsPremium ? "True" : "False");
+            
             dynamic model = new ExpandoObject();
             if (user != null)
             {
@@ -320,6 +330,10 @@ namespace PinAppdePromo.Controllers
             var usuario = HttpContext.Session.GetString("Usuario");
             if (usuario == null) return RedirectToAction("Index", "Login");
             var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == usuario);
+            
+            var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == usuario);
+            if (pinUser != null) HttpContext.Session.SetString("IsPremium", pinUser.IsPremium ? "True" : "False");
+            
             dynamic model = new ExpandoObject();
             if (user != null)
             {
@@ -739,10 +753,55 @@ namespace PinAppdePromo.Controllers
 
             if (b1 == null)
             {
-                b1 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catRestaurantes!.CategoryId, TradeName = "Cevichería Punto Azul", Description = "Los mejores pescados y mariscos frescos del día.", Address = "Calle San Martín 595, Miraflores", Latitude = (decimal)-12.1245, Longitude = (decimal)-77.0250, ContactPhone = "987654321", Status = "Promoted", CreatedAt = DateTime.UtcNow };
-                b2 = new Business { OwnerId = pinUserCarlos!.UserId, CategoryId = catTecnologia!.CategoryId, TradeName = "TechCenter Lima", Description = "Venta de laptops y accesorios gamer.", Address = "Av. Arenales 1234, San Isidro", Latitude = (decimal)-12.0833, Longitude = (decimal)-77.0355, ContactPhone = "999888777", Status = "Approved", CreatedAt = DateTime.UtcNow };
-                b3 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catServicios!.CategoryId, TradeName = "Taller FastFix", Description = "Mantenimiento y pintura automotriz.", Address = "Av. Santiago de Surco 456, Surco", Latitude = (decimal)-12.1388, Longitude = (decimal)-76.9989, ContactPhone = "912345678", Status = "Approved", CreatedAt = DateTime.UtcNow };
+                b1 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catRestaurantes!.CategoryId, TradeName = "Cevichería Punto Azul", Description = "Los mejores pescados y mariscos frescos del día.", Address = "Calle San Martín 595, Miraflores", Latitude = (decimal)-12.1245, Longitude = (decimal)-77.0250, ContactPhone = "987654321", Status = "Promoted", CreatedAt = DateTime.UtcNow, RUC = "20000000001" };
+                b2 = new Business { OwnerId = pinUserCarlos!.UserId, CategoryId = catTecnologia!.CategoryId, TradeName = "TechCenter Lima", Description = "Venta de laptops y accesorios gamer.", Address = "Av. Arenales 1234, San Isidro", Latitude = (decimal)-12.0833, Longitude = (decimal)-77.0355, ContactPhone = "999888777", Status = "Approved", CreatedAt = DateTime.UtcNow, RUC = "20000000002" };
+                b3 = new Business { OwnerId = pinUserLucia!.UserId, CategoryId = catServicios!.CategoryId, TradeName = "Taller FastFix", Description = "Mantenimiento y pintura automotriz.", Address = "Av. Santiago de Surco 456, Surco", Latitude = (decimal)-12.1388, Longitude = (decimal)-76.9989, ContactPhone = "912345678", Status = "Approved", CreatedAt = DateTime.UtcNow, RUC = "20000000003" };
                 _pinContext.Businesses.AddRange(b1, b2, b3);
+                await _pinContext.SaveChangesAsync();
+            }
+            
+            // --- SEEDING DE USUARIO PREMIUM Y SU NEGOCIO ---
+            if (!await _context.Usuarios.AnyAsync(u => u.Correo == "premium@gmail.com"))
+            {
+                _context.Usuarios.Add(new Usuario { Nombre = "Dueño Premium", Correo = "premium@gmail.com", Password = "123", Rol = "DUEÑO", TipoAuth = "NORMAL", FotoUrl = "https://ui-avatars.com/api/?name=Dueno+Premium&background=ff6b00&color=fff", IsPremium = true });
+                await _context.SaveChangesAsync();
+            }
+
+            if (!await _pinContext.Users.AnyAsync(u => u.Email == "premium@gmail.com"))
+            {
+                var rolDueno = await _pinContext.Roles.FirstOrDefaultAsync(r => r.Name == "DUEÑO") ?? rol;
+                _pinContext.Users.Add(new User { Email = "premium@gmail.com", FullName = "Dueño Premium", PasswordHash = "123", RoleId = rolDueno!.RoleId, IsPremium = true, ProfilePic = "https://ui-avatars.com/api/?name=Dueno+Premium&background=ff6b00&color=fff" });
+                await _pinContext.SaveChangesAsync();
+            }
+
+            var pinUserPremium = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == "premium@gmail.com");
+            var catPremium = await _pinContext.Categories.FirstOrDefaultAsync(c => c.Name == "Salud y Belleza");
+            var bPremium = await _pinContext.Businesses.FirstOrDefaultAsync(b => b.TradeName == "Premium Spa & Wellness");
+
+            if (bPremium == null && pinUserPremium != null && catPremium != null)
+            {
+                bPremium = new Business { OwnerId = pinUserPremium.UserId, CategoryId = catPremium.CategoryId, TradeName = "Premium Spa & Wellness", Description = "Spa exclusivo con beneficios para clientes VIP.", Address = "Av. Primavera 123, Surco", Latitude = (decimal)-12.1023, Longitude = (decimal)-76.9845, ContactPhone = "999000111", Status = "Promoted", CreatedAt = DateTime.UtcNow, RUC = "20000000004" };
+                _pinContext.Businesses.Add(bPremium);
+                await _pinContext.SaveChangesAsync();
+            }
+
+            // Generar algunas interacciones falsas para que su Dashboard tenga datos
+            if (bPremium != null && !await _pinContext.BusquedasUsuario.AnyAsync(b => b.NegocioId == bPremium.BusinessId))
+            {
+                var random = new Random();
+                var tipos = new[] { 0, 0, 0, 0, 0, 1, 1, 1, 2 }; // Más vistas(0), algunos clics(1), pocos favoritos(2)
+                for (int i = 0; i < 60; i++)
+                {
+                    _pinContext.BusquedasUsuario.Add(new BusquedaUsuario 
+                    { 
+                        UsuarioId = pinUserPremium.UserId, 
+                        NegocioId = bPremium.BusinessId, 
+                        Categoria = catPremium.Name, 
+                        Zona = "Surco", 
+                        FechaBusqueda = DateTime.UtcNow.AddDays(-random.Next(0, 30)), 
+                        TipoInteraccion = tipos[random.Next(tipos.Length)]
+                    });
+                }
                 await _pinContext.SaveChangesAsync();
             }
 

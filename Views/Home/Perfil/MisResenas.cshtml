@@ -73,6 +73,12 @@
         <a href="/Home/AjustesCuenta" class="nav-link" type="button">
             <i class="fas fa-cog me-2"></i>Ajustes de Cuenta
         </a>
+        @if (Context.Session.GetString("IsPremium") == "True")
+        {
+            <a asp-controller="Dashboard" asp-action="Index" class="nav-link" style="color: #ff6b00; font-weight: 700; border: 1px solid #ff6b00; border-radius: 8px; margin-left: auto;">
+                <i class="fas fa-chart-line me-2"></i> Panel Estadístico Premium
+            </a>
+        }
     </div>
 
     <!-- CONTENIDO: MIS RESEÑAS -->
