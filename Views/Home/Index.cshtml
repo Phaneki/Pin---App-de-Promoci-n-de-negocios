@@ -333,24 +333,45 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             
             <div class="text-white">
-                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white text-main-orange font-bold text-xs uppercase tracking-wider mb-6" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
-                    <i class="fas fa-rocket"></i> Potencia tus ventas
-                </div>
-                <h2 class="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-                    ¿Tienes un negocio? <br />
-                    Hazlo crecer con <span class="text-gradient">nosotros.</span>
-                </h2>
-                <p class="text-gray-300 text-lg mb-10 leading-relaxed max-w-xl">
-                    Únete a la red más grande de negocios locales en Perú y llega a miles de clientes potenciales en tu distrito hoy mismo. Incrementa tu visibilidad y facilita el contacto con nuevos clientes.
-                </p>
-                <div class="flex flex-wrap gap-4">
-                    <a asp-controller="Login" asp-action="Index" class="px-8 py-4 bg-main-orange hover-bg-main-orange text-white rounded-xl font-bold transition-all shadow-orange hover-shadow-orange transform hover:-translate-y-1">
-                        Comenzar gratis
-                    </a>
-                    <a asp-controller="Home" asp-action="Beneficios" class="px-8 py-4 border border-white text-white rounded-xl font-bold transition-all" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
-                        Saber más
-                    </a>
-                </div>
+                @if (Context.Session.GetString("IsPremium") == "True")
+                {
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white text-main-orange font-bold text-xs uppercase tracking-wider mb-6" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
+                        <i class="fas fa-crown text-yellow-400"></i> Beneficios Premium Activos
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
+                        Tu negocio en el <br />
+                        siguiente <span class="text-gradient">nivel.</span>
+                    </h2>
+                    <p class="text-gray-300 text-lg mb-10 leading-relaxed max-w-xl">
+                        Gracias por confiar en PIN Premium. Tu negocio cuenta con posicionamiento prioritario en búsquedas, mayor exposición en tu distrito y acceso a analíticas detalladas para medir tu crecimiento.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a asp-controller="Dashboard" asp-action="Index" class="px-8 py-4 bg-main-orange hover-bg-main-orange text-white rounded-xl font-bold transition-all shadow-orange hover-shadow-orange transform hover:-translate-y-1">
+                            <i class="fas fa-chart-line mr-2"></i> Panel Estadístico Premium
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white text-main-orange font-bold text-xs uppercase tracking-wider mb-6" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
+                        <i class="fas fa-rocket"></i> Potencia tus ventas
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
+                        ¿Tienes un negocio? <br />
+                        Hazlo crecer con <span class="text-gradient">nosotros.</span>
+                    </h2>
+                    <p class="text-gray-300 text-lg mb-10 leading-relaxed max-w-xl">
+                        Únete a la red más grande de negocios locales en Perú y llega a miles de clientes potenciales en tu distrito hoy mismo. Incrementa tu visibilidad y facilita el contacto con nuevos clientes.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a asp-controller="Login" asp-action="Index" class="px-8 py-4 bg-main-orange hover-bg-main-orange text-white rounded-xl font-bold transition-all shadow-orange hover-shadow-orange transform hover:-translate-y-1">
+                            Comenzar gratis
+                        </a>
+                        <a asp-controller="Home" asp-action="Beneficios" class="px-8 py-4 border border-white text-white rounded-xl font-bold transition-all" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);">
+                            Saber más
+                        </a>
+                    </div>
+                }
             </div>
 
             <div class="relative flex justify-center lg:justify-end">
