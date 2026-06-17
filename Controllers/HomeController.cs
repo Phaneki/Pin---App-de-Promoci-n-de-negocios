@@ -50,14 +50,21 @@ namespace PinAppdePromo.Controllers
         public async Task<IActionResult> Index()
         {
             var email = HttpContext.Session.GetString("Usuario");
+            var favoritosIds = new HashSet<int>();
             if (!string.IsNullOrEmpty(email))
             {
                 var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
                 if (pinUser != null)
                 {
                     HttpContext.Session.SetString("IsPremium", pinUser.IsPremium ? "True" : "False");
+                    favoritosIds = (await _pinContext.Favorites
+                        .Where(f => f.UserId == pinUser.UserId)
+                        .Select(f => f.BusinessId)
+                        .ToListAsync())
+                        .ToHashSet();
                 }
             }
+            ViewBag.FavoritosIds = favoritosIds;
 
             var negocios = await _pinContext.Businesses
                 .Include(b => b.Category)
@@ -132,6 +139,22 @@ namespace PinAppdePromo.Controllers
 
         public async Task<IActionResult> Explorar(string busqueda, string distrito, List<int> categorias, string orden, int page = 1)
         {
+            var email = HttpContext.Session.GetString("Usuario");
+            var favoritosIds = new HashSet<int>();
+            if (!string.IsNullOrEmpty(email))
+            {
+                var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (pinUser != null)
+                {
+                    favoritosIds = (await _pinContext.Favorites
+                        .Where(f => f.UserId == pinUser.UserId)
+                        .Select(f => f.BusinessId)
+                        .ToListAsync())
+                        .ToHashSet();
+                }
+            }
+            ViewBag.FavoritosIds = favoritosIds;
+
             const int pageSize = 10;
             
             var query = _pinContext.Businesses
@@ -230,7 +253,6 @@ namespace PinAppdePromo.Controllers
             ViewBag.PageSize = pageSize;
 
             // Generar recomendaciones personalizadas si el usuario está autenticado
-            var email = HttpContext.Session.GetString("Usuario");
             if (!string.IsNullOrEmpty(email))
             {
                 var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
