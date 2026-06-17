@@ -332,6 +332,22 @@ namespace PinAppdePromo.Controllers
                 }
             }
 
+            // Verificar si el usuario actual ya tiene este negocio en favoritos
+            var emailForFav = HttpContext.Session.GetString("Usuario");
+            if (!string.IsNullOrEmpty(emailForFav))
+            {
+                var favPinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == emailForFav);
+                if (favPinUser != null)
+                {
+                    ViewBag.IsFavorite = await _pinContext.Favorites
+                        .AnyAsync(f => f.UserId == favPinUser.UserId && f.BusinessId == id);
+                }
+                else
+                {
+                    ViewBag.IsFavorite = false;
+                }
+            }
+
             return View(negocio);
         }
 
@@ -450,7 +466,15 @@ namespace PinAppdePromo.Controllers
                 model.CreatedAt = DateTime.UtcNow;
                 model.Ubicacion = user.Ubicacion;
                 model.Bio = user.Bio;
-                model.Favorites = await _pinContext.Favorites.Include(f => f.Business).ThenInclude(b => b.Category).Include(f => f.Business).ThenInclude(b => b.Images).Where(f => f.UserId == user.Id).ToListAsync();
+                // Usar pinUser.UserId (PinDbContext) porque Favorites referencia esa tabla
+                var favUserId = pinUser?.UserId ?? 0;
+                model.Favorites = favUserId > 0
+                    ? await _pinContext.Favorites
+                        .Include(f => f.Business).ThenInclude(b => b.Category)
+                        .Include(f => f.Business).ThenInclude(b => b.Images)
+                        .Where(f => f.UserId == favUserId)
+                        .ToListAsync()
+                    : new System.Collections.Generic.List<Favorite>();
             }
             return View("~/Views/Home/Perfil/Index.cshtml", model);
         }
@@ -461,16 +485,28 @@ namespace PinAppdePromo.Controllers
             if (usuario == null) return RedirectToAction("Index", "Login");
             var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == usuario);
             
+            // ⚠️ IMPORTANTE: Reviews.UserId referencia PinDbContext.Users.UserId, NO AppDbContext.Usuarios.Id
+            // Por eso debemos buscar el pinUser y usar SU UserId para el filtro
             var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == usuario);
             if (pinUser != null) HttpContext.Session.SetString("IsPremium", pinUser.IsPremium ? "True" : "False");
             
             dynamic model = new ExpandoObject();
-            if (user != null)
+            model.FullName = user?.Nombre ?? usuario;
+            model.CreatedAt = user != null ? DateTime.UtcNow : DateTime.UtcNow;
+
+            if (pinUser != null)
             {
-                model.FullName = user.Nombre;
-                model.CreatedAt = DateTime.UtcNow;
-                model.Reviews = await _pinContext.Reviews.Include(r => r.Business).Where(r => r.UserId == user.Id).ToListAsync();
+                model.Reviews = await _pinContext.Reviews
+                    .Include(r => r.Business)
+                    .Where(r => r.UserId == pinUser.UserId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToListAsync();
             }
+            else
+            {
+                model.Reviews = new System.Collections.Generic.List<Review>();
+            }
+
             return View("~/Views/Home/Perfil/MisResenas.cshtml", model);
         }
 
@@ -570,9 +606,91 @@ namespace PinAppdePromo.Controllers
 
         [HttpPost] public async Task<IActionResult> EliminarResena(int reviewId)
         {
+            var email = HttpContext.Session.GetString("Usuario");
             var review = await _pinContext.Reviews.FindAsync(reviewId);
-            if (review != null) { _pinContext.Reviews.Remove(review); await _pinContext.SaveChangesAsync(); }
+            if (review != null)
+            {
+                // Solo puede eliminar su propia reseña
+                var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (pinUser != null && review.UserId == pinUser.UserId)
+                {
+                    _pinContext.Reviews.Remove(review);
+                    await _pinContext.SaveChangesAsync();
+                }
+            }
             return RedirectToAction("MisResenas");
+        }
+
+        // ============================
+        // FAVORITOS
+        // ============================
+
+        /// <summary>Agrega o quita un negocio de favoritos. Devuelve JSON para uso con AJAX.</summary>
+        [HttpPost]
+        public async Task<IActionResult> ToggleFavorito(int businessId)
+        {
+            var email = HttpContext.Session.GetString("Usuario");
+            if (string.IsNullOrEmpty(email))
+                return Json(new { success = false, message = "Debes iniciar sesión", requiresLogin = true });
+
+            var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (pinUser == null)
+            {
+                // Crear el pinUser si no existe aún
+                var localUser = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == email);
+                if (localUser == null)
+                    return Json(new { success = false, message = "Usuario no encontrado" });
+
+                pinUser = new User
+                {
+                    Email = email,
+                    FullName = localUser.Nombre ?? "Usuario",
+                    PasswordHash = localUser.Password ?? "",
+                    ProfilePic = localUser.FotoUrl ?? "",
+                    RoleId = 1
+                };
+                _pinContext.Users.Add(pinUser);
+                await _pinContext.SaveChangesAsync();
+            }
+
+            var existing = await _pinContext.Favorites
+                .FirstOrDefaultAsync(f => f.UserId == pinUser.UserId && f.BusinessId == businessId);
+
+            bool isFavorite;
+            if (existing != null)
+            {
+                _pinContext.Favorites.Remove(existing);
+                isFavorite = false;
+            }
+            else
+            {
+                _pinContext.Favorites.Add(new Favorite { UserId = pinUser.UserId, BusinessId = businessId });
+                isFavorite = true;
+            }
+
+            await _pinContext.SaveChangesAsync();
+            return Json(new { success = true, isFavorite, message = isFavorite ? "Agregado a favoritos" : "Quitado de favoritos" });
+        }
+
+        /// <summary>Quita un negocio de favoritos, para el botón del perfil (sin AJAX).</summary>
+        [HttpPost]
+        public async Task<IActionResult> QuitarFavorito(int businessId)
+        {
+            var email = HttpContext.Session.GetString("Usuario");
+            if (string.IsNullOrEmpty(email)) return RedirectToAction("Index", "Login");
+
+            var pinUser = await _pinContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (pinUser != null)
+            {
+                var fav = await _pinContext.Favorites
+                    .FirstOrDefaultAsync(f => f.UserId == pinUser.UserId && f.BusinessId == businessId);
+                if (fav != null)
+                {
+                    _pinContext.Favorites.Remove(fav);
+                    await _pinContext.SaveChangesAsync();
+                }
+            }
+            return RedirectToAction("Perfil");
         }
 
         [HttpPost]

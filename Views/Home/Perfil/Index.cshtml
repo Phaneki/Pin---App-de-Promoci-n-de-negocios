@@ -102,7 +102,15 @@
                         <div class="card-body">
                             <h5 class="card-title fw-bold text-truncate" title="@fav.Business?.TradeName">@fav.Business?.TradeName</h5>
                             <p class="card-text text-muted small text-truncate"><i class="fas fa-map-marker-alt me-2"></i>@fav.Business?.Address</p>
-                            <a href="/Home/InfNegocio/@fav.BusinessId" class="btn btn-outline-dark w-100 mt-2" style="border-radius: 10px;">Ver Negocio</a>
+                            <div class="d-flex gap-2 mt-2">
+                                <a href="/Home/InfNegocio/@fav.BusinessId" class="btn btn-outline-dark flex-grow-1" style="border-radius: 10px; font-size: 0.85rem;">Ver Negocio</a>
+                                <form asp-action="QuitarFavorito" asp-controller="Home" method="post" class="d-flex">
+                                    <input type="hidden" name="businessId" value="@fav.BusinessId" />
+                                    <button type="submit" class="btn btn-outline-danger" style="border-radius: 10px; font-size: 0.85rem; padding: 0.375rem 0.65rem;" title="Quitar de favoritos" onclick="return confirm('¿Quitar este negocio de tus favoritos?')">
+                                        <i class="fas fa-heart-broken"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
