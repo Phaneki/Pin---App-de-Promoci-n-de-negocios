@@ -12,14 +12,14 @@ namespace PinAppdePromo.Controllers
         private readonly AppDbContext _context;
         private readonly PinDbContext _pinContext;
         private readonly IConfiguration _configuration;
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public PaymentController(AppDbContext context, PinDbContext pinContext, IConfiguration configuration, HttpClient httpClient)
+        public PaymentController(AppDbContext context, PinDbContext pinContext, IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _pinContext = pinContext;
             _configuration = configuration;
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
         }
 
         [HttpGet]
@@ -32,7 +32,20 @@ namespace PinAppdePromo.Controllers
             }
 
             var accessToken = _configuration["MercadoPago:AccessToken"];
-            var baseUrl = "https://pin-app-de-promoci-n-de-negocios.onrender.com";
+
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return Content("Error: No se encontró el Access Token de Mercado Pago en la configuración.");
+            }
+
+            // La app corre en Render (producción). Usar la URL de Render siempre.
+            // En local de desarrollo, usa el host dinámico como fallback.
+            var configuredBaseUrl = _configuration["AppBaseUrl"];
+            var baseUrl = !string.IsNullOrEmpty(configuredBaseUrl)
+                ? configuredBaseUrl
+                : "https://pin-app-de-promoci-n-de-negocios.onrender.com";
+
+            var idempotencyKey = Guid.NewGuid().ToString();
 
             var requestBody = new
             {
@@ -40,11 +53,17 @@ namespace PinAppdePromo.Controllers
                 {
                     new
                     {
+                        id = "pin_premium",
                         title = "PIN Premium - Promoción de Negocios",
+                        description = "Acceso premium para promocionar tu negocio en PIN",
                         quantity = 1,
                         currency_id = "PEN",
                         unit_price = 9.90
                     }
+                },
+                payer = new
+                {
+                    email = email
                 },
                 back_urls = new
                 {
@@ -57,21 +76,30 @@ namespace PinAppdePromo.Controllers
                 notification_url = $"{baseUrl}/Payment/Webhook"
             };
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.mercadopago.com/checkout/preferences");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            request.Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+            var jsonOptions = new JsonSerializerOptions();
+
+            var httpRequest = new HttpRequestMessage(HttpMethod.Post, "https://api.mercadopago.com/checkout/preferences");
+            httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            // X-Idempotency-Key es requerido por Mercado Pago en peticiones POST
+            httpRequest.Headers.Add("X-Idempotency-Key", idempotencyKey);
+            httpRequest.Content = new StringContent(JsonSerializer.Serialize(requestBody, jsonOptions), Encoding.UTF8, "application/json");
+
+            // Usar un cliente HTTP fresco para evitar problemas de pool/headers residuales
+            var httpClient = _httpClientFactory.CreateClient();
+            httpClient.DefaultRequestHeaders.Clear();
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "PinApp/1.0");
 
             try
             {
-                var response = await _httpClient.SendAsync(request);
+                var response = await httpClient.SendAsync(httpRequest);
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     using var doc = JsonDocument.Parse(content);
                     var initPoint = doc.RootElement.GetProperty("init_point").GetString();
-                    return Redirect(initPoint);
+                    return Redirect(initPoint!);
                 }
-                
+
                 var errorContent = await response.Content.ReadAsStringAsync();
                 return Content($"Error al crear la preferencia de pago de Mercado Pago. Código HTTP: {response.StatusCode}. Detalle: {errorContent}");
             }
@@ -146,13 +174,15 @@ namespace PinAppdePromo.Controllers
             }
 
             var accessToken = _configuration["MercadoPago:AccessToken"];
-            
+
             var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.mercadopago.com/v1/payments/{paymentId}");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
+            var httpClient = _httpClientFactory.CreateClient();
+
             try
             {
-                var response = await _httpClient.SendAsync(request);
+                var response = await httpClient.SendAsync(request);
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
