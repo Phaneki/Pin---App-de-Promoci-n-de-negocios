@@ -3,11 +3,22 @@
     ViewData["Title"] = "Editar Negocio - Moderación";
     Layout = "_Layout";
     var googleMapsApiKey = Configuration["GoogleMaps:ApiKey"];
+    bool hasValidGoogleMaps = !string.IsNullOrEmpty(googleMapsApiKey) && 
+                              !googleMapsApiKey.Contains("TU_API_KEY") && 
+                              !googleMapsApiKey.Contains("LOCAL") &&
+                              !googleMapsApiKey.Contains("AQUI");
 }
 @model PinAppdePromo.Models.Business
 
 @section Styles {
     <link rel="stylesheet" href="~/css/moderacion.css" asp-append-version="true" />
+    @if (!hasValidGoogleMaps)
+    {
+        <!-- Leaflet CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+        <!-- Leaflet Geocoder CSS -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    }
 }
 
 <div class='min-h-screen text-slate-900 bg-slate-50'>
@@ -170,10 +181,21 @@
 </div>
 
 @section Scripts {
-    <!-- Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=@googleMapsApiKey&libraries=places&callback=initMap" async defer></script>
+    @if (hasValidGoogleMaps)
+    {
+        <!-- Google Maps API -->
+        <script src="https://maps.googleapis.com/maps/api/js?key=@googleMapsApiKey&libraries=places&callback=initMap" async defer></script>
+    }
+    else
+    {
+        <!-- Leaflet JS -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+        <!-- Leaflet Geocoder JS -->
+        <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    }
 
     <script>
+        const hasValidGoogleMaps = @(hasValidGoogleMaps.ToString().ToLower());
         let map;
         let marker;
         let geocoder;
@@ -183,56 +205,152 @@
         const lngActual = @Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
         const defaultLocation = { lat: latActual !== 0 ? latActual : -12.0464, lng: lngActual !== 0 ? lngActual : -77.0428 };
 
-        function initMap() {
-            geocoder = new google.maps.Geocoder();
-            
-            map = new google.maps.Map(document.getElementById('map'), {
-                center: defaultLocation,
-                zoom: 15,
-                mapTypeControl: false,
-                streetViewControl: false
-            });
+        if (hasValidGoogleMaps) {
+            window.initMap = function() {
+                try {
+                    geocoder = new google.maps.Geocoder();
+                    
+                    map = new google.maps.Map(document.getElementById('map'), {
+                        center: defaultLocation,
+                        zoom: 15,
+                        mapTypeControl: false,
+                        streetViewControl: false
+                    });
 
-            marker = new google.maps.Marker({
-                position: defaultLocation,
-                map: map,
-                draggable: true,
-                title: 'Ubicación del negocio'
-            });
+                    marker = new google.maps.Marker({
+                        position: defaultLocation,
+                        map: map,
+                        draggable: true,
+                        title: 'Ubicación del negocio'
+                    });
 
-            marker.addListener('dragend', function() {
-                const position = marker.getPosition();
-                updateCoordinates(position.lat(), position.lng());
-                geocodePosition(position);
-            });
+                    marker.addListener('dragend', function() {
+                        const position = marker.getPosition();
+                        updateCoordinates(position.lat(), position.lng());
+                        geocodePosition(position);
+                    });
 
-            map.addListener('click', function(event) {
-                marker.setPosition(event.latLng);
-                updateCoordinates(event.latLng.lat(), event.latLng.lng());
-                geocodePosition(event.latLng);
-            });
+                    map.addListener('click', function(event) {
+                        marker.setPosition(event.latLng);
+                        updateCoordinates(event.latLng.lat(), event.latLng.lng());
+                        geocodePosition(event.latLng);
+                    });
 
-            const addressInput = document.getElementById('addressInput');
-            addressInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
+                    const addressInput = document.getElementById('addressInput');
+                    addressInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                        }
+                    });
+
+                    const autocomplete = new google.maps.places.Autocomplete(addressInput);
+                    autocomplete.bindTo('bounds', map);
+
+                    autocomplete.addListener('place_changed', function() {
+                        const place = autocomplete.getPlace();
+                        if (!place.geometry || !place.geometry.location) {
+                            return;
+                        }
+                        
+                        map.setCenter(place.geometry.location);
+                        map.setZoom(16);
+                        marker.setPosition(place.geometry.location);
+                        updateCoordinates(place.geometry.location.lat(), place.geometry.location.lng());
+                    });
+                } catch (error) {
+                    console.error("Error en initMap Google:", error);
+                    fallbackToLeaflet();
                 }
-            });
+            };
+        } else {
+            // Inicializar Leaflet automáticamente
+            document.addEventListener('DOMContentLoaded', initLeafletMap);
+        }
 
-            const autocomplete = new google.maps.places.Autocomplete(addressInput);
-            autocomplete.bindTo('bounds', map);
-
-            autocomplete.addListener('place_changed', function() {
-                const place = autocomplete.getPlace();
-                if (!place.geometry || !place.geometry.location) {
-                    return;
-                }
+        function initLeafletMap() {
+            try {
+                const defaultCoords = [defaultLocation.lat, defaultLocation.lng];
                 
-                map.setCenter(place.geometry.location);
-                map.setZoom(16);
-                marker.setPosition(place.geometry.location);
-                updateCoordinates(place.geometry.location.lat(), place.geometry.location.lng());
-            });
+                map = L.map('map').setView(defaultCoords, 15);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+
+                marker = L.marker(defaultCoords, {
+                    draggable: true,
+                    title: 'Ubicación del negocio'
+                }).addTo(map);
+
+                // Guardar coordenadas iniciales
+                updateCoordinates(defaultLocation.lat, defaultLocation.lng);
+
+                marker.on('dragend', function() {
+                    const pos = marker.getLatLng();
+                    updateCoordinates(pos.lat, pos.lng);
+                    updateAddressFromCoordinates(pos.lat, pos.lng);
+                });
+
+                map.on('click', function(event) {
+                    marker.setLatLng(event.latlng);
+                    updateCoordinates(event.latlng.lat, event.latlng.lng);
+                    updateAddressFromCoordinates(event.latlng.lat, event.latlng.lng);
+                });
+
+                // Buscar dirección cuando se escribe en el input
+                document.getElementById('addressInput').addEventListener('change', searchAddress);
+                
+                // También escuchar por tecla enter en el buscador manual de Leaflet
+                document.getElementById('addressInput').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchAddress();
+                    }
+                });
+            } catch (error) {
+                document.getElementById('map').innerHTML = '<div style="padding: 20px; color: red; font-weight: bold;">Error al cargar el mapa: ' + error.message + '</div>';
+                console.error("Error en initLeafletMap:", error);
+            }
+        }
+
+        function updateAddressFromCoordinates(lat, lng) {
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.display_name) {
+                        document.getElementById('addressInput').value = data.display_name;
+                    }
+                })
+                .catch(error => console.log('Error al obtener la dirección:', error));
+        }
+
+        function searchAddress() {
+            const address = document.getElementById('addressInput').value;
+            if (!address) return;
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const result = data[0];
+                        const lat = parseFloat(result.lat);
+                        const lng = parseFloat(result.lon);
+                        
+                        if (hasValidGoogleMaps) {
+                            const pos = new google.maps.LatLng(lat, lng);
+                            marker.setPosition(pos);
+                            map.setCenter(pos);
+                            map.setZoom(15);
+                        } else {
+                            const coords = [lat, lng];
+                            marker.setLatLng(coords);
+                            map.setView(coords, 15);
+                        }
+                        updateCoordinates(lat, lng);
+                    }
+                })
+                .catch(error => console.error('Error buscando dirección:', error));
         }
 
         function updateCoordinates(lat, lng) {
