@@ -1,11 +1,10 @@
 @model dynamic
 @{
-    ViewData["Title"] = "Mi Perfil";
-    
-    int totalFavoritos = 0;
-    IEnumerable<dynamic> favoritos = null;
-    try { favoritos = Model?.Favorites; } catch {}
-    if (favoritos != null) { totalFavoritos = Enumerable.Count(favoritos); }
+    ViewData["Title"] = "Mis Favoritos";
+    var fechaRegistro = "2026";
+    try { fechaRegistro = Model?.CreatedAt.ToString("yyyy") ?? "2026"; } catch { }
+    var favorites = new List<PinAppdePromo.Models.Favorite>();
+    try { favorites = Model?.Favorites ?? new List<PinAppdePromo.Models.Favorite>(); } catch { }
 }
 
 @section Styles {
@@ -15,10 +14,6 @@
 <div class="container-fluid px-4 py-5">
     <!-- PERFIL BANNER -->
     <div class="profile-banner">
-        <button class="edit-btn-float" title="Editar perfil">
-            <i class="fas fa-pen"></i>
-        </button>
-
         <div class="profile-header">
             <!-- AVATAR -->
             <div class="profile-avatar">
@@ -52,15 +47,11 @@
                 <div class="profile-meta">
                     <div class="meta-item">
                         <i class="fas fa-calendar"></i>
-                        <span>Miembro desde @(Model?.CreatedAt.ToString("yyyy") ?? "2026")</span>
+                        <span>Miembro desde @fechaRegistro</span>
                     </div>
                     <div class="meta-item">
                         <i class="fas fa-map-marker-alt"></i>
-                        <span>Ubicación no especificada</span>
-                    </div>
-                    <div class="meta-item">
-                        <i class="fas fa-star"></i>
-                        <span>Activo</span>
+                        <span>@(string.IsNullOrEmpty((string)Model?.Ubicacion) ? "Ubicación no especificada" : Model.Ubicacion)</span>
                     </div>
                 </div>
             </div>
@@ -78,36 +69,48 @@
         <a href="/Home/AjustesCuenta" class="nav-link" type="button">
             <i class="fas fa-cog me-2"></i>Ajustes de Cuenta
         </a>
+        @if (Context.Session.GetString("IsPremium") == "True")
+        {
+            <a asp-controller="Dashboard" asp-action="Index" class="nav-link" style="color: #ff6b00; font-weight: 700; border: 1px solid #ff6b00; border-radius: 8px; margin-left: auto;">
+                <i class="fas fa-chart-line me-2"></i> Panel Estadístico Premium
+            </a>
+        }
     </div>
 
+    <!-- CONTENIDO: FAVORITOS -->
     <div class="section-title">
-        <span>Negocios Guardados (@totalFavoritos)</span>
-        <button class="filter-btn">
-            <i class="fas fa-filter me-2"></i>Filtrar
-        </button>
+        <span>Mis Favoritos (@favorites.Count)</span>
     </div>
 
     <div class="row g-4">
-        @if (favoritos != null && totalFavoritos > 0)
+        @if (favorites != null && favorites.Count > 0)
         {
-            foreach (var fav in favoritos)
+            foreach (var fav in favorites)
             {
-                <div class="col-md-6 col-lg-4">
-                    <div class="business-card">
-                        <div class="card-image-container">
-                            <img src="@(fav.Business?.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/500x300")" alt="Negocio" class="card-image">
-                            <span class="category-badge">@(fav.Business?.Category?.Name ?? "General")</span>
-                            <button class="favorite-heart active" onclick="this.classList.toggle('active')">
-                                <i class="fas fa-heart"></i>
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title">@(fav.Business?.TradeName ?? "Negocio Eliminado")</h5>
-                            <div class="card-location mt-2">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>@(fav.Business?.Address ?? "Ubicación no disponible")</span>
+                <div class="col-md-4 col-lg-3">
+                    <div class="card h-100 shadow-sm border-0 rounded-4">
+                        @if (fav.Business?.Images != null && fav.Business.Images.Count > 0)
+                        {
+                            <img src="@fav.Business.Images.FirstOrDefault()?.ImageUrl" class="card-img-top" alt="@fav.Business.TradeName" style="height: 200px; object-fit: cover; border-radius: 16px 16px 0 0;">
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px; border-radius: 16px 16px 0 0;">
+                                <i class="fas fa-store fa-3x text-muted"></i>
                             </div>
-                            <a href="/Home/InfNegocio/@fav.BusinessId" class="view-profile-link mt-auto">Ver perfil →</a>
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-truncate" title="@fav.Business?.TradeName">@fav.Business?.TradeName</h5>
+                            <p class="card-text text-muted small text-truncate"><i class="fas fa-map-marker-alt me-2"></i>@fav.Business?.Address</p>
+                            <div class="d-flex gap-2 mt-2">
+                                <a href="/Home/InfNegocio/@fav.BusinessId" class="btn btn-outline-dark flex-grow-1" style="border-radius: 10px; font-size: 0.85rem;">Ver Negocio</a>
+                                <form asp-action="QuitarFavorito" asp-controller="Home" method="post" class="d-flex">
+                                    <input type="hidden" name="businessId" value="@fav.BusinessId" />
+                                    <button type="submit" class="btn btn-outline-danger" style="border-radius: 10px; font-size: 0.85rem; padding: 0.375rem 0.65rem;" title="Quitar de favoritos" onclick="return confirm('¿Quitar este negocio de tus favoritos?')">
+                                        <i class="fas fa-heart-broken"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -116,22 +119,12 @@
         else
         {
             <div class="col-12">
-                <div class="empty-state">
-                    <i class="fas fa-heart-broken"></i>
-                    <p>Aún no tienes negocios guardados en tus favoritos.</p>
-                    <a href="/Home/Explorar" class="btn btn-outline-dark mt-3">Explorar negocios</a>
+                <div class="empty-state text-center py-5" style="background-color: #f8f9fa; border-radius: 16px;">
+                    <i class="fas fa-heart-broken fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Aún no tienes negocios en tus favoritos.</p>
+                    <a href="/Home/Explorar" class="btn btn-dark mt-2 px-4 py-2" style="border-radius: 10px;">Explorar Negocios</a>
                 </div>
             </div>
         }
     </div>
 </div>
-
-<script>
-    // Agregar interactividad a los botones de favoritos
-    document.querySelectorAll('.favorite-heart').forEach(btn => {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            this.classList.toggle('active');
-        });
-    });
-</script>

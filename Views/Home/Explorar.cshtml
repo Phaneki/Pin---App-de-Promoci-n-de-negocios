@@ -1,63 +1,172 @@
 @model IEnumerable<PinAppdePromo.Models.Business>
+@{
+    var isLoggedIn = !string.IsNullOrEmpty(Context.Session.GetString("Usuario"));
+}
 
 @section Styles {
     <link rel="stylesheet" href="~/css/explorar.css" asp-append-version="true" />
+    <style>
+        .hover-transform { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .hover-transform:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(255, 107, 44, 0.1) !important; border-color: #ff6b2c !important; }
+        .custom-check { transition: all 0.2s; }
+        .custom-check:checked { background-color: #ff6b2c !important; border-color: #ff6b2c !important; box-shadow: 0 0 0 2px rgba(255,107,44,0.2) !important; }
+        .badge-orange-light { background-color: #fff7ed; color: #ff6b2c; }
+        .btn-orange-pin { background-color: #ff6b2c; color: white; transition: all 0.2s; }
+        .btn-orange-pin:hover { background-color: #e65a1f; color: white; transform: scale(1.02); }
+        .card-negocio { border-radius: 20px; overflow: hidden; border: 1px solid rgba(0,0,0,0.03); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-negocio:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important; border-color: rgba(255,107,44,0.3); }
+        .img-container { overflow: hidden; }
+        .img-container img { transition: transform 0.5s ease; }
+        .card-negocio:hover .img-container img { transform: scale(1.05); }
+        .page-link { color: #ff6b2c; border-radius: 8px; margin: 0 2px; }
+        .page-item.active .page-link { background-color: #ff6b2c; border-color: #ff6b2c; }
+    </style>
 }
 
 <div class="container-fluid mt-4">
     <div class="row">
         <aside class="col-md-3 pe-4">
-            <form action="/Home/Explorar" method="get" class="card border-0 shadow-sm p-3 filtro-sidebar">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold mb-0">Filtros</h5>
-                    <a href="/Home/Explorar" class="text-decoration-none small" style="color: var(--main-orange);">Limpiar Filtros</a>
+            <form action="/Home/Explorar" method="get" class="bg-white rounded-[24px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 mb-6">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-slate-100">
+                    <h5 class="fw-bold mb-0 text-slate-800 d-flex align-items-center gap-2">
+                        <i class="fas fa-sliders-h text-[#ff6b2c]"></i> Filtros
+                    </h5>
+                    <a href="/Home/Explorar" class="text-decoration-none small fw-bold text-slate-400 hover:text-[#ff6b2c] transition-colors">Limpiar</a>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label text-muted small fw-bold">BÚSQUEDA DIRECTA</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
-                        <input type="text" name="busqueda" value="@Context.Request.Query["busqueda"]" class="form-control bg-light border-start-0" placeholder="Ej. Cevicheria, Taller...">
+                    <label class="form-label text-slate-400 text-xs fw-bold tracking-wider mb-2">BÚSQUEDA DIRECTA</label>
+                    <div class="d-flex align-items-center bg-slate-50 rounded-xl px-3 py-2 border border-slate-200 focus-within:border-[#ff6b2c] focus-within:ring-2 focus-within:ring-[#ff6b2c]/20 transition-all">
+                        <i class="fas fa-search text-slate-400 ms-1 me-2"></i>
+                        <input type="text" name="busqueda" value="@Context.Request.Query["busqueda"]" class="form-control border-0 bg-transparent shadow-none px-0" placeholder="Ej. Cevicheria, Taller...">
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label text-muted small fw-bold">CATEGORÍAS</label>
-                    @if (ViewBag.Categorias != null)
-                    {
-                        @foreach (var cat in ViewBag.Categorias)
+                    <label class="form-label text-slate-400 text-xs fw-bold tracking-wider mb-3">CATEGORÍAS</label>
+                    <div class="d-flex flex-column gap-2">
+                        @if (ViewBag.Categorias != null)
                         {
-                            var isChecked = ((List<int>)ViewBag.CategoriasSeleccionadas).Contains((int)cat.CategoryId);
-                            <div class="form-check mb-2">
-                                <input class="form-check-input custom-check" type="checkbox" name="categorias" value="@cat.CategoryId" id="cat_@cat.CategoryId" @(isChecked ? "checked" : "")>
-                                <label class="form-check-label" for="cat_@cat.CategoryId">@cat.Name</label>
-                            </div>
+                            @foreach (var cat in ViewBag.Categorias)
+                            {
+                                var isChecked = ((List<int>)ViewBag.CategoriasSeleccionadas).Contains((int)cat.CategoryId);
+                                <label class="form-check d-flex align-items-center gap-2 m-0 cursor-pointer group">
+                                    <input class="form-check-input flex-shrink-0 m-0 w-5 h-5 rounded border-slate-300 text-[#ff6b2c] focus:ring-[#ff6b2c] cursor-pointer custom-check" type="checkbox" name="categorias" value="@cat.CategoryId" id="cat_@cat.CategoryId" @(isChecked ? "checked" : "")>
+                                    <span class="text-slate-600 text-sm fw-medium group-hover:text-[#ff6b2c] transition-colors">@cat.Name</span>
+                                </label>
+                            }
                         }
-                    }
+                    </div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label text-muted small fw-bold">UBICACIÓN (LIMA)</label>
-                    <select name="distrito" class="form-select bg-light">
-                        <option value="">Todos los distritos</option>
-                        @if (ViewBag.Distritos != null)
-                        {
-                            @foreach (var dist in ViewBag.Distritos)
+                    <label class="form-label text-slate-400 text-xs fw-bold tracking-wider mb-2">UBICACIÓN (LIMA)</label>
+                    <div class="position-relative">
+                        <select name="distrito" class="form-select bg-slate-50 rounded-xl border-slate-200 text-slate-600 shadow-none focus:border-[#ff6b2c] focus:ring-2 focus:ring-[#ff6b2c]/20 cursor-pointer py-2.5">
+                            <option value="">Todos los distritos</option>
+                            @if (ViewBag.Distritos != null)
                             {
-                                <option value="@dist" selected="@(ViewBag.DistritoActual == dist)">@dist</option>
+                                @foreach (var dist in ViewBag.Distritos)
+                                {
+                                    <option value="@dist" selected="@(ViewBag.DistritoActual == dist)">@dist</option>
+                                }
                             }
-                        }
-                    </select>
+                        </select>
+                    </div>
                 </div>
                 
                 <input type="hidden" name="orden" id="ordenHidden" value="@ViewBag.OrdenActual" />
-                <button type="submit" class="btn w-100 fw-bold text-white mt-2 shadow-sm" style="background-color: var(--main-orange);">Aplicar Filtros</button>
+                <button type="submit" class="btn w-100 fw-bold text-white mt-4 py-2.5 rounded-xl shadow-[0_8px_20px_rgba(255,107,44,0.3)] hover:shadow-[0_12px_25px_rgba(255,107,44,0.4)] transition-all" style="background: linear-gradient(135deg, #ff6b2c, #ff8a50);">
+                    Aplicar Filtros
+                </button>
             </form>
         </aside>
 
         <main class="col-md-9">
+            <!-- SECCIÓN RECOMENDADOS (ML) -->
+            @if (ViewBag.Recomendaciones != null && ((IEnumerable<PinAppdePromo.ML.NegocioRecomendadoDTO>)ViewBag.Recomendaciones).Any())
+            {
+                <div class="mb-5">
+                    <div class="d-flex align-items-center mb-3">
+                        <h4 class="fw-bold mb-0" style="color: var(--main-orange);">Recomendado para ti ✨</h4>
+                        <span class="badge bg-warning text-dark ms-2 shadow-sm rounded-pill"><i class="bi bi-lightning-fill text-warning-emphasis"></i> Inteligencia Artificial</span>
+                    </div>
+                    <div class="row flex-nowrap overflow-auto pb-3" style="scrollbar-width: thin;">
+                        @foreach (var item in (IEnumerable<PinAppdePromo.ML.NegocioRecomendadoDTO>)ViewBag.Recomendaciones)
+                        {
+                            var rec = item.NegocioDTO;
+                            <div class="col-10 col-sm-6 col-md-5 col-lg-4">
+                                <a href="/Home/InfNegocio/@rec.Id" class="text-decoration-none text-dark">
+                                    <div class="card h-100 border-0 shadow-sm transition-transform hover-transform" style="border-radius: 16px; overflow: hidden; border-left: 4px solid var(--main-orange) !important;">
+                                        <!-- Imagen o Placeholder -->
+                                        <div style="height: 140px; background-color: #f8f9fa;" class="position-relative">
+                                            @if (!string.IsNullOrEmpty(rec.ImagenUrl))
+                                            {
+                                                var imgUrl = rec.ImagenUrl;
+                                                if (!imgUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !imgUrl.StartsWith("/") && !imgUrl.StartsWith("data:image"))
+                                                {
+                                                    imgUrl = "/images/businesses/" + imgUrl;
+                                                }
+                                                <img src="@imgUrl" class="w-100 h-100" style="object-fit: cover;" alt="@rec.Nombre" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                                <div class="align-items-center justify-content-center h-100 w-100 fallback-img" style="background: linear-gradient(135deg, #fce0ce 0%, #fdebd0 100%); display: none !important;">
+                                                    <i class="bi bi-shop text-muted" style="font-size: 2rem; opacity: 0.5;"></i>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="d-flex align-items-center justify-content-center h-100 w-100" style="background: linear-gradient(135deg, #fce0ce 0%, #fdebd0 100%);">
+                                                    <i class="bi bi-shop text-muted" style="font-size: 2rem; opacity: 0.5;"></i>
+                                                </div>
+                                            }
+                                            <!-- Botón Favorito Flotante Recomendado -->
+                                            @{
+                                                var isFavRec = ViewBag.FavoritosIds != null && ((HashSet<int>)ViewBag.FavoritosIds).Contains(rec.Id);
+                                            }
+                                            @if (isLoggedIn)
+                                            {
+                                                <button class="btn-favorito-card rounded-circle d-flex align-items-center justify-center transition-all shadow-sm"
+                                                        data-business-id="@rec.Id"
+                                                        data-is-favorite="@isFavRec.ToString().ToLower()"
+                                                        style="background: rgba(255, 255, 255, 0.9); border: none; color: @(isFavRec ? "#ff6b00" : "#9ca3af"); position: absolute; top: 8px; right: 8px; z-index: 20; width: 28px; height: 28px; padding: 0;"
+                                                        title="@(isFavRec ? "Quitar de favoritos" : "Guardar en favoritos")"
+                                                        onclick="event.preventDefault(); event.stopPropagation(); toggleFavoritoCard(this);">
+                                                    <i class="@(isFavRec ? "fas" : "far") fa-heart" style="font-size: 0.8rem;"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <a href="/Login" class="rounded-circle d-flex align-items-center justify-center transition-all shadow-sm"
+                                                   style="background: rgba(255, 255, 255, 0.9); color: #9ca3af; position: absolute; top: 8px; right: 8px; z-index: 20; text-decoration: none; width: 28px; height: 28px; padding: 0;"
+                                                   title="Inicia sesión para guardar en favoritos"
+                                                   onclick="event.stopPropagation();">
+                                                    <i class="far fa-heart" style="font-size: 0.8rem;"></i>
+                                                </a>
+                                            }
+
+                                            <div class="position-absolute bottom-0 start-0 w-100 px-2 py-1" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                                                <span class="badge bg-dark mb-1 text-uppercase" style="font-size: 0.65rem;">@rec.Categoria</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card-body p-3">
+                                            <h6 class="fw-bold text-truncate mb-1">@rec.Nombre</h6>
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="small text-muted"><i class="bi bi-geo-alt"></i> @(string.IsNullOrEmpty(rec.Direccion) ? "Local" : rec.Direccion)</span>
+                                                <span class="badge bg-light text-dark border"><i class="bi bi-star-fill text-warning"></i> @rec.Calificacion.ToString("0.0")</span>
+                                            </div>
+                                            <!-- Razón por ML -->
+                                            <p class="small mb-0 text-muted fst-italic" style="font-size: 0.75rem;"><i class="bi bi-info-circle text-info"></i> @item.Razon</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <p class="text-muted mb-0">Mostrando <span class="fw-bold text-dark">@Model.Count() negocios</span> en total</p>
+                <p class="text-muted mb-0">Mostrando <span class="fw-bold text-dark">@Model.Count() negocios</span> de <span class="fw-bold text-dark">@ViewBag.TotalItems</span> en total</p>
                 <div class="d-flex align-items-center">
                     <span class="me-2 text-muted">Ordenar por:</span>
                     <select id="ordenSelect" class="form-select form-select-sm border-0 fw-bold" style="width: auto; color: var(--main-orange);">
@@ -72,41 +181,83 @@
                 @foreach (var negocio in Model)
                 {
                     <div class="col-md-6">
-                        <div class="card h-100 border-0 shadow-sm overflow-hidden card-negocio">
-                            <div class="position-relative" style="height: 200px;">
+                        <div class="card h-100 shadow-sm card-negocio bg-white">
+                            <div class="position-relative img-container" style="height: 220px;">
                                 @if (negocio.Images != null && negocio.Images.Any())
                                 {
-                                    <img src="@(negocio.Images?.FirstOrDefault()?.ImageUrl ?? "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=800&q=80")" class="card-img-top" alt="@negocio.TradeName" style="height: 200px; object-fit: cover; width: 100%;" />
+                                    var rawUrl = negocio.Images.First().ImageUrl?.Trim();
+                                    var imgUrl = rawUrl;
+                                    if (!string.IsNullOrEmpty(rawUrl)) {
+                                        if (rawUrl.StartsWith("~/")) {
+                                            imgUrl = Url.Content(rawUrl);
+                                        } else if (!rawUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawUrl.StartsWith("/") && !rawUrl.StartsWith("data:image")) {
+                                            imgUrl = "/images/businesses/" + rawUrl;
+                                        }
+                                    }
+                                        
+                                    <img src="@imgUrl" class="card-img-top w-100 h-100" alt="@negocio.TradeName" style="object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    <div class="align-items-center justify-content-center h-100 w-100 fallback-img" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: none !important;">
+                                        <div class="text-center">
+                                            <i class="bi bi-shop" style="font-size: 3rem; color: #adb5bd; margin-bottom: 8px; display: block;"></i>
+                                        </div>
+                                    </div>
                                 }
                                 else
                                 {
-                                    <div class="d-flex align-items-center justify-content-center bg-secondary text-white" style="height: 200px; width: 100%;">
-                                        <h4 class="fw-bold text-center m-0">@negocio.TradeName</h4>
+                                    <div class="d-flex align-items-center justify-content-center h-100 w-100" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                                        <div class="text-center">
+                                            <i class="bi bi-image" style="font-size: 3rem; color: #adb5bd; margin-bottom: 8px; display: block;"></i>
+                                        </div>
                                     </div>
                                 }
 
                                 @if (negocio.Status == "Promoted")
                                 {
-                                    <span class="badge bg-white text-dark position-absolute top-0 start-0 m-3 shadow-sm px-3 py-2">DESTACADO</span>
+                                    <span class="badge bg-white text-dark position-absolute top-0 start-0 m-3 shadow px-3 py-2 rounded-pill fw-bold" style="font-size: 0.75rem;"><i class="bi bi-star-fill text-warning"></i> DESTACADO</span>
                                 }
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <span class="small fw-bold text-uppercase" style="color: var(--main-orange);">@(negocio.Category?.Name ?? "General")</span>
-                                        <h5 class="card-title fw-bold mt-1">@negocio.TradeName</h5>
-                                    </div>
-                                    <span class="badge bg-light text-dark border"><i class="bi bi-star-fill text-warning me-1"></i> @(negocio.Reviews != null && negocio.Reviews.Any() ? Math.Round(negocio.Reviews.Average(r => r.Rating), 1).ToString("0.0") : "5.0")</span>
-                                </div>
-                                <p class="card-text text-muted small mb-1"><i class="bi bi-geo-alt me-1"></i> @negocio.Address</p>
-                                <p class="card-text text-success small mb-3"><i class="bi bi-clock me-1"></i> Abierto</p>
                                 
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <a asp-action="InfNegocio" asp-route-id="@negocio.BusinessId" class="btn btn-orange-pin w-100 py-2 fw-bold">Ver perfil</a>
+                                <!-- Botón Favorito Flotante -->
+                                @{
+                                    var isFav = ViewBag.FavoritosIds != null && ((HashSet<int>)ViewBag.FavoritosIds).Contains(negocio.BusinessId);
+                                }
+                                @if (isLoggedIn)
+                                {
+                                    <button class="btn-favorito-card rounded-circle d-flex align-items-center justify-center transition-all shadow-sm"
+                                            data-business-id="@negocio.BusinessId"
+                                            data-is-favorite="@isFav.ToString().ToLower()"
+                                            style="background: rgba(255, 255, 255, 0.9); border: none; color: @(isFav ? "#ff6b00" : "#9ca3af"); position: absolute; top: 12px; right: 12px; z-index: 20; width: 36px; height: 36px; padding: 0;"
+                                            title="@(isFav ? "Quitar de favoritos" : "Guardar en favoritos")"
+                                            onclick="event.preventDefault(); event.stopPropagation(); toggleFavoritoCard(this);">
+                                        <i class="@(isFav ? "fas" : "far") fa-heart" style="font-size: 0.95rem;"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <a href="/Login" class="rounded-circle d-flex align-items-center justify-center transition-all shadow-sm"
+                                       style="background: rgba(255, 255, 255, 0.9); color: #9ca3af; position: absolute; top: 12px; right: 12px; z-index: 20; text-decoration: none; width: 36px; height: 36px; padding: 0;"
+                                       title="Inicia sesión para guardar en favoritos">
+                                        <i class="far fa-heart" style="font-size: 0.95rem;"></i>
+                                    </a>
+                                }
+
+                                <div class="position-absolute bottom-0 start-0 w-100 px-3 py-2" style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                                    <span class="badge bg-dark mb-1 text-uppercase border border-secondary" style="font-size: 0.7rem;">@(negocio.Category?.Name ?? "General")</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-4 d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title fw-bold text-dark mb-0 text-truncate pe-2">@negocio.TradeName</h5>
+                                    <span class="badge bg-light text-dark border shadow-sm px-2 py-1"><i class="bi bi-star-fill text-warning me-1"></i> @(negocio.Reviews != null && negocio.Reviews.Any() ? Math.Round(negocio.Reviews.Average(r => r.Rating), 1).ToString("0.0") : "5.0")</span>
+                                </div>
+                                <p class="card-text text-muted small mb-2"><i class="bi bi-geo-alt-fill text-secondary me-1"></i> @negocio.Address</p>
+                                <p class="card-text text-success small fw-bold mb-4"><i class="bi bi-clock-fill me-1"></i> Abierto ahora</p>
+                                
+                                <div class="mt-auto row g-2">
+                                    <div class="col-7">
+                                        <a asp-action="InfNegocio" asp-route-id="@negocio.BusinessId" class="btn btn-orange-pin w-100 py-2 fw-bold rounded-pill shadow-sm">Ver perfil</a>
                                     </div>
-                                    <div class="col-6">
-                                       <a href="https://www.google.com/maps/search/?api=1&query=@(negocio.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(negocio.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture))" target="_blank" class="btn btn-light w-100 py-2 fw-bold border text-muted d-block text-center text-decoration-none"><i class="bi bi-map me-1"></i> Ruta</a>
+                                    <div class="col-5">
+                                       <a href="https://www.google.com/maps/search/?api=1&query=@(negocio.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(negocio.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture))" target="_blank" class="btn btn-light w-100 py-2 fw-bold border text-muted d-block text-center text-decoration-none rounded-pill hover-transform"><i class="bi bi-geo-fill text-primary"></i> Mapa</a>
                                     </div>
                                 </div>
                             </div>
@@ -123,6 +274,101 @@
                     <p class="text-muted">Intenta con otros filtros o términos de búsqueda.</p>
                 </div>
             }
+
+            <!-- Paginación -->
+            @if (ViewBag.TotalPages > 1)
+            {
+                <nav aria-label="Paginación" class="mt-5 d-flex justify-content-center">
+                    <ul class="pagination">
+                        <!-- Botón Anterior -->
+                        @if (ViewBag.CurrentPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Explorar", new { page = ViewBag.CurrentPage - 1, busqueda = ViewBag.BusquedaActual, distrito = ViewBag.DistritoActual, orden = ViewBag.OrdenActual })" aria-label="Anterior">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">&laquo;</span>
+                            </li>
+                        }
+
+                        <!-- Números de Página -->
+                        @{
+                            int currentPage = (int)ViewBag.CurrentPage;
+                            int totalPages = (int)ViewBag.TotalPages;
+                            int maxPagesToShow = 5;
+                            int startPage = Math.Max(1, currentPage - maxPagesToShow / 2);
+                            int endPage = Math.Min(totalPages, startPage + maxPagesToShow - 1);
+                            
+                            if (endPage - startPage + 1 < maxPagesToShow) {
+                                startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+                            }
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item"><a class="page-link" href="@Url.Action("Explorar", new { page = 1, busqueda = ViewBag.BusquedaActual, distrito = ViewBag.DistritoActual, orden = ViewBag.OrdenActual })">1</a></li>
+                            @if (startPage > 2) {
+                                <li class="page-item disabled"><span class="page-link border-0 text-muted bg-transparent">...</span></li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            if (i == currentPage)
+                            {
+                                <li class="page-item active">
+                                    <span class="page-link shadow-sm">
+                                        @i
+                                        <span class="visually-hidden">(página actual)</span>
+                                    </span>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Explorar", new { page = i, busqueda = ViewBag.BusquedaActual, distrito = ViewBag.DistritoActual, orden = ViewBag.OrdenActual })">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+                        }
+
+                        @if (endPage < totalPages)
+                        {
+                            @if (endPage < totalPages - 1) {
+                                <li class="page-item disabled"><span class="page-link border-0 text-muted bg-transparent">...</span></li>
+                            }
+                            <li class="page-item"><a class="page-link" href="@Url.Action("Explorar", new { page = totalPages, busqueda = ViewBag.BusquedaActual, distrito = ViewBag.DistritoActual, orden = ViewBag.OrdenActual })">@totalPages</a></li>
+                        }
+
+                        <!-- Botón Siguiente -->
+                        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Explorar", new { page = ViewBag.CurrentPage + 1, busqueda = ViewBag.BusquedaActual, distrito = ViewBag.DistritoActual, orden = ViewBag.OrdenActual })" aria-label="Siguiente">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">&raquo;</span>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+
+                <!-- Info de Paginación -->
+                <div class="text-center text-muted mt-3">
+                    <small>Mostrando página <strong>@ViewBag.CurrentPage</strong> de <strong>@ViewBag.TotalPages</strong> (Total: <strong>@ViewBag.TotalItems</strong> negocios)</small>
+                </div>
+            }
         </main>
     </div>
 </div>
@@ -134,5 +380,76 @@
         document.getElementById('ordenHidden').value = this.value;
         document.querySelector('.filtro-sidebar').submit();
     });
+
+    async function toggleFavoritoCard(btn) {
+        const businessId = btn.dataset.businessId;
+        const icon = btn.querySelector('i');
+        
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+
+        try {
+            const response = await fetch('/Home/ToggleFavorito', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `businessId=${businessId}`
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                if (data.isFavorite) {
+                    icon.className = 'fas fa-heart';
+                    btn.style.color = '#ff6b00';
+                    btn.dataset.isFavorite = 'true';
+                    btn.title = 'Quitar de favoritos';
+                } else {
+                    icon.className = 'far fa-heart';
+                    btn.style.color = '#9ca3af';
+                    btn.dataset.isFavorite = 'false';
+                    btn.title = 'Guardar en favoritos';
+                }
+                showFaviToast(data.message, data.isFavorite);
+            } else if (data.requiresLogin) {
+                window.location.href = '/Login';
+            }
+        } catch (err) {
+            console.error('Error toggling favorito:', err);
+        } finally {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
+
+    function showFaviToast(message, isFav) {
+        const existing = document.getElementById('faviToast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'faviToast';
+        toast.style.cssText = `
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: ${isFav ? '#ff6b00' : '#374151'};
+            color: white; padding: 10px 20px; border-radius: 50px;
+            font-weight: 600; font-size: 0.9rem; z-index: 9999;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            display: flex; align-items: center; gap: 8px;
+            animation: slideUpFavi 0.3s ease;
+        `;
+        toast.innerHTML = `<i class="${isFav ? 'fas' : 'far'} fa-heart"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, 2500);
+    }
 </script>
+<style>
+    @@keyframes slideUpFavi {
+        from { opacity: 0; transform: translate(-50%, 20px); }
+        to   { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .btn-favorito-card:hover {
+        transform: scale(1.1);
+    }
+</style>
 }

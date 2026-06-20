@@ -3,10 +3,18 @@
 
 @{
     ViewData["Title"] = Model.TradeName;
-    var googleMapsApiKey = Configuration["GoogleMaps:ApiKey"];
-    var coverImage = Model.Images?.FirstOrDefault()?.ImageUrl ?? "https://via.placeholder.com/1920x1080/333/fff?text=Showroom";
+    var rawCover = Model.Images?.FirstOrDefault()?.ImageUrl?.Trim();
+    var coverImage = "linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%)";
+    if (!string.IsNullOrEmpty(rawCover)) {
+        if (rawCover.StartsWith("~/")) {
+            coverImage = Url.Content(rawCover);
+        } else if (!rawCover.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawCover.StartsWith("/") && !rawCover.StartsWith("data:image")) {
+            coverImage = "/images/businesses/" + rawCover;
+        } else {
+            coverImage = rawCover;
+        }
+    }
 
-    // Uso de dynamic para prevenir errores si aún no agregas 'Services' o 'Products' a tu modelo Business
     dynamic dynModel = Model;
     IEnumerable<dynamic> services = null;
     IEnumerable<dynamic> products = null;
@@ -15,21 +23,59 @@
 
     var lat = Model.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
     var lng = Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    var googleMapsApiKey = Configuration["GoogleMaps:ApiKey"] ?? "";
+
+    // Verificar si el usuario actual ya tiene este negocio en favoritos
+    bool isFavorite = false;
+    var currentUserEmail = Context.Session.GetString("Usuario");
+    if (!string.IsNullOrEmpty(currentUserEmail))
+    {
+        isFavorite = (bool)(ViewBag.IsFavorite ?? false);
+    }
 }
 
 <!-- Hero Section -->
-<section class="hero-section position-relative d-flex align-items-center" style="background: url('@Url.Content(coverImage)'); background-size: cover; background-position: center;">
+<section class="hero-section position-relative" style="background: url('@Url.Content(coverImage)'); background-size: cover; background-position: center;">
     <div class="hero-overlay"></div>
-    <div class="container text-white position-relative">
-        <h1 class="display-4 fw-bold">@Model.TradeName</h1>
-        <p class="lead">@Model.Address</p>
-        <div class="d-flex align-items-center">
-            <span class="badge bg-light text-dark me-2">
-                <i class="bi bi-star-fill text-warning"></i> @(Model.Reviews?.Any() == true ? Math.Round(Model.Reviews.Average(r => r.Rating), 1) : 5.0)
-            </span>
-            <span class="text-success">
-                Abierto ahora
-            </span>
+    <div class="container text-white position-relative pb-4">
+        <div class="hero-content-glass d-inline-block p-4 p-md-5">
+            <h1 class="display-4 fw-bolder mb-2 text-white">@Model.TradeName</h1>
+            <p class="lead text-white-50 mb-4 fw-medium"><i class="bi bi-geo-alt-fill text-terracota me-2"></i>@Model.Address</p>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <span class="badge bg-white text-dark py-2 px-3 rounded-pill shadow-sm fs-6">
+                    <i class="bi bi-star-fill text-warning me-1"></i> @(Model.Reviews?.Any() == true ? Math.Round(Model.Reviews.Average(r => r.Rating), 1) : 5.0)
+                </span>
+                <span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); padding: 0.5rem 1rem; border-radius: 9999px;">
+                    <i class="bi bi-circle-fill me-1" style="font-size: 0.6rem; vertical-align: middle;"></i> Abierto ahora
+                </span>
+                @if (!string.IsNullOrEmpty(currentUserEmail))
+                {
+                    <button id="btnFavorito" 
+                            class="btn rounded-pill fw-semibold px-3 py-2 d-flex align-items-center gap-2"
+                            data-business-id="@Model.BusinessId"
+                            data-is-favorite="@isFavorite.ToString().ToLower()"
+                            style="background: @(isFavorite ? "rgba(255,107,0,0.9)" : "rgba(255,255,255,0.15)"); 
+                                   border: 1.5px solid @(isFavorite ? "#ff6b00" : "rgba(255,255,255,0.5)"); 
+                                   color: white; 
+                                   backdrop-filter: blur(6px);
+                                   transition: all 0.25s ease;"
+                            title="@(isFavorite ? "Quitar de favoritos" : "Guardar en favoritos")"
+                            aria-label="@(isFavorite ? "Quitar de favoritos" : "Agregar a favoritos")">
+                        <i id="faviIcon" class="@(isFavorite ? "fas" : "far") fa-heart" style="font-size: 0.95rem;"></i>
+                        <span id="faviText" style="font-size: 0.85rem;">@(isFavorite ? "En favoritos" : "Favorito")</span>
+                    </button>
+                }
+                else
+                {
+                    <a href="/Login" 
+                       class="btn rounded-pill fw-semibold px-3 py-2 d-flex align-items-center gap-2"
+                       style="background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.5); color: white; font-size: 0.85rem;"
+                       title="Inicia sesión para guardar en favoritos">
+                        <i class="far fa-heart" style="font-size: 0.95rem;"></i>
+                        <span>Favorito</span>
+                    </a>
+                }
+            </div>
         </div>
     </div>
 </section>
@@ -39,23 +85,44 @@
         <!-- Sidebar de Contacto (Izquierda) -->
         <aside class="col-lg-4 mb-4">
             <div class="card contact-sidebar shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Información de Contacto</h5>
-                    <a href="https://www.google.com/maps/search/?api=1&query=@lat,@lng" target="_blank" class="btn btn-terracota w-100 mb-2">
-                        <i class="bi bi-geo-alt me-2"></i>Cómo llegar
-                    </a>
-                    <a href="tel:@(string.IsNullOrEmpty(Model.ContactPhone) ? "" : Model.ContactPhone)" class="btn btn-secondary w-100 mb-3 @(string.IsNullOrEmpty(Model.ContactPhone) ? "disabled" : "")">
-                        <i class="bi bi-telephone me-2"></i>Contactar
-                    </a>
-                    <div class="mb-2">
-                        <i class="bi bi-geo-alt me-2"></i>@Model.Address
+                <div class="card-body p-3 p-md-4">
+                    <h5 class="fw-bold mb-3">Información de Contacto</h5>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <a href="https://www.google.com/maps/search/?api=1&query=@lat,@lng" target="_blank" class="btn btn-terracota w-100 py-2 fs-6" style="padding-left:0; padding-right:0;">
+                                <i class="bi bi-geo-alt"></i> Cómo llegar
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="tel:@(string.IsNullOrEmpty(Model.ContactPhone) ? "" : Model.ContactPhone)" class="btn btn-outline-secondary rounded-pill fw-semibold w-100 py-2 fs-6 @(string.IsNullOrEmpty(Model.ContactPhone) ? "disabled" : "")" style="padding-left:0; padding-right:0;">
+                                <i class="bi bi-telephone"></i> Llamar
+                            </a>
+                        </div>
                     </div>
-                    <div class="mb-2">
-                        <i class="bi bi-telephone me-2"></i>@(string.IsNullOrEmpty(Model.ContactPhone) ? "Sin teléfono" : Model.ContactPhone)
+                    
+                    <div class="d-flex align-items-start mb-2">
+                        <div class="text-terracota me-2 mt-1"><i class="bi bi-geo-alt fs-5"></i></div>
+                        <div>
+                            <span class="d-block fw-semibold text-dark fs-6">Dirección</span>
+                            <span class="text-muted" style="font-size: 0.85rem;">@Model.Address</span>
+                        </div>
                     </div>
+                    
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="text-terracota me-2 mt-1"><i class="bi bi-telephone fs-5"></i></div>
+                        <div>
+                            <span class="d-block fw-semibold text-dark fs-6">Teléfono</span>
+                            <span class="text-muted" style="font-size: 0.85rem;">@(string.IsNullOrEmpty(Model.ContactPhone) ? "Sin teléfono" : Model.ContactPhone)</span>
+                        </div>
+                    </div>
+                    
                     <!-- Horarios dinámicos cargados con JavaScript -->
-                    <div id="businessHoursContainer" class="mt-3"></div>
-                    <div id="businessMap" class="bg-light border rounded mt-3" style="height: 180px; z-index: 1;"></div>
+                    <div id="businessHoursContainer" class="mb-3"></div>
+                    
+                    <div class="rounded-4 overflow-hidden shadow-sm" style="height: 140px;">
+                        <div id="businessMap" class="w-100 h-100 bg-light" style="z-index: 1;"></div>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -63,18 +130,23 @@
         <!-- Contenido Principal (Derecha) -->
         <main class="col-lg-8">
             <!-- Sobre nosotros -->
-            <section class="mb-5">
-                <h2 class="mb-3">Sobre nosotros</h2>
-                <p class="text-muted">@Model.Description</p>
-                <div class="row">
+            <section class="mb-5 pt-3">
+                <h2 class="section-title">Sobre nosotros</h2>
+                <p class="text-muted fs-5 lh-lg mb-5" style="max-width: 90%;">@Model.Description</p>
+                
+                <h3 class="fw-bold mb-4">Nuestros Servicios</h3>
+                <div class="row g-4">
                     @if (services != null)
                     {
                         foreach (var service in services)
                         {
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 col-lg-4">
                                 <div class="service-box">
-                                    <h6>@service.Name</h6>
-                                    <p>@service.Description</p>
+                                    <div class="service-icon">
+                                        <i class="bi bi-check2-circle"></i>
+                                    </div>
+                                    <h6 class="fw-bold text-dark mb-2">@service.Name</h6>
+                                    <p class="text-muted small mb-0">@service.Description</p>
                                 </div>
                             </div>
                         }
@@ -82,7 +154,7 @@
                     else
                     {
                         <div class="col-12">
-                            <p class="text-muted fst-italic px-3">Los servicios se cargarán dinámicamente desde la base de datos.</p>
+                            <p class="text-muted fst-italic px-3 py-4 bg-light rounded-4 border">Los servicios se cargarán dinámicamente desde la base de datos.</p>
                         </div>
                     }
                 </div>
@@ -100,20 +172,78 @@
                 </div>
             </section>
 
-            <!-- Productos Destacados -->
-            <section class="mb-5">
-                <h2 class="mb-3">Productos Destacados</h2>
-                <div class="row">
+            <!-- Galería de Fotos -->
+            @if (Model.Images?.Any() == true)
+            {
+                <section class="mb-5 pt-2">
+                    <h2 class="section-title">
+                        Galería
+                    </h2>
+                    <div id="businessGalleryCarousel" class="carousel slide shadow-lg" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded-3">
+                            @for (int i = 0; i < Model.Images.Count; i++)
+                            {
+                                <div class="carousel-item @(i == 0 ? "active" : "")">
+                                    @{
+                                        var rawGalUrl = Model.Images.ElementAt(i).ImageUrl?.Trim();
+                                        var galUrl = rawGalUrl;
+                                        if (!string.IsNullOrEmpty(rawGalUrl)) {
+                                            if (rawGalUrl.StartsWith("~/")) {
+                                                galUrl = Url.Content(rawGalUrl);
+                                            } else if (!rawGalUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !rawGalUrl.StartsWith("/") && !rawGalUrl.StartsWith("data:image")) {
+                                                galUrl = "/images/businesses/" + rawGalUrl;
+                                            }
+                                        }
+                                    }
+                                    <img src="@galUrl" class="d-block w-100" alt="@Model.TradeName" style="height: 400px; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    <div class="align-items-center justify-content-center w-100 fallback-img" style="height: 400px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: none !important;">
+                                        <div class="text-center">
+                                            <i class="bi bi-image" style="font-size: 4rem; color: #adb5bd; margin-bottom: 8px; display: block;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        @if (Model.Images.Count > 1)
+                        {
+                            <button class="carousel-control-prev" type="button" data-bs-target="#businessGalleryCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Anterior</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#businessGalleryCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Siguiente</span>
+                            </button>
+
+                            <!-- Indicadores -->
+                            <div class="carousel-indicators">
+                                @for (int i = 0; i < Model.Images.Count; i++)
+                                {
+                                    <button type="button" data-bs-target="#businessGalleryCarousel" data-bs-slide-to="@i" class="@(i == 0 ? "active" : "")" aria-label="Foto @(i + 1)"></button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+            <section class="mb-5 pt-2">
+                <h2 class="section-title">Productos Destacados</h2>
+                <div class="row g-4 mt-2">
                     @if (products != null)
                     {
                         foreach (var product in products)
                         {
-                            <div class="col-md-4 mb-3">
-                                <div class="card product-card shadow-sm h-100">
-                                    <div class="card-body">
-                                        <h5 class="card-title">@product.Name</h5>
-                                        <p class="card-text small">@product.Description</p>
-                                        <span class="price text-terracota fw-bold">S/ @product.Price</span>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card product-card border-0 h-100 overflow-hidden">
+                                    <div class="card-body p-4 d-flex flex-column">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <h5 class="card-title fw-bold mb-0">@product.Name</h5>
+                                        </div>
+                                        <p class="card-text text-muted small flex-grow-1">@product.Description</p>
+                                        <div class="mt-3 pt-3 border-top">
+                                            <span class="price fw-bolder">S/ @product.Price</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -122,7 +252,7 @@
                     else
                     {
                         <div class="col-12">
-                            <p class="text-muted fst-italic px-3">Los productos destacados se cargarán dinámicamente desde la base de datos.</p>
+                            <p class="text-muted fst-italic px-3 py-4 bg-light rounded-4 border">Los productos destacados se cargarán dinámicamente desde la base de datos.</p>
                         </div>
                     }
                 </div>
@@ -130,13 +260,14 @@
 
             <!-- Crear Reseña -->
             <section class="mb-5">
-                <div class="card review-action-card shadow-sm p-4">
-                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3">
+                <div class="card review-action-card border-0 overflow-hidden position-relative p-0">
+                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(135deg, rgba(255,107,0,0.05), rgba(255,140,51,0.1)); z-index: 0;"></div>
+                    <div class="card-body p-5 position-relative z-1 d-flex flex-column flex-md-row justify-content-between align-items-center gap-4 text-center text-md-start">
                         <div>
-                            <h3 class="mb-2">Cuéntanos tu experiencia</h3>
-                            <p class="mb-0 text-muted">Escribe una reseña sin salir de esta página y ayuda a otros clientes.</p>
+                            <h3 class="fw-bold mb-2">Cuéntanos tu experiencia</h3>
+                            <p class="mb-0 text-muted">Tu opinión ayuda a otros clientes a descubrir los mejores lugares.</p>
                         </div>
-                        <button id="openReviewForm" class="btn btn-terracota px-4 py-2 fw-bold">
+                        <button id="openReviewForm" class="btn btn-terracota px-4 py-3 fw-bold shadow-lg">
                             <i class="fa-solid fa-star me-2"></i> Crear reseña
                         </button>
                     </div>
@@ -144,11 +275,11 @@
             </section>
 
             <!-- Testimonios -->
-            <section>
+            <section class="pb-5">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
                     <div>
-                        <h2 class="mb-1">Experiencias de Clientes</h2>
-                        <p class="text-muted mb-0">Las reseñas más recientes aparecen primero.</p>
+                        <h2 class="section-title mb-1">Experiencias de Clientes</h2>
+                        <p class="text-muted mb-0">Lo que dicen las personas sobre @Model.TradeName</p>
                     </div>
                     <div class="d-flex gap-2 align-items-center">
                         <label class="mb-0 text-muted">Ordenar por:</label>
@@ -170,48 +301,155 @@
     </div>
 </div>
 
+<style>
+    /* Estilos mejorados para el Modal de Reseñas */
+    #newReviewModal .modal-card {
+        border-radius: 1.5rem;
+        border: none;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        background: #fff;
+    }
+    #newReviewModal .modal-header {
+        background: linear-gradient(135deg, #fffcf7 0%, #fff5eb 100%);
+        border-bottom: 1px solid rgba(255,107,0,0.1);
+        padding: 1.5rem 2rem;
+    }
+    #newReviewModal .modal-body {
+        padding: 2rem;
+    }
+    .star-rating-container .star-btn {
+        background: transparent;
+        border: none;
+        font-size: 3rem;
+        color: #e5e7eb;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0;
+        margin: 0 0.25rem;
+    }
+    .star-rating-container .star-btn:hover {
+        transform: scale(1.15);
+    }
+    .star-rating-container .star-btn.active {
+        color: #ff6b00;
+        filter: drop-shadow(0 4px 6px rgba(255,107,0,0.3));
+    }
+    .review-textarea {
+        border-radius: 1rem;
+        border: 2px solid #f3f4f6;
+        padding: 1rem;
+        resize: none;
+        transition: all 0.3s ease;
+        background-color: #f9fafb;
+    }
+    .review-textarea:focus {
+        border-color: #ff6b00;
+        box-shadow: 0 0 0 4px rgba(255,107,0,0.1);
+        background-color: #fff;
+        outline: none;
+    }
+    .upload-dropzone-modern {
+        border: 2px dashed #e5e7eb;
+        border-radius: 1rem;
+        background-color: #f9fafb;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .upload-dropzone-modern:hover, .upload-dropzone-modern.active {
+        border-color: #ff6b00;
+        background-color: #fff5eb;
+    }
+    .upload-dropzone-modern i {
+        font-size: 2.5rem;
+        color: #ff6b00;
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease;
+    }
+    .upload-dropzone-modern:hover i {
+        transform: translateY(-5px);
+    }
+    .btn-publish {
+        background: linear-gradient(135deg, #ff6b00, #ff8c33);
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 2rem;
+        font-weight: 700;
+        color: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255,107,0,0.2);
+    }
+    .btn-publish:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(255,107,0,0.3);
+        color: white;
+    }
+    .btn-cancel-modern {
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        color: #6b7280;
+        background: white;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+    }
+    .btn-cancel-modern:hover {
+        background: #f3f4f6;
+        color: #374151;
+    }
+</style>
+
 <div id="newReviewModal" class="modal-overlay" aria-hidden="true">
-    <div class="modal-card">
-        <div class="modal-header">
+    <div class="modal-card" style="max-width: 650px; width: 95%;">
+        <div class="modal-header d-flex justify-content-between align-items-center">
             <div>
-                <h4 class="mb-1">Publicar nueva reseña</h4>
-                <p class="text-muted mb-0">Califica tu experiencia y deja tu comentario en un popup rápido.</p>
+                <h4 class="mb-1 fw-bold text-dark">Cuéntanos tu experiencia</h4>
+                <p class="text-muted mb-0" style="font-size: 0.95rem;">Tu opinión es muy valiosa para nosotros y la comunidad.</p>
             </div>
-            <button id="closeReviewModal" class="modal-close" aria-label="Cerrar modal"><i class="fa-solid fa-xmark"></i></button>
+            <button id="closeReviewModal" class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 36px; height: 36px;" aria-label="Cerrar modal">
+                <i class="fa-solid fa-xmark text-muted"></i>
+            </button>
         </div>
         <div class="modal-body">
-            <form id="newReviewForm" asp-action="AgregarResena" asp-controller="Home" method="post" enctype="multipart/form-data" class="row g-3">
-                <!-- Campo oculto para enviar al backend a qué negocio pertenece la reseña -->
+            <form id="newReviewForm" asp-action="AgregarResena" asp-controller="Home" method="post" enctype="multipart/form-data" class="row g-4">
                 <input type="hidden" name="BusinessId" value="@Model.BusinessId" />
-                <div class="col-12">
-                    <label class="form-label">Calificación</label>
-                    <div class="d-flex gap-2" id="reviewStars">
+                
+                <div class="col-12 text-center mt-2">
+                    <label class="form-label fw-bold text-muted mb-3 text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">¿Cómo calificarías este negocio?</label>
+                    <div class="star-rating-container d-flex justify-content-center" id="reviewStars">
                         @for (var i = 1; i <= 5; i++)
                         {
-                            <button type="button" class="btn btn-outline-secondary star-btn" data-value="@i" aria-label="@i estrellas">
+                            <button type="button" class="star-btn" data-value="@i" aria-label="@i estrellas">
                                 <i class="fa-solid fa-star"></i>
                             </button>
                         }
                     </div>
                     <input type="hidden" id="reviewRating" name="Rating" value="5" />
                 </div>
+
                 <div class="col-12">
-                    <label class="form-label">Tu reseña</label>
-                    <textarea id="reviewComment" name="Comment" class="form-control" rows="4" placeholder="Comparte lo que más te gustó o lo que se puede mejorar..." required></textarea>
+                    <label class="form-label fw-bold text-dark mb-2">Detalles de tu reseña</label>
+                    <textarea id="reviewComment" name="Comment" class="form-control review-textarea" rows="4" placeholder="Ej. El servicio fue excelente, los precios justos y el ambiente muy agradable. ¡Lo recomiendo!" required></textarea>
                 </div>
+
                 <div class="col-12">
-                    <label class="form-label">Fotos (opcional)</label>
-                    <div id="dropZone" class="upload-dropzone">
-                        <input type="file" id="reviewPhoto" name="Images" accept="image/*" multiple class="form-control d-none" />
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <p class="mb-1 fw-semibold text-slate-900">Selecciona o arrastra tus fotos aquí</p>
-                        <p class="small text-slate-500">JPG, PNG. Hasta 5 archivos. Se mostrarán en miniaturas.</p>
+                    <label class="form-label fw-bold text-dark mb-2">Añadir fotos <span class="text-muted fw-normal">(Opcional)</span></label>
+                    <div id="dropZone" class="upload-dropzone-modern">
+                        <input type="file" id="reviewPhoto" name="Images" accept="image/*" multiple class="d-none" />
+                        <div class="d-flex flex-column align-items-center">
+                            <i class="fa-solid fa-camera-retro"></i>
+                            <h6 class="mb-1 fw-bold text-dark">Haz clic para subir fotos o arrástralas aquí</h6>
+                            <p class="small text-muted mb-0">Puedes subir hasta 5 imágenes (JPG, PNG)</p>
+                        </div>
                     </div>
-                    <div id="reviewPhotoPreview" class="review-photo-gallery"></div>
+                    <div id="reviewPhotoPreview" class="review-photo-gallery mt-3 d-flex gap-2 flex-wrap"></div>
                 </div>
-                <div class="col-12 d-flex justify-content-end gap-2">
-                    <button type="button" id="cancelReview" class="btn btn-outline-secondary">Cancelar</button>
-                    <button type="submit" class="btn btn-terracota fw-bold">Publicar reseña</button>
+
+                <div class="col-12 d-flex justify-content-end gap-3 mt-2 pt-4 border-top">
+                    <button type="button" id="cancelReview" class="btn-cancel-modern">Cancelar</button>
+                    <button type="submit" class="btn-publish">Publicar reseña <i class="fa-solid fa-paper-plane ms-1"></i></button>
                 </div>
             </form>
         </div>
@@ -249,7 +487,91 @@
 </div>
 
 @section Scripts {
+    <!-- Script del botón Favorito -->
+    <script>
+        (function () {
+            const btnFavorito = document.getElementById('btnFavorito');
+            if (!btnFavorito) return;
+
+            btnFavorito.addEventListener('click', async function () {
+                const businessId = this.dataset.businessId;
+                const icon = document.getElementById('faviIcon');
+                const text = document.getElementById('faviText');
+
+                // Feedback visual inmediato (optimistic UI)
+                btnFavorito.disabled = true;
+                btnFavorito.style.opacity = '0.7';
+
+                try {
+                    const response = await fetch('/Home/ToggleFavorito', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? ''
+                        },
+                        body: `businessId=${businessId}`
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        if (data.isFavorite) {
+                            icon.className = 'fas fa-heart';
+                            text.textContent = 'En favoritos';
+                            btnFavorito.style.background = 'rgba(255,107,0,0.9)';
+                            btnFavorito.style.borderColor = '#ff6b00';
+                            btnFavorito.dataset.isFavorite = 'true';
+                            btnFavorito.title = 'Quitar de favoritos';
+                        } else {
+                            icon.className = 'far fa-heart';
+                            text.textContent = 'Favorito';
+                            btnFavorito.style.background = 'rgba(255,255,255,0.15)';
+                            btnFavorito.style.borderColor = 'rgba(255,255,255,0.5)';
+                            btnFavorito.dataset.isFavorite = 'false';
+                            btnFavorito.title = 'Guardar en favoritos';
+                        }
+                        showFaviToast(data.message, data.isFavorite);
+                    } else if (data.requiresLogin) {
+                        window.location.href = '/Login';
+                    }
+                } catch (err) {
+                    console.error('Error toggling favorito:', err);
+                } finally {
+                    btnFavorito.disabled = false;
+                    btnFavorito.style.opacity = '1';
+                }
+            });
+
+            function showFaviToast(message, isFav) {
+                const existing = document.getElementById('faviToast');
+                if (existing) existing.remove();
+
+                const toast = document.createElement('div');
+                toast.id = 'faviToast';
+                toast.style.cssText = `
+                    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+                    background: ${isFav ? '#ff6b00' : '#374151'};
+                    color: white; padding: 10px 20px; border-radius: 50px;
+                    font-weight: 600; font-size: 0.9rem; z-index: 9999;
+                    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+                    display: flex; align-items: center; gap: 8px;
+                    animation: slideUpFavi 0.3s ease;
+                `;
+                toast.innerHTML = `<i class="${isFav ? 'fas' : 'far'} fa-heart"></i> ${message}`;
+                document.body.appendChild(toast);
+                setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, 2500);
+            }
+        })();
+    </script>
+    <style>
+        @@keyframes slideUpFavi {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to   { opacity: 1; transform: translate(-50%, 0); }
+        }
+    </style>
+
     <!-- Google Maps JS -->
+
     <script src="https://maps.googleapis.com/maps/api/js?key=@googleMapsApiKey&callback=initBusinessMap" async defer></script>
 
     <script>
@@ -260,27 +582,14 @@
             {
                 foreach (var r in Model.Reviews)
                 {
-                    dynamic dr = r;
-                    try {
-                        reviewsList.Add(new {
-                            id = dr.ReviewId,
-                            nombre = dr.User?.Nombre ?? dr.Usuario?.Nombre ?? "Cliente",
-                            calificacion = dr.Rating,
-                            comentario = dr.Comment,
-                            fecha = dr.CreatedAt,
-                            verificado = true
-                        });
-                    } catch {
-                        // Fallback en caso de que aún no tengas las propiedades completas creadas
-                        reviewsList.Add(new {
-                            id = r.GetHashCode(),
-                            nombre = "Cliente",
-                            calificacion = dr.Rating,
-                            comentario = "Reseña desde base de datos.",
-                            fecha = DateTime.Now,
-                            verificado = true
-                        });
-                    }
+                    reviewsList.Add(new {
+                        id = r.ReviewId,
+                        nombre = r.User?.FullName ?? "Cliente Anónimo",
+                        calificacion = r.Rating,
+                        comentario = r.Comment ?? "Sin comentarios",
+                        fecha = r.CreatedAt,
+                        verificado = true
+                    });
                 }
             }
             var jsonReviews = System.Text.Json.JsonSerializer.Serialize(reviewsList);
@@ -587,34 +896,36 @@
 
                     let badgeHtml = '';
                     if (data.isOpen) {
-                        const warningClass = data.minutesUntilClose <= 30 ? 'alert-warning' : 'alert-success';
+                        const warningClass = data.minutesUntilClose <= 30 ? 'bg-warning text-dark' : 'bg-success text-white';
                         const warningText = data.minutesUntilClose <= 30 ? 
-                            `<br><small class="text-warning"><i class="bi bi-exclamation-triangle"></i> ⚠️ Cierra en ${data.minutesUntilClose} minutos</small>` : 
+                            `<small class="text-dark fw-bold d-block lh-1 mt-1"><i class="bi bi-exclamation-triangle"></i> Cierra pronto</small>` : 
                             '';
                         
                         badgeHtml = `
-                            <div class="alert ${warningClass} d-flex align-items-center" role="alert">
-                                <i class="bi bi-check-circle-fill me-2"></i>
-                                <div>
-                                    <strong>Abierto ahora</strong>
-                                    <br>
-                                    <small class="text-muted">Cierra a las ${data.closeTime}</small>
-                                    ${warningText}
+                            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                                <div class="card-body ${warningClass} py-2 px-3 d-flex align-items-center gap-2">
+                                    <div class="fs-4"><i class="bi bi-check-circle-fill"></i></div>
+                                    <div class="lh-sm">
+                                        <strong class="d-block" style="font-size: 0.9rem;">Abierto ahora</strong>
+                                        <small class="opacity-75" style="font-size: 0.75rem;">Cierra a las ${data.closeTime}</small>
+                                        ${warningText}
+                                    </div>
                                 </div>
                             </div>
                         `;
                     } else {
                         const opensAtText = data.opensAt ? 
-                            new Date(data.opensAt).toLocaleString('es-ES', { weekday: 'long', hour: '2-digit', minute: '2-digit' }) :
-                            'Horario no disponible';
+                            new Date(data.opensAt).toLocaleString('es-ES', { weekday: 'short', hour: '2-digit', minute: '2-digit' }) :
+                            'No disponible';
                         
                         badgeHtml = `
-                            <div class="alert alert-danger d-flex align-items-center" role="alert">
-                                <i class="bi bi-x-circle-fill me-2"></i>
-                                <div>
-                                    <strong>Cerrado ahora</strong>
-                                    <br>
-                                    <small class="text-muted">Abre ${opensAtText}</small>
+                            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                                <div class="card-body bg-light border py-2 px-3 d-flex align-items-center gap-2">
+                                    <div class="fs-4 text-danger"><i class="bi bi-door-closed-fill"></i></div>
+                                    <div class="lh-sm">
+                                        <strong class="d-block text-dark" style="font-size: 0.9rem;">Cerrado ahora</strong>
+                                        <small class="text-muted" style="font-size: 0.75rem;">Abre: ${opensAtText}</small>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -628,7 +939,11 @@
                 .then(response => response.json())
                 .then(schedules => {
                     const scheduleContainer = document.getElementById('scheduleContainer');
-                    if (!scheduleContainer || schedules.length === 0) return;
+                    if (!scheduleContainer) return;
+                    if (schedules.length === 0) {
+                        scheduleContainer.innerHTML = '<div class="alert alert-light text-center border text-muted"><i class="bi bi-calendar-x me-2"></i> Aún no se han registrado horarios de atención.</div>';
+                        return;
+                    }
 
                     const dayNames = {
                         'Monday': 'Lunes',
@@ -644,14 +959,14 @@
                     schedules.sort((a, b) => (dayOrder[a.dayOfWeek] || 8) - (dayOrder[b.dayOfWeek] || 8));
 
                     let html = `
-                        <h3 class="mb-3"><i class="bi bi-clock"></i> Horarios de Atención</h3>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover">
-                                <thead class="table-light">
+                        <h3 class="fw-bold mb-4"><i class="bi bi-clock me-2 text-terracota"></i> Horarios de Atención</h3>
+                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                            <table class="table table-hover mb-0">
+                                <thead style="background-color: #f8fafc;">
                                     <tr>
-                                        <th>Día</th>
-                                        <th>Apertura</th>
-                                        <th>Cierre</th>
+                                        <th class="py-3 px-4 border-bottom-0 text-muted fw-semibold">Día</th>
+                                        <th class="py-3 px-4 border-bottom-0 text-muted fw-semibold">Apertura</th>
+                                        <th class="py-3 px-4 border-bottom-0 text-muted fw-semibold">Cierre</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -663,9 +978,9 @@
                         const dayName = dayNames[schedule.dayOfWeek] || schedule.dayOfWeek;
                         html += `
                             <tr>
-                                <td class="fw-semibold">${dayName}</td>
-                                <td>${openTime}</td>
-                                <td>${closeTime}</td>
+                                <td class="fw-semibold px-4 py-3 align-middle text-dark">${dayName}</td>
+                                <td class="px-4 py-3 align-middle text-muted">${openTime}</td>
+                                <td class="px-4 py-3 align-middle text-muted">${closeTime}</td>
                             </tr>
                         `;
                     });

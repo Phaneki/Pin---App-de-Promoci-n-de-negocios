@@ -235,6 +235,46 @@ namespace PinAppdePromo.Migrations.PinDb
                     b.ToTable("BusinessSchedules");
                 });
 
+            modelBuilder.Entity("PinAppdePromo.Models.BusquedaUsuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<float?>("Calificacion")
+                        .HasColumnType("real");
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("FechaBusqueda")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("NegocioId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TipoInteraccion")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Zona")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NegocioId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("BusquedasUsuario");
+                });
+
             modelBuilder.Entity("PinAppdePromo.Models.Category", b =>
                 {
                     b.Property<int>("CategoryId")
@@ -389,6 +429,9 @@ namespace PinAppdePromo.Migrations.PinDb
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsPremium")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
@@ -505,6 +548,25 @@ namespace PinAppdePromo.Migrations.PinDb
                         .IsRequired();
 
                     b.Navigation("Business");
+                });
+
+            modelBuilder.Entity("PinAppdePromo.Models.BusquedaUsuario", b =>
+                {
+                    b.HasOne("PinAppdePromo.Models.Business", "Negocio")
+                        .WithMany()
+                        .HasForeignKey("NegocioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PinAppdePromo.Models.User", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Negocio");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("PinAppdePromo.Models.Favorite", b =>

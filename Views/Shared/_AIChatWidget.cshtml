@@ -1,0 +1,267 @@
+<!-- AIChatWidget -->
+<style>
+    /* Premium AI Chat Widget Styles */
+    .ai-chat-btn {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff6b2c, #ff8a50);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 10px 25px rgba(255,107,44,0.4);
+        cursor: pointer;
+        z-index: 9999;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .ai-chat-btn:hover {
+        transform: scale(1.1);
+    }
+    .ai-chat-window {
+        position: fixed;
+        bottom: 6.5rem;
+        right: 2rem;
+        width: 380px;
+        height: 550px;
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        z-index: 9998;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+        transform-origin: bottom right;
+        transition: all 0.3s ease;
+    }
+    @@media (max-width: 576px) {
+        .ai-chat-window {
+            width: calc(100% - 4rem);
+            height: 450px;
+        }
+    }
+    .ai-chat-header {
+        background: linear-gradient(135deg, #ff6b2c, #ff8a50);
+        color: white;
+        padding: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .ai-chat-messages {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: #f8fafc;
+    }
+    .ai-message {
+        max-width: 85%;
+        padding: 0.8rem 1rem;
+        border-radius: 18px;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+    .ai-message.bot {
+        background: white;
+        border: 1px solid #e2e8f0;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+        color: #334155;
+    }
+    .ai-message.user {
+        background: #ff6b2c;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+    }
+    .ai-chat-input-area {
+        padding: 1rem;
+        background: white;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        gap: 10px;
+    }
+    .ai-chat-input-area input {
+        flex: 1;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 0.6rem 1rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .ai-chat-input-area input:focus {
+        border-color: #ff6b2c;
+    }
+    .ai-chat-input-area button {
+        background: #ff6b2c;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .ai-chat-input-area button:hover {
+        transform: scale(1.05);
+    }
+    .typing-indicator {
+        display: none;
+        align-self: flex-start;
+        background: white;
+        border: 1px solid #e2e8f0;
+        padding: 0.6rem 1rem;
+        border-radius: 18px;
+        border-bottom-left-radius: 4px;
+        font-size: 0.9rem;
+        color: #64748b;
+        margin-bottom: 12px;
+    }
+</style>
+
+<div class="ai-chat-btn" id="aiChatBtn" onclick="toggleAIChat()">
+    <i class="fas fa-robot fa-lg"></i>
+</div>
+
+<div class="ai-chat-window" id="aiChatWindow">
+    <div class="ai-chat-header">
+        <div>
+            <h5 class="m-0 fw-bold d-flex align-items-center gap-2"><i class="fas fa-robot"></i> Asistente PIN</h5>
+            <small class="opacity-75" style="font-size: 0.75rem;">Con tecnología Gemini AI</small>
+        </div>
+        <button class="btn text-white p-0 border-0" onclick="toggleAIChat()">
+            <i class="fas fa-times fa-lg"></i>
+        </button>
+    </div>
+    <div class="ai-chat-messages" id="aiChatMessages">
+        <div class="typing-indicator" id="aiTypingIndicator">
+            <i class="fas fa-circle-notch fa-spin me-2"></i> Buscando...
+        </div>
+    </div>
+    <div class="ai-chat-input-area">
+        <input type="text" id="aiChatInput" placeholder="Escribe aquí..." onkeypress="handleAIChatEnter(event)">
+        <button onclick="sendAIChatMessage()">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+    let chatHistory = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Restaurar estado del chat (abierto/cerrado)
+        if (sessionStorage.getItem('aiChatIsOpen') === 'true') {
+            document.getElementById('aiChatWindow').style.display = 'flex';
+        }
+
+        // Restaurar historial de mensajes
+        const savedHistory = sessionStorage.getItem('aiChatHistory');
+        if (savedHistory) {
+            chatHistory = JSON.parse(savedHistory);
+            chatHistory.forEach(msg => renderMessage(msg.role, msg.text));
+        } else {
+            // Mensaje de bienvenida por defecto si no hay historial
+            const welcomeMsg = '¡Hola! 👋 Soy tu Asistente PIN. ¿En qué te puedo ayudar a encontrar hoy? (Ej: "Busco una cevichería" o "¿Qué talleres recomiendas?")';
+            addMessageToChat('bot', welcomeMsg);
+        }
+    });
+
+    function toggleAIChat() {
+        const window = document.getElementById('aiChatWindow');
+        if (window.style.display === 'flex') {
+            window.style.display = 'none';
+            sessionStorage.setItem('aiChatIsOpen', 'false');
+        } else {
+            window.style.display = 'flex';
+            document.getElementById('aiChatInput').focus();
+            sessionStorage.setItem('aiChatIsOpen', 'true');
+        }
+    }
+
+    function handleAIChatEnter(e) {
+        if (e.key === 'Enter') {
+            sendAIChatMessage();
+        }
+    }
+
+    async function sendAIChatMessage() {
+        const input = document.getElementById('aiChatInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        addMessageToChat('user', text);
+        input.value = '';
+
+        const typingIndicator = document.getElementById('aiTypingIndicator');
+        const container = document.getElementById('aiChatMessages');
+        container.appendChild(typingIndicator); // Mover el indicador al final
+        typingIndicator.style.display = 'block';
+        scrollToBottom();
+
+        try {
+            const response = await fetch('/api/AIChat/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: text })
+            });
+
+            const data = await response.json();
+            typingIndicator.style.display = 'none';
+            
+            if (response.ok) {
+                addMessageToChat('bot', data.response);
+            } else {
+                addMessageToChat('bot', "Lo siento, tuve un error: " + (data.response || "Revisa si tu API Key de Gemini es válida en appsettings.json"));
+            }
+        } catch (err) {
+            typingIndicator.style.display = 'none';
+            addMessageToChat('bot', "Error de conexión. Inténtalo de nuevo más tarde.");
+        }
+    }
+
+    function addMessageToChat(role, text) {
+        renderMessage(role, text);
+        // Guardar en el historial y en sessionStorage
+        chatHistory.push({ role, text });
+        sessionStorage.setItem('aiChatHistory', JSON.stringify(chatHistory));
+    }
+
+    function renderMessage(role, text) {
+        const container = document.getElementById('aiChatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'ai-message ' + role;
+        
+        // Formatear saltos de línea y listas a HTML simple
+        let formattedText = text.replace(/\n/g, '<br>');
+        msgDiv.innerHTML = formattedText;
+        
+        // Insertar el mensaje justo antes del indicador de escritura (para que el indicador siempre quede al fondo)
+        const typingIndicator = document.getElementById('aiTypingIndicator');
+        if (typingIndicator && typingIndicator.parentNode === container) {
+            container.insertBefore(msgDiv, typingIndicator);
+        } else {
+            container.appendChild(msgDiv);
+        }
+        
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById('aiChatMessages');
+        container.scrollTop = container.scrollHeight;
+    }
+</script>
